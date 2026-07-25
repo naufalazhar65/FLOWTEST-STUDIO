@@ -1,0 +1,185 @@
+import {
+  MousePointerClick,
+  Keyboard,
+  BadgeCheck,
+  MoveHorizontal,
+  Clock3,
+  Camera,
+  Search,
+} from "lucide-react";
+
+import { useFlowStore } from "../../features/flow/store/useFlowStore";
+
+export function Sidebar() {
+  const {
+    addTapNode,
+    addInputNode,
+    addAssertNode,
+  } = useFlowStore();
+
+  return (
+    <aside
+      style={{
+        width: "100%",
+        background: "#161B22",
+        borderRight: "1px solid #30363D",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      {/* Header */}
+      <div
+        style={{
+          padding: 20,
+          borderBottom: "1px solid #30363D",
+        }}
+      >
+        <h3
+          style={{
+            margin: 0,
+            fontSize: 18,
+            fontWeight: 700,
+          }}
+        >
+          Component Library
+        </h3>
+
+        <p
+          style={{
+            marginTop: 6,
+            color: "#8B949E",
+            fontSize: 13,
+          }}
+        >
+          Click to add a node
+        </p>
+
+        <div
+          style={{
+            marginTop: 16,
+            background: "#0D1117",
+            border: "1px solid #30363D",
+            borderRadius: 10,
+            display: "flex",
+            alignItems: "center",
+            padding: "10px 12px",
+            gap: 8,
+          }}
+        >
+          <Search size={16} color="#8B949E" />
+
+          <input
+            placeholder="Search component..."
+            style={{
+              flex: 1,
+              background: "transparent",
+              border: "none",
+              outline: "none",
+              color: "white",
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Mobile Actions */}
+      <div
+        style={{
+          padding: 20,
+        }}
+      >
+        <h4
+          style={{
+            color: "#8B949E",
+            marginBottom: 12,
+          }}
+        >
+          Mobile Actions
+        </h4>
+
+        <SidebarButton
+          icon={<MousePointerClick size={18} />}
+          label="Tap"
+          onClick={addTapNode}
+        />
+
+        <SidebarButton
+          icon={<Keyboard size={18} />}
+          label="Input Text"
+          onClick={addInputNode}
+        />
+
+        <SidebarButton
+          icon={<BadgeCheck size={18} />}
+          label="Assert"
+          onClick={addAssertNode}
+        />
+
+        <h4
+          style={{
+            marginTop: 28,
+            marginBottom: 12,
+            color: "#8B949E",
+          }}
+        >
+          Coming Soon
+        </h4>
+
+        <SidebarButton
+          disabled
+          icon={<MoveHorizontal size={18} />}
+          label="Swipe"
+        />
+
+        <SidebarButton
+          disabled
+          icon={<Clock3 size={18} />}
+          label="Wait"
+        />
+
+        <SidebarButton
+          disabled
+          icon={<Camera size={18} />}
+          label="Screenshot"
+        />
+      </div>
+    </aside>
+  );
+}
+
+interface SidebarButtonProps {
+  icon: React.ReactNode;
+  label: string;
+  onClick?: () => void;
+  disabled?: boolean;
+}
+
+function SidebarButton({
+  icon,
+  label,
+  onClick,
+  disabled,
+}: SidebarButtonProps) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        width: "100%",
+        marginBottom: 10,
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
+        padding: "12px 14px",
+        borderRadius: 12,
+        border: "1px solid #30363D",
+        background: disabled ? "#1A1F27" : "#0D1117",
+        color: disabled ? "#555" : "#FFF",
+        cursor: disabled ? "not-allowed" : "pointer",
+        transition: ".2s",
+      }}
+    >
+      {icon}
+      {label}
+    </button>
+  );
+}
