@@ -11,11 +11,7 @@ import {
 import { useFlowStore } from "../../features/flow/store/useFlowStore";
 
 export function Sidebar() {
-  const {
-    addTapNode,
-    addInputNode,
-    addAssertNode,
-  } = useFlowStore();
+  const { addNode } = useFlowStore();
 
   return (
     <aside
@@ -99,19 +95,19 @@ export function Sidebar() {
         <SidebarButton
           icon={<MousePointerClick size={18} />}
           label="Tap"
-          onClick={addTapNode}
+          onClick={() => addNode("tap")}
         />
 
         <SidebarButton
           icon={<Keyboard size={18} />}
           label="Input Text"
-          onClick={addInputNode}
+          onClick={() => addNode("input")}
         />
 
         <SidebarButton
           icon={<BadgeCheck size={18} />}
           label="Assert"
-          onClick={addAssertNode}
+          onClick={() => addNode("assert")}
         />
 
         <h4

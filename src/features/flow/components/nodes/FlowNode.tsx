@@ -29,81 +29,41 @@ export function FlowNode({
 
   return (
     <BaseNode
-  title={data.title}
-  color={config.color}
-  icon={<Icon size={18} />}
->
-  <div
-    style={{
-      display: "flex",
-      flexDirection: "column",
-      gap: 10,
-    }}
-  >
-    <div>
+      title={config.title}
+      color={config.color}
+      icon={<Icon size={18} />}
+    >
       <div
         style={{
-          fontSize: 11,
-          color: "#6B7280",
+          display: "flex",
+          flexDirection: "column",
+          gap: 12,
         }}
       >
-        {data.locatorStrategy}
+        {config.fields.map((field) => (
+          <div key={field.key}>
+            <div
+              style={{
+                fontSize: 11,
+                color: "#6B7280",
+                marginBottom: 4,
+              }}
+            >
+              {field.label}
+            </div>
+
+            <div
+              style={{
+                color: "#FFF",
+                fontWeight: 600,
+                wordBreak: "break-word",
+              }}
+            >
+              {String(data[field.key] ?? "-")}
+            </div>
+          </div>
+        ))}
       </div>
-
-      <div
-        style={{
-          color: "#FFF",
-          fontWeight: 600,
-        }}
-      >
-        {data.locator || "-"}
-      </div>
-    </div>
-
-    {data.action === "input" && (
-      <div>
-        <div
-          style={{
-            fontSize: 11,
-            color: "#6B7280",
-          }}
-        >
-          Text
-        </div>
-
-        <div
-          style={{
-            color: "#FFF",
-            fontWeight: 600,
-          }}
-        >
-          {data.text || "-"}
-        </div>
-      </div>
-    )}
-
-    {data.action === "assert" && (
-      <div>
-        <div
-          style={{
-            fontSize: 11,
-            color: "#6B7280",
-          }}
-        >
-          Expected
-        </div>
-
-        <div
-          style={{
-            color: "#FFF",
-            fontWeight: 600,
-          }}
-        >
-          {data.expected || "-"}
-        </div>
-      </div>
-    )}
-  </div>
-</BaseNode>
+    </BaseNode>
   );
 }

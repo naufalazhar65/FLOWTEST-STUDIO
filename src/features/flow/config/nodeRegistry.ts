@@ -4,7 +4,24 @@ import {
   BadgeCheck,
 } from "lucide-react";
 
-export const nodeRegistry = {
+import type { LucideIcon } from "lucide-react";
+import type { NodeField } from "../types/nodeField";
+
+export interface NodeDefinition {
+  title: string;
+  subtitle: string;
+  color: string;
+  icon: LucideIcon;
+
+  defaults: Record<string, string>;
+
+  fields: NodeField[];
+}
+
+export const nodeRegistry: Record<
+  string,
+  NodeDefinition
+> = {
   tap: {
     title: "Tap",
     subtitle: "Tap an element",
@@ -16,6 +33,25 @@ export const nodeRegistry = {
       locatorStrategy: "id",
       locator: "",
     },
+
+    fields: [
+      {
+        key: "locatorStrategy",
+        label: "Locator Strategy",
+        type: "select",
+        options: [
+          "id",
+          "xpath",
+          "accessibilityId",
+        ],
+      },
+
+      {
+        key: "locator",
+        label: "Locator",
+        type: "text",
+      },
+    ],
   },
 
   input: {
@@ -30,6 +66,31 @@ export const nodeRegistry = {
       locator: "",
       text: "",
     },
+
+    fields: [
+      {
+        key: "locatorStrategy",
+        label: "Locator Strategy",
+        type: "select",
+        options: [
+          "id",
+          "xpath",
+          "accessibilityId",
+        ],
+      },
+
+      {
+        key: "locator",
+        label: "Locator",
+        type: "text",
+      },
+
+      {
+        key: "text",
+        label: "Text",
+        type: "text",
+      },
+    ],
   },
 
   assert: {
@@ -44,7 +105,33 @@ export const nodeRegistry = {
       locator: "",
       expected: "",
     },
-  },
-} as const;
 
-export type NodeType = keyof typeof nodeRegistry;
+    fields: [
+      {
+        key: "locatorStrategy",
+        label: "Locator Strategy",
+        type: "select",
+        options: [
+          "id",
+          "xpath",
+          "accessibilityId",
+        ],
+      },
+
+      {
+        key: "locator",
+        label: "Locator",
+        type: "text",
+      },
+
+      {
+        key: "expected",
+        label: "Expected",
+        type: "text",
+      },
+    ],
+  },
+};
+
+export type NodeType =
+  keyof typeof nodeRegistry;

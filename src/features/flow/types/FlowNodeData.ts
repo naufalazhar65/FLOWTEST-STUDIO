@@ -1,5 +1,7 @@
+import type { NodeAction } from "./flowNode";
+
 export interface FlowNodeData {
-  action: "tap" | "input" | "assert";
+  action: NodeAction;
 
   title: string;
   subtitle: string;
@@ -8,6 +10,7 @@ export interface FlowNodeData {
   locator: string;
 
   text?: string;
-
   expected?: string;
+
+  [key: string]: string | undefined;
 }

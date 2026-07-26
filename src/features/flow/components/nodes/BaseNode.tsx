@@ -58,16 +58,16 @@ export function BaseNode({
 
       {/* Body */}
       <div
-  style={{
-    padding: 16,
-    color: "#AAB2BF",
-    fontSize: 13,
-    lineHeight: 1.6,
-    minHeight: 80,
-  }}
->
-  {children ?? subtitle}
-</div>
+        style={{
+          padding: 16,
+          color: "#AAB2BF",
+          fontSize: 13,
+          lineHeight: 1.6,
+          minHeight: 80,
+        }}
+      >
+        {children ?? subtitle}
+      </div>
 
       {/* Source Handle */}
       <Handle

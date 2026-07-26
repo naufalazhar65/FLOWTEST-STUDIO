@@ -6,27 +6,36 @@ import {
   initialEdges,
 } from "../data/initialFlow";
 
-import { createNode } from "../factories/nodeFactory";
-import { createEdge } from "../factories/edgeFactory";
+import type { NodeType } from "../config/nodeRegistry";
 
 import type {
   FlowNode,
   FlowNodeData,
 } from "../types/flowNode";
 
-interface FlowStore {
-  // =========================
-  // State
-  // =========================
+import type { FlowSnapshot } from "../history/history";
 
+import { addNodeAction } from "../actions/addNode";
+import { updateNodeAction } from "../actions/updateNode";
+import { updateNodeDataAction } from "../actions/updateNodeData";
+import { deleteNodeAction } from "../actions/deleteNode";
+import { insertNodeAction } from "../actions/insertNode";
+import { duplicateNodeAction } from "../actions/duplicateNode";
+import { pushHistory } from "./historyHelpers";
+
+interface FlowStore {
   nodes: FlowNode[];
   edges: Edge[];
 
+  history: FlowSnapshot[];
+  future: FlowSnapshot[];
+
   selectedNodeId: string | null;
 
-  // =========================
-  // State Actions
-  // =========================
+  saveHistory: () => void;
+
+  undo: () => void;
+  redo: () => void;
 
   setNodes: (
     updater:
@@ -40,15 +49,7 @@ interface FlowStore {
       | ((edges: Edge[]) => Edge[])
   ) => void;
 
-  // =========================
-  // Node Actions
-  // =========================
-
-  addNode: (node: FlowNode) => void;
-
-  addTapNode: () => void;
-  addInputNode: () => void;
-  addAssertNode: () => void;
+  addNode: (type: NodeType) => void;
 
   updateNode: (
     id: string,
@@ -62,9 +63,14 @@ interface FlowStore {
 
   removeNode: (id: string) => void;
 
-  // =========================
-  // Selection
-  // =========================
+  insertNode: (
+    edgeId: string,
+    type: NodeType
+  ) => void;
+
+  duplicateNode: (
+    id: string
+  ) => void;
 
   setSelectedNode: (
     id: string | null
@@ -72,19 +78,86 @@ interface FlowStore {
 }
 
 export const useFlowStore =
-  create<FlowStore>((set) => ({
-    // =========================
-    // Initial State
-    // =========================
-
+  create<FlowStore>((set, get) => ({
     nodes: initialNodes,
     edges: initialEdges,
 
+    history: [],
+    future: [],
+
     selectedNodeId: null,
 
-    // =========================
-    // State Actions
-    // =========================
+    saveHistory: () => {
+      const { nodes, edges, history } = get();
+
+      set({
+        history: [
+          ...history,
+          {
+            nodes: structuredClone(nodes),
+            edges: structuredClone(edges),
+          },
+        ],
+        future: [],
+      });
+    },
+
+    undo: () => {
+      const {
+        history,
+        future,
+        nodes,
+        edges,
+      } = get();
+
+      if (history.length === 0) return;
+
+      const previous =
+        history[history.length - 1];
+
+      set({
+        nodes: previous.nodes,
+        edges: previous.edges,
+
+        history: history.slice(0, -1),
+
+        future: [
+          {
+            nodes,
+            edges,
+          },
+          ...future,
+        ],
+      });
+    },
+
+    redo: () => {
+      const {
+        history,
+        future,
+        nodes,
+        edges,
+      } = get();
+
+      if (future.length === 0) return;
+
+      const next = future[0];
+
+      set({
+        nodes: next.nodes,
+        edges: next.edges,
+
+        history: [
+          ...history,
+          {
+            nodes,
+            edges,
+          },
+        ],
+
+        future: future.slice(1),
+      });
+    },
 
     setNodes: (updater) =>
       set((state) => ({
@@ -102,141 +175,124 @@ export const useFlowStore =
             : updater,
       })),
 
-    // =========================
-    // Node Actions
-    // =========================
-
-    addNode: (node) =>
-      set((state) => ({
-        nodes: [...state.nodes, node],
-      })),
-
-    addTapNode: () =>
+    addNode: (type) =>
       set((state) => {
-        const node = createNode("tap");
-
-        const lastNode =
-          state.nodes[state.nodes.length - 1];
+        const result = addNodeAction(
+          state.nodes,
+          state.edges,
+          type
+        );
 
         return {
-          nodes: [...state.nodes, node],
+          ...result,
 
-          edges: lastNode
-            ? [
-              ...state.edges,
-              createEdge(lastNode.id, node.id),
-            ]
-            : state.edges,
-        };
-      }),
+          history: pushHistory(
+            state.history,
+            state.nodes,
+            state.edges
+          ),
 
-    addInputNode: () =>
-      set((state) => {
-        const node = createNode("input");
-
-        const lastNode =
-          state.nodes[state.nodes.length - 1];
-
-        return {
-          nodes: [...state.nodes, node],
-
-          edges: lastNode
-            ? [
-              ...state.edges,
-              createEdge(lastNode.id, node.id),
-            ]
-            : state.edges,
-        };
-      }),
-
-    addAssertNode: () =>
-      set((state) => {
-        const node = createNode("assert");
-
-        const lastNode =
-          state.nodes[state.nodes.length - 1];
-
-        return {
-          nodes: [...state.nodes, node],
-
-          edges: lastNode
-            ? [
-              ...state.edges,
-              createEdge(lastNode.id, node.id),
-            ]
-            : state.edges,
+          future: [],
         };
       }),
 
     updateNode: (id, data) =>
       set((state) => ({
-        nodes: state.nodes.map((node) =>
-          node.id === id
-            ? {
-              ...node,
-              ...data,
-            }
-            : node
+        nodes: updateNodeAction(
+          state.nodes,
+          id,
+          data
         ),
-      })),
 
-    // =========================
-    // Update Node Data
-    // =========================
+        history: pushHistory(
+          state.history,
+          state.nodes,
+          state.edges
+        ),
+
+        future: [],
+      })),
 
     updateNodeData: (id, data) =>
       set((state) => ({
-        nodes: state.nodes.map((node) =>
-          node.id === id
-            ? {
-              ...node,
-              data: {
-                ...node.data,
-                ...data,
-              },
-            }
-            : node
+        nodes: updateNodeDataAction(
+          state.nodes,
+          id,
+          data
         ),
+
+        history: pushHistory(
+          state.history,
+          state.nodes,
+          state.edges
+        ),
+
+        future: [],
       })),
 
     removeNode: (id) =>
       set((state) => {
-        const incomingEdge = state.edges.find(
-          (edge) => edge.target === id
+        const result = deleteNodeAction(
+          state.nodes,
+          state.edges,
+          id
         );
-
-        const outgoingEdge = state.edges.find(
-          (edge) => edge.source === id
-        );
-
-        const nodes = state.nodes.filter(
-          (node) => node.id !== id
-        );
-
-        const edges = state.edges.filter(
-          (edge) =>
-            edge.source !== id &&
-            edge.target !== id
-        );
-
-        if (incomingEdge && outgoingEdge) {
-          edges.push(
-            createEdge(
-              incomingEdge.source,
-              outgoingEdge.target
-            )
-          );
-        }
 
         return {
-          nodes,
-          edges,
+          ...result,
+
+          history: pushHistory(
+            state.history,
+            state.nodes,
+            state.edges
+          ),
+
+          future: [],
         };
       }),
 
-    // =========================
-    // Selection
-    // =========================
+    insertNode: (edgeId, type) =>
+      set((state) => {
+        const result = insertNodeAction(
+          state.nodes,
+          state.edges,
+          edgeId,
+          type
+        );
+
+        return {
+          ...result,
+
+          history: pushHistory(
+            state.history,
+            state.nodes,
+            state.edges
+          ),
+
+          future: [],
+        };
+      }),
+
+    duplicateNode: (id) =>
+      set((state) => {
+        const result = duplicateNodeAction(
+          state.nodes,
+          state.edges,
+          id
+        );
+
+        return {
+          ...result,
+
+          history: pushHistory(
+            state.history,
+            state.nodes,
+            state.edges
+          ),
+
+          future: [],
+        };
+      }),
 
     setSelectedNode: (id) =>
       set({

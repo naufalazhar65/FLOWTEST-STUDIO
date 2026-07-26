@@ -5,14 +5,13 @@ export function createEdge(
   target: string
 ): Edge {
   return {
-    id: `${source}-${target}`,
+    id: crypto.randomUUID(),
+
     source,
     target,
-    animated: false,
 
-    style: {
-      stroke: "#64748B",
-      strokeWidth: 2,
-    },
+    type: "flow",
+
+    animated: false,
   };
 }

@@ -16,6 +16,8 @@ export interface FlowNodeData {
 
   text?: string;
   expected?: string;
+
+  [key: string]: unknown;
 }
 
 export type FlowNode = Node<FlowNodeData>;

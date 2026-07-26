@@ -1,105 +1,54 @@
 import "reactflow/dist/style.css";
 
-import { useEffect } from "react";
-
 import ReactFlow, {
   Background,
   Controls,
   MiniMap,
-  addEdge,
-  applyNodeChanges,
-  applyEdgeChanges,
-} from "reactflow";
-
-import type {
-  Node,
-  NodeChange,
-  EdgeChange,
-  Connection,
 } from "reactflow";
 
 import { useFlowStore } from "../../store/useFlowStore";
+
+import { useFlowCallbacks } from "../../hooks/useFlowCallbacks";
+import { useDeleteNode } from "../../hooks/useDeleteNode";
+import { useFlowShortcuts } from "../../hooks/useFlowShortcuts";
+
 import { FlowNode } from "../nodes/FlowNode";
+import { FlowEdge } from "../edges/FlowEdge";
 
 // =========================
-// React Flow Node Types
+// React Flow Types
 // =========================
 
 const nodeTypes = {
   flow: FlowNode,
 };
 
+const edgeTypes = {
+  flow: FlowEdge,
+};
+
+// =========================
+// Component
+// =========================
+
 export function FlowCanvas() {
   const {
     nodes,
     edges,
     selectedNodeId,
-    setNodes,
-    setEdges,
     removeNode,
     setSelectedNode,
   } = useFlowStore();
 
-  // =========================
-  // React Flow Events
-  // =========================
+  const callbacks = useFlowCallbacks();
 
-  const onNodesChange = (changes: NodeChange[]) => {
-  setNodes((currentNodes) =>
-    applyNodeChanges(changes, currentNodes)
-  );
-};
-
-const onEdgesChange = (changes: EdgeChange[]) => {
-  setEdges((currentEdges) =>
-    applyEdgeChanges(changes, currentEdges)
-  );
-};
-
- const onConnect = (connection: Connection) => {
-  setEdges((currentEdges) =>
-    addEdge(connection, currentEdges)
-  );
-};
-
-  const onNodeClick = (_event: React.MouseEvent, node: Node) => {
-  setSelectedNode(node.id);
-};
-
-  const onPaneClick = () => {
-    setSelectedNode(null);
-  };
-
-  // =========================
-  // Delete Selected Node
-  // =========================
-
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== "Delete") return;
-      if (!selectedNodeId) return;
-
-      removeNode(selectedNodeId);
-      setSelectedNode(null);
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      window.removeEventListener(
-        "keydown",
-        handleKeyDown
-      );
-    };
-  }, [
+  useDeleteNode({
     selectedNodeId,
     removeNode,
     setSelectedNode,
-  ]);
+  });
 
-  // =========================
-  // Render
-  // =========================
+  useFlowShortcuts();
 
   return (
     <div
@@ -112,11 +61,7 @@ const onEdgesChange = (changes: EdgeChange[]) => {
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        onNodeClick={onNodeClick}
-        onPaneClick={onPaneClick}
+        edgeTypes={edgeTypes}
         fitView
         fitViewOptions={{
           padding: 0.3,
@@ -124,9 +69,11 @@ const onEdgesChange = (changes: EdgeChange[]) => {
         proOptions={{
           hideAttribution: true,
         }}
+        {...callbacks}
       >
         <Background />
         <Controls />
+
         {nodes.length > 0 && <MiniMap />}
       </ReactFlow>
     </div>
