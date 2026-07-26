@@ -3,7 +3,9 @@ import type { NodeProps } from "reactflow";
 import { BaseNode } from "./BaseNode";
 import { nodeRegistry } from "../../config/nodeRegistry";
 
+
 import type { FlowNodeData } from "../../types/FlowNodeData";
+
 
 export function FlowNode({
   data,

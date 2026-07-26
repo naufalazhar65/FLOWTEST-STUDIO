@@ -1,17 +1,23 @@
-import type { Node } from "reactflow";
-
-import {
-  nodeRegistry,
-  type NodeType,
-} from "../config/nodeRegistry";
 import type { FlowNode } from "../types/flowNode";
+import type { NodeType } from "../config/nodeRegistry";
+
+import { plugins } from "../plugins";
 
 let currentY = 80;
 
-export function createNode(action: NodeType): FlowNode {
-  const config = nodeRegistry[action];
+export function createNode(
+  action: NodeType
+): FlowNode {
 
-  const node: Node = {
+  const plugin = plugins.find(
+    (plugin) => plugin.type === action
+  );
+
+  if (!plugin) {
+    throw new Error(`Unknown node type: ${action}`);
+  }
+
+  const node: FlowNode = {
     id: crypto.randomUUID(),
 
     type: "flow",
@@ -22,10 +28,10 @@ export function createNode(action: NodeType): FlowNode {
     },
 
     data: {
-      title: config.title,
-      subtitle: config.subtitle,
+      ...plugin.defaults,
 
-      ...config.defaults,
+      title: plugin.title,
+      subtitle: plugin.subtitle,
     },
   };
 

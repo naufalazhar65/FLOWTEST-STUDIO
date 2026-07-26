@@ -1,6 +1,8 @@
 import { MousePointerClick } from "lucide-react";
+import type { NodePlugin } from "../../types/NodePlugin";
 
-export const tapNode = {
+
+export const tapNode: NodePlugin  = {
   type: "tap",
 
   title: "Tap",

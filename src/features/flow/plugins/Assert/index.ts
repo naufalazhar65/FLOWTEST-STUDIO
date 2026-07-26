@@ -1,6 +1,8 @@
 import { BadgeCheck } from "lucide-react";
+import type { NodePlugin } from "../../types/NodePlugin";
 
-export const assertNode = {
+
+export const assertNode: NodePlugin  = {
   type: "assert",
 
   title: "Assert",

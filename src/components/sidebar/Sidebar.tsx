@@ -1,13 +1,11 @@
 import {
-  MousePointerClick,
-  Keyboard,
-  BadgeCheck,
   MoveHorizontal,
   Clock3,
   Camera,
   Search,
 } from "lucide-react";
 
+import { plugins } from "../../features/flow/plugins";
 import { useFlowStore } from "../../features/flow/store/useFlowStore";
 
 export function Sidebar() {
@@ -62,7 +60,10 @@ export function Sidebar() {
             gap: 8,
           }}
         >
-          <Search size={16} color="#8B949E" />
+          <Search
+            size={16}
+            color="#8B949E"
+          />
 
           <input
             placeholder="Search component..."
@@ -71,7 +72,7 @@ export function Sidebar() {
               background: "transparent",
               border: "none",
               outline: "none",
-              color: "white",
+              color: "#FFF",
             }}
           />
         </div>
@@ -92,23 +93,20 @@ export function Sidebar() {
           Mobile Actions
         </h4>
 
-        <SidebarButton
-          icon={<MousePointerClick size={18} />}
-          label="Tap"
-          onClick={() => addNode("tap")}
-        />
+        {plugins.map((plugin) => {
+          const Icon = plugin.icon;
 
-        <SidebarButton
-          icon={<Keyboard size={18} />}
-          label="Input Text"
-          onClick={() => addNode("input")}
-        />
-
-        <SidebarButton
-          icon={<BadgeCheck size={18} />}
-          label="Assert"
-          onClick={() => addNode("assert")}
-        />
+          return (
+            <SidebarButton
+              key={plugin.type}
+              icon={<Icon size={18} />}
+              label={plugin.title}
+              onClick={() =>
+                addNode(plugin.type)
+              }
+            />
+          );
+        })}
 
         <h4
           style={{
@@ -122,7 +120,9 @@ export function Sidebar() {
 
         <SidebarButton
           disabled
-          icon={<MoveHorizontal size={18} />}
+          icon={
+            <MoveHorizontal size={18} />
+          }
           label="Swipe"
         />
 
@@ -168,9 +168,15 @@ function SidebarButton({
         padding: "12px 14px",
         borderRadius: 12,
         border: "1px solid #30363D",
-        background: disabled ? "#1A1F27" : "#0D1117",
-        color: disabled ? "#555" : "#FFF",
-        cursor: disabled ? "not-allowed" : "pointer",
+        background: disabled
+          ? "#1A1F27"
+          : "#0D1117",
+        color: disabled
+          ? "#555"
+          : "#FFF",
+        cursor: disabled
+          ? "not-allowed"
+          : "pointer",
         transition: ".2s",
       }}
     >

@@ -1,6 +1,8 @@
 import { Keyboard } from "lucide-react";
+import type { NodePlugin } from "../../types/NodePlugin";
 
-export const inputNode = {
+
+export const inputNode: NodePlugin = {
   type: "input",
 
   title: "Input",
