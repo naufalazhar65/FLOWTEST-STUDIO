@@ -1,13 +1,17 @@
 import { create } from "zustand";
 import type { Edge } from "reactflow";
+import type { FlowProject } from "../types/FlowProject";
+
+import {
+  createProject,
+} from "../services/projectService";
 
 import {
   initialNodes,
   initialEdges,
 } from "../data/initialFlow";
 
-import type { NodeType } from "../config/nodeRegistry";
-
+import type { NodeType } from "../types/NodePlugin";
 import type {
   FlowNode,
   FlowNodeData,
@@ -23,6 +27,7 @@ import { insertNodeAction } from "../actions/insertNode";
 import { duplicateNodeAction } from "../actions/duplicateNode";
 import { pushHistory } from "./historyHelpers";
 
+
 interface FlowStore {
   nodes: FlowNode[];
   edges: Edge[];
@@ -31,11 +36,16 @@ interface FlowStore {
   future: FlowSnapshot[];
 
   selectedNodeId: string | null;
+  clipboard: FlowNode | null;
+
 
   saveHistory: () => void;
 
   undo: () => void;
   redo: () => void;
+  copyNode: () => void;
+
+  pasteNode: () => void;
 
   setNodes: (
     updater:
@@ -75,10 +85,18 @@ interface FlowStore {
   setSelectedNode: (
     id: string | null
   ) => void;
+  saveProject: (
+    name?: string
+  ) => FlowProject;
+
+  loadProject: (
+    project: FlowProject
+  ) => void;
 }
 
 export const useFlowStore =
   create<FlowStore>((set, get) => ({
+    clipboard: null,
     nodes: initialNodes,
     edges: initialEdges,
 
@@ -98,6 +116,59 @@ export const useFlowStore =
             edges: structuredClone(edges),
           },
         ],
+        future: [],
+      });
+    },
+
+    copyNode: () => {
+      const {
+        nodes,
+        selectedNodeId,
+      } = get();
+
+      const node = nodes.find(
+        (node) => node.id === selectedNodeId
+      );
+
+      if (!node) return;
+
+      set({
+        clipboard: structuredClone(node),
+      });
+    },
+
+    pasteNode: () => {
+      const {
+        clipboard,
+        nodes,
+        edges,
+        history,
+      } = get();
+
+      if (!clipboard) return;
+
+      const newNode: FlowNode = {
+        ...structuredClone(clipboard),
+
+        id: crypto.randomUUID(),
+
+        position: {
+          x: clipboard.position.x + 40,
+          y: clipboard.position.y + 40,
+        },
+      };
+
+      set({
+        nodes: [...nodes, newNode],
+
+        selectedNodeId: newNode.id,
+
+        history: pushHistory(
+          history,
+          nodes,
+          edges
+        ),
+
         future: [],
       });
     },
@@ -292,6 +363,35 @@ export const useFlowStore =
 
           future: [],
         };
+      }),
+
+    saveProject: (
+      name = "Untitled"
+    ) => {
+      const { nodes, edges } = get();
+
+      return createProject(
+        name,
+        nodes,
+        edges
+      );
+    },
+
+    loadProject: (
+      project: FlowProject
+    ) =>
+      set({
+        nodes: structuredClone(project.nodes),
+
+        edges: structuredClone(project.edges),
+
+        selectedNodeId: null,
+
+        clipboard: null,
+
+        history: [],
+
+        future: [],
       }),
 
     setSelectedNode: (id) =>

@@ -6,53 +6,64 @@ import { ConsolePanel } from "../console/ConsolePanel";
 import { StatusBar } from "../statusbar/StatusBar";
 import { InspectorPanel } from "../inspector/InspectorPanel";
 
+
 export function MainLayout() {
-    return (
+  return (
+    <div
+      style={{
+        height: "100vh",
+        display: "grid",
+        gridTemplateRows: "auto 1fr 180px 32px",
+        background: "#0D1117",
+      }}
+    >
+      <TopBar />
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "300px 1fr 420px",
+          overflow: "hidden",
+          minHeight: 0, // penting
+        }}
+      >
+        <Sidebar />
+
         <div
-            style={{
-                height: "100vh",
-                display: "grid",
-                gridTemplateRows: "64px 1fr 180px 32px",
-                background: "#0d1117",
-            }}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            overflow: "hidden",
+            minHeight: 0,
+          }}
         >
-            <TopBar />
+          <Toolbar />
 
-            <div
-                style={{
-                    display: "grid",
-                    gridTemplateColumns: "300px 1fr 420px",
-                    overflow: "hidden",
-                }}
-            >
-                <Sidebar />
-
-                <div
-                    style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        overflow: "hidden",
-                    }}
-                >
-                    <Toolbar />
-
-                    <div
-                        style={{
-                            flex: 1,
-                            overflow: "hidden",
-                        }}
-                    >
-                        <FlowCanvas />
-                    </div>
-                </div>
-
-                <InspectorPanel />
-            </div>
-
-            <ConsolePanel />
-
-            <StatusBar />
-            
+          <div
+            style={{
+              flex: 1,
+              overflow: "hidden",
+            }}
+          >
+            <FlowCanvas />
+          </div>
         </div>
-    );
+
+        <div
+          style={{
+            overflow: "hidden",
+            minHeight: 0,
+            borderLeft: "1px solid #30363D",
+            background: "#0D1117",
+          }}
+        >
+          <InspectorPanel />
+        </div>
+      </div>
+
+      <ConsolePanel />
+
+      <StatusBar />
+    </div>
+  );
 }

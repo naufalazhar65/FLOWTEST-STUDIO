@@ -1,21 +1,37 @@
-import type { FlowNode } from "../types/flowNode";
-import type { NodeType } from "../config/nodeRegistry";
-
 import { plugins } from "../plugins";
+
+import type {
+  FlowNode,
+  FlowNodeData,
+} from "../types/flowNode";
+
+import type {
+  NodePlugin,
+  NodeType,
+} from "../types/NodePlugin";
 
 let currentY = 80;
 
 export function createNode(
   action: NodeType
 ): FlowNode {
-
   const plugin = plugins.find(
-    (plugin) => plugin.type === action
+    (plugin): plugin is NodePlugin =>
+      plugin.type === action
   );
 
   if (!plugin) {
-    throw new Error(`Unknown node type: ${action}`);
+    throw new Error(
+      `Unknown node type: ${action}`
+    );
   }
+
+  const data = {
+    ...plugin.defaults,
+
+    title: plugin.title,
+    subtitle: plugin.subtitle,
+  } as FlowNodeData;
 
   const node: FlowNode = {
     id: crypto.randomUUID(),
@@ -27,12 +43,7 @@ export function createNode(
       y: currentY,
     },
 
-    data: {
-      ...plugin.defaults,
-
-      title: plugin.title,
-      subtitle: plugin.subtitle,
-    },
+    data,
   };
 
   currentY += 180;

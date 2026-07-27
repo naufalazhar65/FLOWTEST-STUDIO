@@ -1,7 +1,41 @@
-import { Play, Smartphone, Cpu, Download } from "lucide-react";
+import { useCallback } from "react";
+import {
+  FolderOpen,
+  Save,
+  Play,
+  Smartphone,
+  Cpu,
+  Download,
+} from "lucide-react";
+
 import { Button } from "../ui/Button";
 
+import { useFlowStore } from "../../features/flow/store/useFlowStore";
+import { executeFlow } from "../../features/execution/engine/executeFlow";
+import { useExecutionStore } from "../../features/execution/store/useExecutionStore";
+import { exportProject } from "../../features/flow/services/exportService";
+import { openJsonFile } from "../../features/flow/services/filePicker";
+import { importProject } from "../../features/flow/services/importService";
+
 export function TopBar() {
+  const { nodes, edges, saveProject,
+    loadProject, } = useFlowStore();
+
+  const status = useExecutionStore(
+    (state) => state.status
+  );
+
+  const handleRun = useCallback(async () => {
+    try {
+      await executeFlow(nodes, {
+        device: "Android",
+        edges,
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  }, [nodes, edges]);
+
   return (
     <header
       style={{
@@ -90,11 +124,16 @@ export function TopBar() {
             border: "1px solid #30363D",
             padding: "8px 14px",
             borderRadius: 10,
-            color: "#3FB950",
+            color:
+              status === "running"
+                ? "#F59E0B"
+                : "#3FB950",
           }}
         >
           <Cpu size={16} />
-          Appium Connected
+          {status === "running"
+            ? "Running..."
+            : "Appium Connected"}
         </div>
       </div>
 
@@ -105,9 +144,41 @@ export function TopBar() {
           gap: 10,
         }}
       >
-        <Button>
+        <Button
+          onClick={async () => {
+            const file = await openJsonFile();
+
+            if (!file) return;
+
+            const project =
+              await importProject(file);
+
+            loadProject(project);
+          }}
+        >
+          <FolderOpen size={16} />
+          Open
+        </Button>
+
+        <Button
+          onClick={() =>
+            exportProject(
+              saveProject("Untitled")
+            )
+          }
+        >
+          <Save size={16} />
+          Save
+        </Button>
+
+        <Button
+          onClick={handleRun}
+          disabled={status === "running"}
+        >
           <Play size={16} />
-          Run
+          {status === "running"
+            ? "Running..."
+            : "Run"}
         </Button>
 
         <Button>

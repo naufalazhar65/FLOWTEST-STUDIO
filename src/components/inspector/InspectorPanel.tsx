@@ -1,7 +1,12 @@
-import { nodeRegistry } from "../../features/flow/config/nodeRegistry";
 import { useFlowStore } from "../../features/flow/store/useFlowStore";
 
 import { InspectorField } from "../../features/flow/components/inspector/InspectorField";
+
+import { getNodePlugin } from "../../features/flow/services/pluginRegistry";
+import { validateNode } from "../../features/flow/validation/validateNode";
+
+import { Badge } from "../ui/Badge";
+import { Divider } from "../ui/Divider";
 
 export function InspectorPanel() {
   const {
@@ -27,38 +32,73 @@ export function InspectorPanel() {
     );
   }
 
-  const config =
-    nodeRegistry[node.data.action];
+  const plugin = getNodePlugin(
+    node.data.action
+  );
+
+  const validation = validateNode(
+    node.data
+  );
 
   return (
     <div
       style={{
+        height: "100%",
+        overflowY: "auto",
+        overflowX: "hidden",
         padding: 24,
         color: "#FFF",
+        boxSizing: "border-box",
       }}
     >
+      <Badge color={plugin.color}>
+        {plugin.title.toUpperCase()}
+      </Badge>
+
       <h2
         style={{
-          marginTop: 0,
+          marginTop: 14,
+          marginBottom: 4,
+          fontSize: 22,
+          fontWeight: 700,
         }}
       >
-        {config.title}
+        {plugin.title}
       </h2>
 
       <p
         style={{
           color: "#8B949E",
-          marginBottom: 28,
+          marginTop: 0,
+          marginBottom: 20,
+          lineHeight: 1.5,
         }}
       >
-        {config.subtitle}
+        {plugin.subtitle}
       </p>
 
-      {config.fields.map((field) => (
+      <Divider />
+
+      <div
+        style={{
+          marginBottom: 18,
+          fontWeight: 700,
+          fontSize: 13,
+          color: "#94A3B8",
+          letterSpacing: 1,
+          textTransform: "uppercase",
+        }}
+      >
+        General
+      </div>
+
+      {plugin.fields.map((field) => (
         <InspectorField
           key={field.key}
           field={field}
-          value={String(node.data[field.key] ?? "")}
+          value={String(
+            node.data[field.key] ?? ""
+          )}
           onChange={(value) =>
             updateNodeData(node.id, {
               [field.key]: value,
@@ -66,6 +106,82 @@ export function InspectorPanel() {
           }
         />
       ))}
+
+      <Divider />
+
+      <div
+        style={{
+          marginBottom: 16,
+          fontWeight: 700,
+          fontSize: 13,
+          color: "#94A3B8",
+          letterSpacing: 1,
+          textTransform: "uppercase",
+        }}
+      >
+        Preview
+      </div>
+
+      <div
+        style={{
+          padding: 14,
+          borderRadius: 10,
+          background: "#161B22",
+          border: "1px solid #30363D",
+          marginBottom: 20,
+        }}
+      >
+        {plugin.preview?.(node.data)}
+      </div>
+
+      <Divider />
+
+      {validation.valid ? (
+        <div
+          style={{
+            padding: 12,
+            borderRadius: 10,
+            background: "#12341F",
+            border: "1px solid #10B981",
+            color: "#6EE7B7",
+            fontWeight: 600,
+          }}
+        >
+          ✓ Node is valid
+        </div>
+      ) : (
+        <div
+          style={{
+            padding: 14,
+            borderRadius: 10,
+            background: "#3A1618",
+            border: "1px solid #EF4444",
+          }}
+        >
+          <div
+            style={{
+              color: "#FCA5A5",
+              fontWeight: 700,
+              marginBottom: 8,
+            }}
+          >
+            Validation Errors
+          </div>
+
+          {validation.errors.map((error) => (
+            <div
+              key={error}
+              style={{
+                color: "#FCA5A5",
+                fontSize: 13,
+                marginBottom: 4,
+              }}
+            >
+              • {error}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

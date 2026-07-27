@@ -4,8 +4,9 @@ export type NodeAction =
   | "tap"
   | "input"
   | "assert";
+  
 
-export interface FlowNodeData {
+export interface BaseNodeData {
   action: NodeAction;
 
   title: string;
@@ -13,11 +14,30 @@ export interface FlowNodeData {
 
   locatorStrategy: string;
   locator: string;
-
-  text?: string;
-  expected?: string;
-
-  [key: string]: unknown;
 }
+
+export interface TapNodeData
+  extends BaseNodeData {
+  action: "tap";
+}
+
+export interface InputNodeData
+  extends BaseNodeData {
+  action: "input";
+
+  text: string;
+}
+
+export interface AssertNodeData
+  extends BaseNodeData {
+  action: "assert";
+
+  expected: string;
+}
+
+export type FlowNodeData =
+  | TapNodeData
+  | InputNodeData
+  | AssertNodeData;
 
 export type FlowNode = Node<FlowNodeData>;

@@ -5,11 +5,12 @@ import {
   Search,
 } from "lucide-react";
 
-import { plugins } from "../../features/flow/plugins";
+import { getPlugins } from "../../features/flow/services/pluginRegistry";
 import { useFlowStore } from "../../features/flow/store/useFlowStore";
 
 export function Sidebar() {
   const { addNode } = useFlowStore();
+  const plugins = getPlugins();
 
   return (
     <aside

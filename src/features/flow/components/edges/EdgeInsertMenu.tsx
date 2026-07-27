@@ -1,13 +1,15 @@
-import { nodeRegistry } from "../../config/nodeRegistry";
-import type { NodeType } from "../../config/nodeRegistry";
+import { getPlugins } from "../../services/pluginRegistry";
+import type { NodeType } from "../../types/NodePlugin";
 
 interface Props {
-  onSelect(type: NodeType): void;
+  onSelect: (type: NodeType) => void;
 }
 
 export function EdgeInsertMenu({
   onSelect,
 }: Props) {
+  const plugins = getPlugins();
+
   return (
     <div
       style={{
@@ -23,43 +25,31 @@ export function EdgeInsertMenu({
           "0 8px 20px rgba(0,0,0,.35)",
       }}
     >
-      {(
-        Object.entries(nodeRegistry) as [
-          NodeType,
-          (typeof nodeRegistry)[NodeType]
-        ][]
-      ).map(([type, config]) => {
-        const Icon = config.icon;
+      {plugins.map((plugin) => {
+        const Icon = plugin.icon;
 
         return (
           <button
-            key={type}
-            onClick={() => onSelect(type)}
+            key={plugin.type}
+            onClick={() => onSelect(plugin.type)}
             style={{
               display: "flex",
               alignItems: "center",
               gap: 10,
               padding: "10px 12px",
-
               background: "transparent",
-
               border: "none",
-
               color: "#FFF",
-
               borderRadius: 8,
-
               cursor: "pointer",
-
               textAlign: "left",
             }}
           >
             <Icon
               size={18}
-              color={config.color}
+              color={plugin.color}
             />
-
-            {config.title}
+            {plugin.title}
           </button>
         );
       })}

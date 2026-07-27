@@ -1,8 +1,7 @@
 import type { Edge } from "reactflow";
 
 import type { FlowNode } from "../types/flowNode";
-import type { NodeType } from "../config/nodeRegistry";
-
+import type { NodeType } from "../types/NodePlugin";
 import { createNode } from "../factories/nodeFactory";
 import { createEdge } from "../factories/edgeFactory";
 

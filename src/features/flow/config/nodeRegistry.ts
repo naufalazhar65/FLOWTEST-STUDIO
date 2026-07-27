@@ -1,10 +1,16 @@
 import { plugins } from "../plugins";
+import type {
+  NodePlugin,
+  NodeType,
+} from "../types/NodePlugin";
 
-export const nodeRegistry = Object.fromEntries(
-  plugins.map((plugin) => [
-    plugin.type,
-    plugin,
-  ])
+export const nodeRegistry: Record<
+  NodeType,
+  NodePlugin
+> = plugins.reduce(
+  (registry, plugin) => {
+    registry[plugin.type] = plugin;
+    return registry;
+  },
+  {} as Record<NodeType, NodePlugin>
 );
-
-export type NodeType = keyof typeof nodeRegistry;

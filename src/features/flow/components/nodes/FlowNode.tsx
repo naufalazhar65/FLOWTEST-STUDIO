@@ -1,71 +1,40 @@
 import type { NodeProps } from "reactflow";
 
 import { BaseNode } from "./BaseNode";
-import { nodeRegistry } from "../../config/nodeRegistry";
 
+import type { FlowNodeData } from "../../types/flowNode";
 
-import type { FlowNodeData } from "../../types/FlowNodeData";
+import { getNodePlugin } from "../../services/pluginRegistry";
+import { validateNode } from "../../validation/validateNode";
 
+import { useExecutionStore } from "../../../execution/store/useExecutionStore";
 
 export function FlowNode({
+  id,
   data,
 }: NodeProps<FlowNodeData>) {
-  const config = nodeRegistry[data.action];
+  const plugin = getNodePlugin(data.action);
 
-  if (!config) {
-    return (
-      <div
-        style={{
-          padding: 20,
-          background: "#EF4444",
-          color: "#FFF",
-          borderRadius: 10,
-        }}
-      >
-        Unknown Node
-      </div>
-    );
-  }
+  const Icon = plugin.icon;
 
-  const Icon = config.icon;
+  const {
+    currentNodeId,
+    nodeStatus,
+  } = useExecutionStore();
+
+  const validation = validateNode(data);
 
   return (
     <BaseNode
-      title={config.title}
-      color={config.color}
+      title={plugin.title}
+      subtitle={plugin.subtitle}
       icon={<Icon size={18} />}
+      color={plugin.color}
+      running={currentNodeId === id}
+      executionStatus={nodeStatus[id] ?? "idle"}
+      valid={validation.valid}
     >
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: 12,
-        }}
-      >
-        {config.fields.map((field) => (
-          <div key={field.key}>
-            <div
-              style={{
-                fontSize: 11,
-                color: "#6B7280",
-                marginBottom: 4,
-              }}
-            >
-              {field.label}
-            </div>
-
-            <div
-              style={{
-                color: "#FFF",
-                fontWeight: 600,
-                wordBreak: "break-word",
-              }}
-            >
-              {String(data[field.key] ?? "-")}
-            </div>
-          </div>
-        ))}
-      </div>
+      {plugin.preview?.(data)}
     </BaseNode>
   );
 }

@@ -14,6 +14,7 @@ import { useFlowShortcuts } from "../../hooks/useFlowShortcuts";
 
 import { FlowNode } from "../nodes/FlowNode";
 import { FlowEdge } from "../edges/FlowEdge";
+import { useHistoryShortcuts } from "../../hooks/useKeyboardShortcuts";
 
 // =========================
 // React Flow Types
@@ -49,6 +50,7 @@ export function FlowCanvas() {
   });
 
   useFlowShortcuts();
+  useHistoryShortcuts();
 
   return (
     <div
@@ -63,6 +65,10 @@ export function FlowCanvas() {
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         fitView
+        translateExtent={[
+          [-10000, 0],
+          [10000, 10000],
+        ]}
         fitViewOptions={{
           padding: 0.3,
         }}

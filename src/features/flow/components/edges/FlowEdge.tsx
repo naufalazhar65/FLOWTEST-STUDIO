@@ -4,16 +4,14 @@ import {
     getBezierPath,
     type EdgeProps,
 } from "reactflow";
+
 import { useState } from "react";
 import { Plus } from "lucide-react";
+
 import { EdgeInsertMenu } from "./EdgeInsertMenu";
 
 import { useFlowStore } from "../../store/useFlowStore";
-
-
-
-
-
+import { useExecutionStore } from "../../../execution/store/useExecutionStore";
 
 export function FlowEdge({
     id,
@@ -28,17 +26,29 @@ export function FlowEdge({
         sourceX,
         sourceY,
         sourcePosition,
-
         targetX,
         targetY,
         targetPosition,
     });
+
     const insertNode = useFlowStore(
         (state) => state.insertNode
     );
+
+    const status = useExecutionStore(
+        (state) => state.status
+    );
+
     const [open, setOpen] = useState(false);
 
-    
+    const stroke =
+        status === "running"
+            ? "#FBBF24"
+            : status === "passed"
+                ? "#10B981"
+                : status === "failed"
+                    ? "#EF4444"
+                    : "#3B82F6";
 
     return (
         <>
@@ -46,8 +56,10 @@ export function FlowEdge({
                 id={id}
                 path={path}
                 style={{
-                    stroke: "#3B82F6",
-                    strokeWidth: 2,
+                    stroke,
+                    strokeWidth: 3,
+                    transition:
+                        "stroke .25s ease, stroke-width .25s ease",
                 }}
             />
 
@@ -55,9 +67,7 @@ export function FlowEdge({
                 <div
                     style={{
                         position: "absolute",
-
                         transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
-
                         pointerEvents: "all",
                     }}
                 >
@@ -66,18 +76,17 @@ export function FlowEdge({
                             setOpen((prev) => !prev)
                         }
                         style={{
-                            width: 28,
-                            height: 28,
-
+                            width: 30,
+                            height: 30,
                             borderRadius: "50%",
-
-                            border: "none",
-
-                            background: "#2563EB",
-
-                            color: "#FFF",
-
+                            border: `2px solid ${stroke}`,
+                            background: "#161B22",
+                            color: stroke,
                             cursor: "pointer",
+                            transition: "all .2s ease",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
                         }}
                     >
                         <Plus size={16} />

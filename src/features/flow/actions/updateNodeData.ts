@@ -8,15 +8,17 @@ export function updateNodeDataAction(
   id: string,
   data: Partial<FlowNodeData>
 ): FlowNode[] {
-  return nodes.map((node) =>
-    node.id === id
-      ? {
-          ...node,
-          data: {
-            ...node.data,
-            ...data,
-          },
-        }
-      : node
-  );
+  return nodes.map((node) => {
+    if (node.id !== id) {
+      return node;
+    }
+
+    return {
+      ...node,
+      data: {
+        ...node.data,
+        ...data,
+      } as FlowNodeData,
+    };
+  });
 }

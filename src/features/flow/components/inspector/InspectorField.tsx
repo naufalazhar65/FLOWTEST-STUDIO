@@ -1,54 +1,47 @@
-import type { CSSProperties } from "react";
-
 import type { NodeField } from "../../types/nodeField";
 
-interface InspectorFieldProps {
+import { Input } from "../../../../components/ui/Input";
+import { Select } from "../../../../components/ui/Select";
+import { Label } from "../../../../components/ui/Label";
+
+interface Props {
   field: NodeField;
 
   value: string;
 
-  onChange: (value: string) => void;
+  onChange(value: string): void;
 }
 
 export function InspectorField({
   field,
   value,
   onChange,
-}: InspectorFieldProps) {
+}: Props) {
   return (
     <div
       style={{
-        marginBottom: 22,
+        marginBottom: 18,
       }}
     >
-      <div
-        style={{
-          marginBottom: 8,
-          color: "#8B949E",
-          fontSize: 13,
-          fontWeight: 600,
-        }}
-      >
-        {field.label}
-      </div>
+      <Label>{field.label}</Label>
 
-      {field.type === "text" ? (
-        <input
+      {field.type === "text" && (
+        <Input
           value={value}
-          onChange={(event) =>
-            onChange(event.target.value)
+          onChange={(e) =>
+            onChange(e.target.value)
           }
-          style={inputStyle}
         />
-      ) : (
-        <select
+      )}
+
+      {field.type === "select" && (
+        <Select
           value={value}
-          onChange={(event) =>
-            onChange(event.target.value)
+          onChange={(e) =>
+            onChange(e.target.value)
           }
-          style={inputStyle}
         >
-          {(field.options ?? []).map((option) => (
+          {field.options?.map((option) => (
             <option
               key={option}
               value={option}
@@ -56,19 +49,8 @@ export function InspectorField({
               {option}
             </option>
           ))}
-        </select>
+        </Select>
       )}
     </div>
   );
 }
-
-const inputStyle: CSSProperties = {
-  width: "100%",
-  padding: "10px 12px",
-  borderRadius: 8,
-  border: "1px solid #30363D",
-  background: "#0D1117",
-  color: "#FFF",
-  outline: "none",
-  fontSize: 14,
-};
