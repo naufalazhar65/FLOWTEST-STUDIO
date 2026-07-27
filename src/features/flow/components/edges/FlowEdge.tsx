@@ -5,15 +5,17 @@ import {
     type EdgeProps,
 } from "reactflow";
 
-import { useState } from "react";
+import { memo, useState } from "react";
 import { Plus } from "lucide-react";
 
 import { EdgeInsertMenu } from "./EdgeInsertMenu";
 
 import { useFlowStore } from "../../store/useFlowStore";
 import { useExecutionStore } from "../../../execution/store/useExecutionStore";
+import type { NodeExecutionStatus } from "../../../execution/types/NodeExecutionStatus";
 
-export function FlowEdge({
+
+export const FlowEdge = memo(function FlowEdge({
     id,
     sourceX,
     sourceY,
@@ -22,6 +24,18 @@ export function FlowEdge({
     sourcePosition,
     targetPosition,
 }: EdgeProps) {
+
+    const [open, setOpen] = useState(false);
+
+    const insertNode = useFlowStore(
+        (state) => state.insertNode
+    );
+
+    const edgeStatus = useExecutionStore(
+        (state) => state.edgeStatus[id] ?? "idle"
+    );
+
+
     const [path, labelX, labelY] = getBezierPath({
         sourceX,
         sourceY,
@@ -31,24 +45,17 @@ export function FlowEdge({
         targetPosition,
     });
 
-    const insertNode = useFlowStore(
-        (state) => state.insertNode
-    );
 
-    const status = useExecutionStore(
-        (state) => state.status
-    );
+    const strokeMap: Record<NodeExecutionStatus, string> = {
+        idle: "#4B5563",
+        running: "#F59E0B",
+        passed: "#22C55E",
+        failed: "#EF4444",
+    };
 
-    const [open, setOpen] = useState(false);
 
-    const stroke =
-        status === "running"
-            ? "#FBBF24"
-            : status === "passed"
-                ? "#10B981"
-                : status === "failed"
-                    ? "#EF4444"
-                    : "#3B82F6";
+    const stroke = strokeMap[edgeStatus];
+
 
     return (
         <>
@@ -57,20 +64,27 @@ export function FlowEdge({
                 path={path}
                 style={{
                     stroke,
-                    strokeWidth: 3,
+                    strokeWidth:
+                        edgeStatus === "running"
+                            ? 4
+                            : 2,
+
                     transition:
-                        "stroke .25s ease, stroke-width .25s ease",
+                        "stroke 0.25s ease, stroke-width 0.25s ease",
                 }}
             />
+
 
             <EdgeLabelRenderer>
                 <div
                     style={{
                         position: "absolute",
-                        transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
+                        transform:
+                            `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
                         pointerEvents: "all",
                     }}
                 >
+
                     <button
                         onClick={() =>
                             setOpen((prev) => !prev)
@@ -83,14 +97,27 @@ export function FlowEdge({
                             background: "#161B22",
                             color: stroke,
                             cursor: "pointer",
-                            transition: "all .2s ease",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
+
+                            transition:
+                                "transform .2s ease",
+                        }}
+
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.transform =
+                                "scale(1.15)";
+                        }}
+
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.transform =
+                                "scale(1)";
                         }}
                     >
                         <Plus size={16} />
                     </button>
+
 
                     {open && (
                         <div
@@ -101,16 +128,19 @@ export function FlowEdge({
                                 zIndex: 999,
                             }}
                         >
+
                             <EdgeInsertMenu
                                 onSelect={(type) => {
                                     insertNode(id, type);
                                     setOpen(false);
                                 }}
                             />
+
                         </div>
                     )}
+
                 </div>
             </EdgeLabelRenderer>
         </>
     );
-}
+});

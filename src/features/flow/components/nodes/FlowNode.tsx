@@ -8,6 +8,7 @@ import { getNodePlugin } from "../../services/pluginRegistry";
 import { validateNode } from "../../validation/validateNode";
 
 import { useExecutionStore } from "../../../execution/store/useExecutionStore";
+import { useFlowStore } from "../../store/useFlowStore";
 
 export function FlowNode({
   id,
@@ -22,7 +23,19 @@ export function FlowNode({
     nodeStatus,
   } = useExecutionStore();
 
+  const updateNodeData = useFlowStore(
+    (state) => state.updateNodeData
+  );
+
   const validation = validateNode(data);
+
+  function handleToggleBreakpoint() {
+    updateNodeData(id, {
+      debug: {
+        breakpoint: !data.debug.breakpoint,
+      },
+    });
+  }
 
   return (
     <BaseNode
@@ -33,6 +46,7 @@ export function FlowNode({
       running={currentNodeId === id}
       executionStatus={nodeStatus[id] ?? "idle"}
       valid={validation.valid}
+      breakpoint={data.debug?.breakpoint ?? false} onToggleBreakpoint={handleToggleBreakpoint}
     >
       {plugin.preview?.(data)}
     </BaseNode>

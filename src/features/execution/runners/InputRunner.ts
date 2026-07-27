@@ -8,13 +8,17 @@ export const inputRunner: NodeRunner = {
       return;
     }
 
+    const locator = resolveVariables(
+      node.data.locator
+    );
+
     const text = resolveVariables(
       node.data.text
     );
 
     await appiumClient.input(
       node.data.locatorStrategy,
-      node.data.locator,
+      locator,
       text
     );
   },

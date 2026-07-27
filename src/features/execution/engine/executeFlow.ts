@@ -1,10 +1,7 @@
 import type { FlowNode } from "../../flow/types/flowNode";
 import type { ExecutionContext } from "../types/ExecutionContext";
 
-import { getRunner } from "../services/runnerRegistry";
-
 import { useExecutionStore } from "../store/useExecutionStore";
-import { useExecutionLogStore } from "../store/useExecutionLogStore";
 
 import { validateFlow } from "../../flow/validation/validateFlow";
 import { buildExecutionOrder } from "../../flow/graph/buildExecutionOrder";
@@ -12,27 +9,36 @@ import { buildExecutionOrder } from "../../flow/graph/buildExecutionOrder";
 import { clearVariables } from "../variables/VariableStore";
 import { formatDuration } from "../utils/formatDuration";
 
+import { executeNode } from "./executeNode";
+import { executionLogger } from "../services/executionLogger";
+import { waitWhilePaused } from "../utils/waitWhilePaused";
+
 export async function executeFlow(
     nodes: FlowNode[],
     context: ExecutionContext
 ) {
     const execution = useExecutionStore.getState();
-    const log = useExecutionLogStore.getState();
 
     // ---------------------------------------
     // Reset
     // ---------------------------------------
 
-    log.clear();
-
+    executionLogger.clear();
     execution.reset();
 
+    const orderedNodes = buildExecutionOrder(
+        nodes,
+        context.edges
+    );
+
     clearVariables();
+    execution.startExecution(
+        orderedNodes.length
+    );
 
-    execution.setStatus("running");
 
-    log.addLog(
-        "info",
+
+    executionLogger.info(
         "Starting execution..."
     );
 
@@ -46,16 +52,40 @@ export async function executeFlow(
 
     if (!validation.valid) {
         execution.setStatus("failed");
+        execution.setCurrentNode(null);
 
-        log.addLog(
-            "error",
+        executionLogger.error(
             "Flow validation failed."
         );
 
-        console.error(
-            "Flow validation failed",
-            validation.errors
-        );
+        console.group("Flow validation failed");
+
+        validation.errors.forEach((nodeError, index) => {
+            console.group(
+                `${index + 1}. ${nodeError.nodeTitle} (${nodeError.nodeId})`
+            );
+
+            nodeError.errors.forEach((error) => {
+                console.error(error);
+            });
+
+            console.groupEnd();
+        });
+
+        console.groupEnd();
+
+        validation.errors.forEach((nodeError, index) => {
+            console.group(
+                `${index + 1}. ${nodeError.nodeTitle} (${nodeError.nodeId})`
+            );
+
+            nodeError.errors.forEach((error) => {
+                console.error(error);
+            });
+
+            console.groupEnd();
+        });
+        console.groupEnd();
 
         throw new Error(
             "Flow contains validation errors."
@@ -63,94 +93,52 @@ export async function executeFlow(
     }
 
     try {
-        const orderedNodes = buildExecutionOrder(
-            nodes,
-            context.edges
-        );
-
         // ---------------------------------------
         // Execute Nodes
         // ---------------------------------------
 
         for (const node of orderedNodes) {
+            await waitWhilePaused();
+
             execution.setCurrentNode(node.id);
 
-            execution.setNodeStatus(
-                node.id,
-                "running"
-            );
-
-            log.addLog(
-                "info",
-                `Running ${node.data.action}`
-            );
-
-            const runner = getRunner(
-                node.data.action
-            );
-
-            try {
-                await runner.run(
-                    node,
-                    context
+            if (node.data.debug.breakpoint) {
+                executionLogger.info(
+                    `🛑 Breakpoint reached: ${node.data.title}`
                 );
 
-                // supaya animasi node terlihat
-                await new Promise((resolve) =>
-                    setTimeout(resolve, 350)
-                );
+                execution.pauseExecution();
 
-                execution.setNodeStatus(
-                    node.id,
-                    "passed"
-                );
-
-                log.addLog(
-                    "success",
-                    `${node.data.action} completed`
-                );
-            } catch (error) {
-                execution.setNodeStatus(
-                    node.id,
-                    "failed"
-                );
-
-                execution.setStatus("failed");
-
-                log.addLog(
-                    "error",
-                    `${node.data.action} failed`
-                );
-
-                const duration =
-                    performance.now() - startedAt;
-
-                log.addLog(
-                    "error",
-                    `Execution failed after ${formatDuration(
-                        duration
-                    )}`
-                );
-
-                throw error;
+                await waitWhilePaused();
             }
+
+            await executeNode(node, context);
         }
 
         // ---------------------------------------
         // Finish
         // ---------------------------------------
 
+        execution.finishExecution();
         execution.setStatus("passed");
 
         const duration =
             performance.now() - startedAt;
 
-        log.addLog(
-            "success",
-            `Execution finished in ${formatDuration(
-                duration
-            )}`
+        executionLogger.success(
+            `Execution finished in ${formatDuration(duration)}`
         );
+    } catch (error) {
+        execution.setStatus("failed");
+
+        const duration =
+            performance.now() - startedAt;
+
+        executionLogger.error(
+            `Execution failed after ${formatDuration(duration)}`
+        );
+
+        throw error;
     } finally {
         execution.setCurrentNode(null);
     }

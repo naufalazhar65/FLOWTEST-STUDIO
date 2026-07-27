@@ -1,70 +1,74 @@
-import { useExecutionLogStore } from "../../features/execution/store/useExecutionLogStore";
+import { Trash2 } from "lucide-react";
 
-const levelColor = {
-  info: "#60A5FA",
-  success: "#10B981",
-  error: "#EF4444",
-};
+import { useExecutionLogStore } from "../../features/execution/store/useExecutionLogStore";
+import { ExecutionTimeline } from "../../features/execution/components/ExecutionTimeline";
+import { ExecutionFilter } from "../../features/execution/components/ExecutionFilter";
+
 
 export function ConsolePanel() {
-  const logs = useExecutionLogStore(
-    (state) => state.logs
-  );
+  const clear = useExecutionLogStore((state) => state.clear);
 
   return (
     <div
       style={{
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
         background: "#0D1117",
         borderTop: "1px solid #30363D",
-        padding: 16,
-        overflow: "auto",
         color: "#FFF",
         fontFamily: "monospace",
-        fontSize: 13,
       }}
     >
-      {logs.length === 0 && (
+      {/* Header */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: "10px 16px",
+          borderBottom: "1px solid #30363D",
+        }}
+      >
         <div
           style={{
-            color: "#6B7280",
+            fontWeight: 700,
+            fontSize: 14,
           }}
         >
-          No execution logs.
+          Console
         </div>
-      )}
 
-      {logs.map((log) => (
-        <div
-          key={log.id}
+        <button
+          onClick={clear}
           style={{
             display: "flex",
-            gap: 12,
-            marginBottom: 8,
             alignItems: "center",
+            gap: 6,
+            background: "transparent",
+            border: "none",
+            color: "#8B949E",
+            cursor: "pointer",
+            fontSize: 12,
           }}
         >
-          <span
-            style={{
-              color: "#6B7280",
-              minWidth: 80,
-            }}
-          >
-            {log.time}
-          </span>
+          <Trash2 size={14} />
+          Clear
+        </button>
+      </div>
 
-          <span
-            style={{
-              color: levelColor[log.level],
-              fontWeight: 700,
-              width: 70,
-            }}
-          >
-            {log.level.toUpperCase()}
-          </span>
+      {/* Body */}
+      <div
+        style={{
+          flex: 1,
+          overflowY: "auto",
+          padding: "10px 16px",
+        }}
+      >
+        <ExecutionFilter />
 
-          <span>{log.message}</span>
-        </div>
-      ))}
+        <ExecutionTimeline />
+      </div>
     </div>
   );
 }

@@ -31,6 +31,10 @@ export function createNode(
 
     title: plugin.title,
     subtitle: plugin.subtitle,
+
+    debug: {
+      breakpoint: false,
+    },
   } as FlowNodeData;
 
   const node: FlowNode = {

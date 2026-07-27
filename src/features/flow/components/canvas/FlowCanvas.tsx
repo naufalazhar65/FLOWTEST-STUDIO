@@ -15,6 +15,7 @@ import { useFlowShortcuts } from "../../hooks/useFlowShortcuts";
 import { FlowNode } from "../nodes/FlowNode";
 import { FlowEdge } from "../edges/FlowEdge";
 import { useHistoryShortcuts } from "../../hooks/useKeyboardShortcuts";
+import { useExecutionCamera } from "../../../execution/hooks/useExecutionCamera";
 
 // =========================
 // React Flow Types
@@ -31,6 +32,11 @@ const edgeTypes = {
 // =========================
 // Component
 // =========================
+function ExecutionCamera() {
+  useExecutionCamera();
+
+  return null;
+}
 
 export function FlowCanvas() {
   const {
@@ -77,7 +83,10 @@ export function FlowCanvas() {
         }}
         {...callbacks}
       >
+        <ExecutionCamera />
+
         <Background />
+
         <Controls />
 
         {nodes.length > 0 && <MiniMap />}

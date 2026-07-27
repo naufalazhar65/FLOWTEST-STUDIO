@@ -16,6 +16,10 @@ export const initialNodes: FlowNode[] = [
 
       locatorStrategy: "id",
       locator: "",
+
+      debug: {
+        breakpoint: false,
+      },
     },
   },
 
@@ -35,6 +39,10 @@ export const initialNodes: FlowNode[] = [
       locator: "",
 
       text: "",
+
+      debug: {
+        breakpoint: false,
+      },
     },
   },
 
@@ -54,6 +62,10 @@ export const initialNodes: FlowNode[] = [
       locator: "",
 
       expected: "",
+
+      debug: {
+        breakpoint: false,
+      },
     },
   },
 ];

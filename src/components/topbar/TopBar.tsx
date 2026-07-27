@@ -3,15 +3,16 @@ import {
   FolderOpen,
   Save,
   Play,
+  Pause,
+  Square,
   Smartphone,
   Cpu,
-  Download,
 } from "lucide-react";
 
 import { Button } from "../ui/Button";
 
 import { useFlowStore } from "../../features/flow/store/useFlowStore";
-import { executeFlow } from "../../features/execution/engine/executeFlow";
+import { ExecutionController } from "../../features/execution/services/ExecutionController";
 import { useExecutionStore } from "../../features/execution/store/useExecutionStore";
 import { exportProject } from "../../features/flow/services/exportService";
 import { openJsonFile } from "../../features/flow/services/filePicker";
@@ -21,13 +22,28 @@ export function TopBar() {
   const { nodes, edges, saveProject,
     loadProject, } = useFlowStore();
 
+
   const status = useExecutionStore(
     (state) => state.status
   );
+  console.log("TopBar status:", status);
+
+  const progress = useExecutionStore(
+    (state) => state.progress
+  );
+
+  const executedNodes = useExecutionStore(
+    (state) => state.executedNodes
+  );
+
+  const totalNodes = useExecutionStore(
+    (state) => state.totalNodes
+  );
+
 
   const handleRun = useCallback(async () => {
     try {
-      await executeFlow(nodes, {
+      await ExecutionController.run(nodes, {
         device: "Android",
         edges,
       });
@@ -135,7 +151,54 @@ export function TopBar() {
             ? "Running..."
             : "Appium Connected"}
         </div>
+        {status !== "idle" && (
+          <div
+            style={{
+              minWidth: 220,
+              display: "flex",
+              flexDirection: "column",
+              gap: 6,
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                fontSize: 12,
+                color: "#8B949E",
+              }}
+            >
+              <span>
+                {executedNodes} / {totalNodes} Nodes
+              </span>
+
+              <span>{progress}%</span>
+            </div>
+
+            <div
+              style={{
+                height: 8,
+                background: "#30363D",
+                borderRadius: 999,
+                overflow: "hidden",
+              }}
+            >
+              <div
+                style={{
+                  width: `${progress}%`,
+                  height: "100%",
+                  background:
+                    status === "failed"
+                      ? "#EF4444"
+                      : "#22C55E",
+                  transition: "width .3s ease",
+                }}
+              />
+            </div>
+          </div>
+        )}
       </div>
+
 
       {/* Right */}
       <div
@@ -171,20 +234,58 @@ export function TopBar() {
           Save
         </Button>
 
-        <Button
-          onClick={handleRun}
-          disabled={status === "running"}
-        >
-          <Play size={16} />
-          {status === "running"
-            ? "Running..."
-            : "Run"}
-        </Button>
+        {status === "idle" && (
+          <Button onClick={handleRun}>
+            <Play size={16} />
+            Run
+          </Button>
+        )}
 
-        <Button>
-          <Download size={16} />
-          Export
-        </Button>
+        {status === "running" && (
+          <>
+            <Button
+              onClick={() => ExecutionController.pause()}
+            >
+              <Pause size={16} />
+              Pause
+            </Button>
+
+            <Button
+              onClick={() => ExecutionController.stop()}
+            >
+              <Square size={16} />
+              Stop
+            </Button>
+          </>
+        )}
+
+        {status === "paused" && (
+          <>
+            <Button
+              onClick={() => ExecutionController.resume()}
+            >
+              <Play size={16} />
+              Resume
+            </Button>
+
+            <Button
+              onClick={() => ExecutionController.stop()}
+            >
+              <Square size={16} />
+              Stop
+            </Button>
+          </>
+        )}
+        {(status === "passed" ||
+          status === "failed" ||
+          status === "stopped") && (
+            <Button onClick={handleRun}>
+              <Play size={16} />
+              Run Again
+            </Button>
+          )}
+
+
       </div>
     </header>
   );

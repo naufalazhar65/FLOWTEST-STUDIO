@@ -1,28 +1,37 @@
-import type {
-  ReactNode,
-} from "react";
+import type { ReactNode } from "react";
 
-interface Props {
+interface BadgeProps {
   children: ReactNode;
 
-  color?: string;
+  color: string;
 }
 
 export function Badge({
   children,
-  color = "#7C5CFC",
-}: Props) {
+  color,
+}: BadgeProps) {
   return (
     <span
       style={{
         display: "inline-flex",
         alignItems: "center",
+        justifyContent: "center",
+
+        minWidth: 70,
+
         padding: "3px 10px",
+
         borderRadius: 999,
+
         background: color,
+
         color: "#FFF",
-        fontSize: 12,
+
+        fontSize: 11,
+
         fontWeight: 700,
+
+        textTransform: "uppercase",
       }}
     >
       {children}

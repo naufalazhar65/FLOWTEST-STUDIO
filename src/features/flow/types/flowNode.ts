@@ -3,8 +3,12 @@ import type { Node } from "reactflow";
 export type NodeAction =
   | "tap"
   | "input"
-  | "assert";
-  
+  | "assert"
+  | "setVariable";
+
+export interface NodeDebug {
+  breakpoint: boolean;
+}
 
 export interface BaseNodeData {
   action: NodeAction;
@@ -12,32 +16,48 @@ export interface BaseNodeData {
   title: string;
   subtitle: string;
 
+  debug: NodeDebug;
+}
+
+export interface LocatorNodeData
+  extends BaseNodeData {
   locatorStrategy: string;
+
   locator: string;
 }
 
 export interface TapNodeData
-  extends BaseNodeData {
+  extends LocatorNodeData {
   action: "tap";
 }
 
 export interface InputNodeData
-  extends BaseNodeData {
+  extends LocatorNodeData {
   action: "input";
 
   text: string;
 }
 
 export interface AssertNodeData
-  extends BaseNodeData {
+  extends LocatorNodeData {
   action: "assert";
 
   expected: string;
 }
 
+export interface SetVariableNodeData
+  extends BaseNodeData {
+  action: "setVariable";
+
+  variableName: string;
+
+  value: string;
+}
+
 export type FlowNodeData =
   | TapNodeData
   | InputNodeData
-  | AssertNodeData;
+  | AssertNodeData
+  | SetVariableNodeData;
 
 export type FlowNode = Node<FlowNodeData>;

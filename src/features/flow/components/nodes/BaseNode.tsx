@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Handle, Position } from "reactflow";
 
-import type { ExecutionStatus } from "../../../execution/types/ExecutionStatus";
+import type { NodeExecutionStatus } from "../../../execution/types/NodeExecutionStatus";
 
 interface BaseNodeProps {
   title: string;
@@ -16,13 +16,17 @@ interface BaseNodeProps {
 
   running?: boolean;
 
-  executionStatus?: ExecutionStatus;
+  executionStatus?: NodeExecutionStatus;
 
   valid?: boolean;
+
+  breakpoint?: boolean;
+
+  onToggleBreakpoint?: () => void;
 }
 
 function statusColor(
-  status: ExecutionStatus = "idle"
+  status: NodeExecutionStatus = "idle"
 ) {
   switch (status) {
     case "running":
@@ -48,6 +52,9 @@ export function BaseNode({
   running = false,
   executionStatus = "idle",
   valid = true,
+
+  breakpoint = false,
+  onToggleBreakpoint,
 }: BaseNodeProps) {
   return (
     <>
@@ -73,13 +80,12 @@ export function BaseNode({
         style={{
           width: 240,
           background: "#1A1F29",
-          border: `2px solid ${
-            !valid
-              ? "#EF4444"
-              : running
-                ? "#FBBF24"
-                : color
-          }`,
+          border: `2px solid ${!valid
+            ? "#EF4444"
+            : running
+              ? "#FBBF24"
+              : color
+            }`,
           borderRadius: 14,
           overflow: "hidden",
           color: "#FFF",
@@ -93,13 +99,9 @@ export function BaseNode({
           transition:
             "transform .2s ease, border .25s ease, box-shadow .25s ease",
 
-          transform: running
-            ? "scale(1.02)"
-            : "scale(1)",
+          transform: running ? "scale(1.02)" : "scale(1)",
 
-          animation: running
-            ? "pulse 1s infinite"
-            : undefined,
+          animation: running ? "pulse 1s infinite" : undefined,
         }}
       >
         <Handle
@@ -136,14 +138,49 @@ export function BaseNode({
 
           <div
             style={{
-              width: 10,
-              height: 10,
-              borderRadius: "50%",
-              background: !valid
-                ? "#EF4444"
-                : statusColor(executionStatus),
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
             }}
-          />
+          >
+            <button
+              type="button"
+              title={
+                breakpoint
+                  ? "Remove Breakpoint"
+                  : "Add Breakpoint"
+              }
+              onClick={(event) => {
+                event.stopPropagation();
+                onToggleBreakpoint?.();
+              }}
+              style={{
+                width: 12,
+                height: 12,
+                borderRadius: "50%",
+                border: breakpoint
+                  ? "2px solid #EF4444"
+                  : "2px solid rgba(255,255,255,.35)",
+                background: breakpoint
+                  ? "#EF4444"
+                  : "transparent",
+                cursor: "pointer",
+                padding: 0,
+                transition: "all .2s ease",
+              }}
+            />
+
+            <div
+              style={{
+                width: 10,
+                height: 10,
+                borderRadius: "50%",
+                background: !valid
+                  ? "#EF4444"
+                  : statusColor(executionStatus),
+              }}
+            />
+          </div>
         </div>
 
         <div

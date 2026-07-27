@@ -1,13 +1,13 @@
 import { getVariable } from "./VariableStore";
 
-const variablePattern = /\$\{([^}]+)\}/g;
+const VARIABLE_REGEX = /\{\{\s*(.*?)\s*\}\}/g;
 
 function getNestedValue(
-  value: unknown,
+  object: unknown,
   path: string
 ): unknown {
   if (!path) {
-    return value;
+    return object;
   }
 
   return path
@@ -21,16 +21,16 @@ function getNestedValue(
       }
 
       return undefined;
-    }, value);
+    }, object);
 }
 
-export function resolveVariables(
-  value: string
+export function resolveExpression(
+  input: string
 ): string {
-  return value.replace(
-    variablePattern,
+  return input.replace(
+    VARIABLE_REGEX,
     (_, expression: string) => {
-      const parts = expression.trim().split(".");
+      const parts = expression.split(".");
 
       const variableName = parts.shift();
 
@@ -38,14 +38,14 @@ export function resolveVariables(
         return "";
       }
 
-      const variable = getVariable(variableName);
+      const value = getVariable(variableName);
 
-      if (variable === undefined) {
+      if (value === undefined) {
         return "";
       }
 
       const resolved = getNestedValue(
-        variable,
+        value,
         parts.join(".")
       );
 

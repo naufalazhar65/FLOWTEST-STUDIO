@@ -10,6 +10,30 @@ import type { NodeField } from "./nodeField";
 
 export type NodeType = NodeAction;
 
+export type NodeDefaults =
+  | {
+      action: "tap";
+      locatorStrategy: string;
+      locator: string;
+    }
+  | {
+      action: "input";
+      locatorStrategy: string;
+      locator: string;
+      text: string;
+    }
+  | {
+      action: "assert";
+      locatorStrategy: string;
+      locator: string;
+      expected: string;
+    }
+  | {
+      action: "setVariable";
+      variableName: string;
+      value: string;
+    };
+
 export interface NodePlugin {
   type: NodeType;
 
@@ -21,7 +45,7 @@ export interface NodePlugin {
 
   icon: LucideIcon;
 
-defaults: FlowNodeData;
+  defaults: NodeDefaults;
 
   fields: NodeField[];
 

@@ -1,4 +1,4 @@
-export type ExecutionStatus =
+export type NodeExecutionStatus =
   | "idle"
   | "running"
   | "passed"

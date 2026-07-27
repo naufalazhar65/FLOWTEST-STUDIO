@@ -40,6 +40,12 @@ export function InspectorPanel() {
     node.data
   );
 
+  const nodeData = node.data as unknown as Record<
+    string,
+    unknown
+  >;
+
+
   return (
     <div
       style={{
@@ -97,12 +103,15 @@ export function InspectorPanel() {
           key={field.key}
           field={field}
           value={String(
-            node.data[field.key] ?? ""
+            nodeData[field.key] ?? ""
           )}
           onChange={(value) =>
-            updateNodeData(node.id, {
-              [field.key]: value,
-            })
+            updateNodeData(
+              node.id,
+              {
+                [field.key]: value,
+              } as Partial<typeof node.data>
+            )
           }
         />
       ))}
