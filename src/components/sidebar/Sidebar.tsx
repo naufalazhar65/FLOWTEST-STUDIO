@@ -53,6 +53,13 @@ export function Sidebar() {
         "screenshot",
       ]
     },
+    {
+      title: "Logic",
+
+      actions: [
+        "if",
+      ],
+    },
   ];
 
   return (

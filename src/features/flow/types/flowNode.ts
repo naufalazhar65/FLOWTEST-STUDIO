@@ -14,6 +14,7 @@ export type NodeAction =
   | "back"
   | "home"
   | "screenshot"
+  | "if"
 
 export interface NodeDebug {
   breakpoint: boolean;
@@ -132,6 +133,14 @@ export interface ScreenshotNodeData
   fileName: string;
 }
 
+export interface IfNodeData
+  extends BaseNodeData {
+
+  action: "if";
+
+  condition: string;
+}
+
 export type FlowNodeData =
   | TapNodeData
   | InputNodeData
@@ -145,7 +154,8 @@ export type FlowNodeData =
   | CloseAppNodeData
   | BackNodeData
   | HomeNodeData
-  | ScreenshotNodeData; 
+  | ScreenshotNodeData
+  | IfNodeData
 
 
 export type FlowNode = Node<FlowNodeData>;

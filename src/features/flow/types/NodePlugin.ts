@@ -93,6 +93,11 @@ export type NodeDefaults =
     action: "screenshot";
 
     fileName: string;
+  }
+  | {
+    action: "if";
+
+    condition: string;
   };
 
 

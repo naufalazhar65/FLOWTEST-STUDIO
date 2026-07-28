@@ -11,6 +11,7 @@ import { closeAppPlugin } from "./CloseApp";
 import { backPlugin } from "./Back";
 import { homePlugin } from "./Home";
 import { screenshotPlugin } from "./Screenshot";
+import { ifPlugin } from "./If";
 
 
 
@@ -30,4 +31,5 @@ export const plugins: NodePlugin[] = [
   backPlugin,
   homePlugin,
   screenshotPlugin,
+  ifPlugin,
 ];
