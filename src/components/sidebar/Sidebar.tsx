@@ -1,6 +1,4 @@
 import {
-  MoveHorizontal,
-  Clock3,
   Camera,
   Search,
 } from "lucide-react";
@@ -119,19 +117,9 @@ export function Sidebar() {
           Coming Soon
         </h4>
 
-        <SidebarButton
-          disabled
-          icon={
-            <MoveHorizontal size={18} />
-          }
-          label="Swipe"
-        />
+        
 
-        <SidebarButton
-          disabled
-          icon={<Clock3 size={18} />}
-          label="Wait"
-        />
+
 
         <SidebarButton
           disabled

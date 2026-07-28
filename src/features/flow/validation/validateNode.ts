@@ -56,6 +56,18 @@ export function validateNode(
       }
 
       break;
+
+    case "delay":
+      if (
+        Number.isNaN(Number(data.duration)) ||
+        Number(data.duration) <= 0
+      ) {
+        errors.push(
+          "Duration must be greater than 0."
+        );
+      }
+
+      break;
   }
 
   return {

@@ -9,7 +9,7 @@ interface Props {
 
   value: string;
 
-  onChange(value: string): void;
+  onChange(value: string | number): void;
 }
 
 export function InspectorField({
@@ -27,9 +27,22 @@ export function InspectorField({
 
       {field.type === "text" && (
         <Input
-          value={value}
+          value={String(value ?? "")}
+          placeholder={field.placeholder}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      )}
+
+      {field.type === "number" && (
+        <Input
+          type="number"
+          value={value ?? ""}
+          min={field.min}
+          max={field.max}
+          step={field.step}
+          placeholder={field.placeholder}
           onChange={(e) =>
-            onChange(e.target.value)
+            onChange(Number(e.target.value))
           }
         />
       )}

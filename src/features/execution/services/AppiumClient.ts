@@ -45,12 +45,42 @@ export class AppiumClient {
     await this.delay(500);
   }
 
+  async swipe(
+    direction: "up" | "down" | "left" | "right",
+    distance: number,
+    duration: number
+  ) {
+    useExecutionLogStore
+      .getState()
+      .addLog(
+        "info",
+        `Swipe ${direction} (${distance}%) ${duration} ms`
+      );
+
+    await this.delay(duration);
+  }
+
+  async scroll(
+    direction: "up" | "down",
+    amount: number
+  ) {
+    useExecutionLogStore
+      .getState()
+      .addLog(
+        "info",
+        `Scroll ${direction} (${amount}%)`
+      );
+
+    await this.delay(500);
+  }
+
   private delay(ms: number) {
     return new Promise((resolve) =>
       setTimeout(resolve, ms)
     );
   }
 }
+
 
 export const appiumClient =
   new AppiumClient();

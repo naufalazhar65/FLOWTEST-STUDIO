@@ -2,7 +2,7 @@ import {
   Undo2,
   Redo2,
   ScanSearch,
-  Hand,
+
 } from "lucide-react";
 
 import { useFlowStore } from "../../store/useFlowStore";
@@ -48,13 +48,6 @@ export function Toolbar() {
         );
       })}
 
-      <button
-        style={buttonStyle}
-        disabled
-      >
-        <Hand size={18} />
-        Swipe
-      </button>
 
       <div style={{ flex: 1 }} />
 
