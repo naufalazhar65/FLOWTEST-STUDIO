@@ -1,116 +1,111 @@
+import type { CSSProperties } from "react";
 import {
   Undo2,
   Redo2,
-  ScanSearch,
-
+  Maximize,
 } from "lucide-react";
 
+import { useReactFlow } from "reactflow";
 import { useFlowStore } from "../../store/useFlowStore";
-import { getPlugins } from "../../services/pluginRegistry";
 
 export function Toolbar() {
   const {
-    addNode,
     undo,
     redo,
     history,
     future,
   } = useFlowStore();
 
-  const plugins = getPlugins();
+  const { fitView } = useReactFlow();
 
   return (
-    <div
-      style={{
-        height: 54,
-        display: "flex",
-        alignItems: "center",
-        gap: 12,
-        padding: "0 18px",
-        borderBottom: "1px solid #232935",
-        background: "#151922",
-      }}
-    >
-      {plugins.map((plugin) => {
-        const Icon = plugin.icon;
+    <div style={toolbar}>
+      <div style={group}>
+        <button
+          title="Undo"
+          disabled={history.length === 0}
+          onClick={undo}
+          style={{
+            ...iconButton,
+            opacity: history.length === 0 ? 0.5 : 1,
+            cursor:
+              history.length === 0
+                ? "not-allowed"
+                : "pointer",
+          }}
+        >
+          <Undo2 size={18} />
+        </button>
 
-        return (
-          <button
-            key={plugin.type}
-            onClick={() =>
-              addNode(plugin.type)
-            }
-            style={buttonStyle}
-          >
-            <Icon size={18} />
-            {plugin.title}
-          </button>
-        );
-      })}
+        <button
+          title="Redo"
+          disabled={future.length === 0}
+          onClick={redo}
+          style={{
+            ...iconButton,
+            opacity: future.length === 0 ? 0.5 : 1,
+            cursor:
+              future.length === 0
+                ? "not-allowed"
+                : "pointer",
+          }}
+        >
+          <Redo2 size={18} />
+        </button>
+      </div>
 
+      <div style={divider} />
 
-      <div style={{ flex: 1 }} />
-
-      <button
-        title="Undo"
-        style={{
-          ...iconButton,
-          opacity:
-            history.length === 0 ? 0.5 : 1,
-          cursor:
-            history.length === 0
-              ? "not-allowed"
-              : "pointer",
-        }}
-        disabled={history.length === 0}
-        onClick={undo}
-      >
-        <Undo2 size={18} />
-      </button>
-
-      <button
-        title="Redo"
-        style={{
-          ...iconButton,
-          opacity:
-            future.length === 0 ? 0.5 : 1,
-          cursor:
-            future.length === 0
-              ? "not-allowed"
-              : "pointer",
-        }}
-        disabled={future.length === 0}
-        onClick={redo}
-      >
-        <Redo2 size={18} />
-      </button>
-
-      <button style={iconButton}>
-        <ScanSearch size={18} />
-      </button>
+      <div style={group}>
+        <button
+          title="Fit View"
+          onClick={() =>
+            fitView({
+              padding: 0.2,
+              duration: 400,
+            })
+          }
+          style={iconButton}
+        >
+          <Maximize size={18} />
+        </button>
+      </div>
     </div>
   );
 }
 
-const buttonStyle: React.CSSProperties = {
+const toolbar: CSSProperties = {
+  height: 54,
+  display: "flex",
+  alignItems: "center",
+  padding: "0 18px",
+  gap: 14,
+  background: "#151922",
+  borderBottom: "1px solid #232935",
+};
+
+const group: CSSProperties = {
   display: "flex",
   alignItems: "center",
   gap: 8,
-  background: "#202632",
-  border: "1px solid #313847",
-  color: "#FFF",
-  borderRadius: 8,
-  padding: "8px 12px",
-  cursor: "pointer",
-  transition: "0.2s",
 };
 
-const iconButton: React.CSSProperties = {
+const divider: CSSProperties = {
+  width: 1,
+  height: 24,
+  background: "#313847",
+};
+
+const iconButton: CSSProperties = {
   width: 38,
   height: 38,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
   borderRadius: 8,
   border: "1px solid #313847",
   background: "#202632",
   color: "#FFF",
   cursor: "pointer",
+  transition: "all .2s ease",
 };

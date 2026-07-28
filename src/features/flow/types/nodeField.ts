@@ -6,6 +6,10 @@ import type {
   DelayNodeData,
   SwipeNodeData,
   ScrollNodeData,
+  WaitNodeData,
+  LaunchAppNodeData,
+  CloseAppNodeData,
+  ScreenshotNodeData
 } from "./flowNode";
 
 export type NodeFieldKey =
@@ -15,7 +19,11 @@ export type NodeFieldKey =
   | keyof SetVariableNodeData
   | keyof DelayNodeData
   | keyof SwipeNodeData
-  | keyof ScrollNodeData;
+  | keyof ScrollNodeData
+  | keyof WaitNodeData
+  | keyof LaunchAppNodeData
+  | keyof CloseAppNodeData
+  | keyof ScreenshotNodeData
 
 export interface NodeField {
   key: NodeFieldKey;
@@ -27,7 +35,8 @@ export interface NodeField {
   | "number"
   | "select"
   | "checkbox"
-  | "textarea";
+  | "textarea"
+  | "fileName";
 
   placeholder?: string;
 

@@ -1,7 +1,7 @@
+import { Settings2 } from "lucide-react";
+
 import { useFlowStore } from "../../features/flow/store/useFlowStore";
-
 import { InspectorField } from "../../features/flow/components/inspector/InspectorField";
-
 import { getNodePlugin } from "../../features/flow/services/pluginRegistry";
 import { validateNode } from "../../features/flow/validation/validateNode";
 
@@ -23,11 +23,60 @@ export function InspectorPanel() {
     return (
       <div
         style={{
+          height: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
           padding: 24,
-          color: "#8B949E",
+          boxSizing: "border-box",
         }}
       >
-        Select a node
+        <div
+          style={{
+            textAlign: "center",
+            maxWidth: 240,
+          }}
+        >
+          <div
+            style={{
+              width: 72,
+              height: 72,
+              margin: "0 auto 18px",
+              borderRadius: "50%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "#1F2937",
+              border: "1px solid #374151",
+            }}
+          >
+            <Settings2
+              size={34}
+              color="#9CA3AF"
+            />
+          </div>
+
+          <h3
+            style={{
+              margin: 0,
+              color: "#FFF",
+            }}
+          >
+            No node selected
+          </h3>
+
+          <p
+            style={{
+              marginTop: 10,
+              color: "#8B949E",
+              lineHeight: 1.6,
+              fontSize: 14,
+            }}
+          >
+            Select a node on the canvas to edit
+            its properties.
+          </p>
+        </div>
       </div>
     );
   }
@@ -36,25 +85,23 @@ export function InspectorPanel() {
     node.data.action
   );
 
-  const validation = validateNode(
-    node.data
-  );
+  const validation = validateNode(node.data);
 
-  const nodeData = node.data as unknown as Record<
-    string,
-    unknown
-  >;
-
+  const nodeData =
+    node.data as unknown as Record<
+      string,
+      unknown
+    >;
 
   return (
     <div
       style={{
         height: "100%",
         overflowY: "auto",
-        overflowX: "hidden",
         padding: 24,
         color: "#FFF",
         boxSizing: "border-box",
+        background: "#0F131A",
       }}
     >
       <Badge color={plugin.color}>
@@ -65,7 +112,7 @@ export function InspectorPanel() {
         style={{
           marginTop: 14,
           marginBottom: 4,
-          fontSize: 22,
+          fontSize: 24,
           fontWeight: 700,
         }}
       >
@@ -74,123 +121,133 @@ export function InspectorPanel() {
 
       <p
         style={{
-          color: "#8B949E",
           marginTop: 0,
-          marginBottom: 20,
-          lineHeight: 1.5,
+          marginBottom: 24,
+          color: "#8B949E",
+          lineHeight: 1.6,
         }}
       >
         {plugin.subtitle}
       </p>
 
-      <Divider />
+      <Section title="General">
+        {plugin.fields.map((field) => (
+          <InspectorField
+            key={field.key}
+            field={field}
+            value={nodeData[field.key]}
+            onChange={(value) =>
+              updateNodeData(
+                node.id,
+                {
+                  [field.key]: value,
+                } as Partial<typeof node.data>
+              )
+            }
+          />
+        ))}
+      </Section>
 
-      <div
-        style={{
-          marginBottom: 18,
-          fontWeight: 700,
-          fontSize: 13,
-          color: "#94A3B8",
-          letterSpacing: 1,
-          textTransform: "uppercase",
-        }}
-      >
-        General
-      </div>
-
-      {plugin.fields.map((field) => (
-        <InspectorField
-          key={field.key}
-          field={field}
-          value={String(
-            nodeData[field.key] ?? ""
-          )}
-          onChange={(value) =>
-            updateNodeData(
-              node.id,
-              {
-                [field.key]: value,
-              } as Partial<typeof node.data>
-            )
-          }
-        />
-      ))}
-
-      <Divider />
-
-      <div
-        style={{
-          marginBottom: 16,
-          fontWeight: 700,
-          fontSize: 13,
-          color: "#94A3B8",
-          letterSpacing: 1,
-          textTransform: "uppercase",
-        }}
-      >
-        Preview
-      </div>
-
-      <div
-        style={{
-          padding: 14,
-          borderRadius: 10,
-          background: "#161B22",
-          border: "1px solid #30363D",
-          marginBottom: 20,
-        }}
-      >
-        {plugin.preview?.(node.data)}
-      </div>
-
-      <Divider />
-
-      {validation.valid ? (
+      <Section title="Preview">
         <div
           style={{
-            padding: 12,
-            borderRadius: 10,
-            background: "#12341F",
-            border: "1px solid #10B981",
-            color: "#6EE7B7",
-            fontWeight: 600,
+            padding: 16,
+            borderRadius: 12,
+            background: "#161B22",
+            border: "1px solid #30363D",
           }}
         >
-          ✓ Node is valid
+          {plugin.preview?.(node.data)}
         </div>
-      ) : (
-        <div
-          style={{
-            padding: 14,
-            borderRadius: 10,
-            background: "#3A1618",
-            border: "1px solid #EF4444",
-          }}
-        >
+      </Section>
+
+      <Section title="Validation">
+        {validation.valid ? (
           <div
             style={{
-              color: "#FCA5A5",
-              fontWeight: 700,
-              marginBottom: 8,
+              padding: 14,
+              borderRadius: 12,
+              background: "#12341F",
+              border: "1px solid #10B981",
+              color: "#6EE7B7",
+              fontWeight: 600,
             }}
           >
-            Validation Errors
+            ✓ Node configuration is valid
           </div>
-
-          {validation.errors.map((error) => (
+        ) : (
+          <div
+            style={{
+              padding: 14,
+              borderRadius: 12,
+              background: "#3A1618",
+              border: "1px solid #EF4444",
+            }}
+          >
             <div
-              key={error}
               style={{
+                marginBottom: 10,
                 color: "#FCA5A5",
-                fontSize: 13,
-                marginBottom: 4,
+                fontWeight: 700,
               }}
             >
-              • {error}
+              Validation Errors
             </div>
-          ))}
-        </div>
-      )}
+
+            {validation.errors.map(
+              (error) => (
+                <div
+                  key={error}
+                  style={{
+                    color: "#FCA5A5",
+                    fontSize: 13,
+                    marginBottom: 6,
+                    lineHeight: 1.5,
+                  }}
+                >
+                  • {error}
+                </div>
+              )
+            )}
+          </div>
+        )}
+      </Section>
+    </div>
+  );
+}
+
+interface SectionProps {
+  title: string;
+  children: React.ReactNode;
+}
+
+function Section({
+  title,
+  children,
+}: SectionProps) {
+  return (
+    <div
+      style={{
+        marginBottom: 26,
+      }}
+    >
+      <Divider />
+
+      <div
+        style={{
+          marginTop: 18,
+          marginBottom: 18,
+          fontSize: 12,
+          fontWeight: 700,
+          color: "#94A3B8",
+          letterSpacing: 1,
+          textTransform: "uppercase",
+        }}
+      >
+        {title}
+      </div>
+
+      {children}
     </div>
   );
 }

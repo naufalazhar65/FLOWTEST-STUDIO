@@ -54,6 +54,45 @@ export type NodeDefaults =
     | "up"
     | "down";
     amount: number;
+  }
+
+  | {
+    action: "wait";
+
+    locatorStrategy: string;
+
+    locator: string;
+
+    timeout: number;
+
+    pollingInterval: number;
+  }
+
+  | {
+    action: "launchApp";
+
+    appPackage: string;
+
+    appActivity: string;
+
+    noReset: boolean;
+  }
+
+  | {
+    action: "closeApp";
+
+    appPackage: string;
+  }
+  | {
+    action: "back";
+  }
+  | {
+    action: "home";
+  }
+  | {
+    action: "screenshot";
+
+    fileName: string;
   };
 
 

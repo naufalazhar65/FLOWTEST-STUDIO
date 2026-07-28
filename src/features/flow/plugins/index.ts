@@ -5,6 +5,14 @@ import { setVariableNode } from "./SetVariable";
 import { delayNode } from "./Delay";
 import { swipeNode } from "./Swipe";
 import { scrollPlugin } from "./Scroll";
+import { waitPlugin } from "./Wait";
+import { launchAppPlugin } from "./LaunchApp";
+import { closeAppPlugin } from "./CloseApp";
+import { backPlugin } from "./Back";
+import { homePlugin } from "./Home";
+import { screenshotPlugin } from "./Screenshot";
+
+
 
 import type { NodePlugin } from "../types/NodePlugin";
 
@@ -16,4 +24,10 @@ export const plugins: NodePlugin[] = [
   delayNode,
   swipeNode,
   scrollPlugin,
+  waitPlugin,
+  launchAppPlugin,
+  closeAppPlugin,
+  backPlugin,
+  homePlugin,
+  screenshotPlugin,
 ];

@@ -8,6 +8,13 @@ import type { NodeRunner } from "../types/NodeRunner";
 import type { NodeAction } from "../../flow/types/flowNode";
 import { swipeRunner } from "../runners/SwipeRunner";
 import { scrollRunner } from "../runners/ScrollRunner";
+import { waitRunner } from "../runners/WaitRunner";
+import { launchAppRunner } from "../runners/LaunchAppRunner";
+import { closeAppRunner } from "../runners/CloseAppRunner";
+import { backRunner } from "../runners/BackRunner";
+import { homeRunner } from "../runners/HomeRunner";
+import { screenshotRunner } from "../runners/ScreenshotRunner";
+
 
 const registry = new Map<NodeAction, NodeRunner>([
   ["tap", tapRunner],
@@ -17,6 +24,15 @@ const registry = new Map<NodeAction, NodeRunner>([
   ["delay", delayRunner],
   ["swipe", swipeRunner],
   ["scroll", scrollRunner],
+  ["wait", waitRunner],
+
+  ["launchApp", launchAppRunner],
+  ["closeApp", closeAppRunner],
+  ["back", backRunner],
+  ["home", homeRunner],
+  ["screenshot", screenshotRunner]
+
+
 ]);
 
 export function getRunner(

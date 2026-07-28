@@ -3,11 +3,17 @@ import type { Node } from "reactflow";
 export type NodeAction =
   | "tap"
   | "input"
+  | "swipe"
+  | "scroll"
+  | "delay"
+  | "wait"
   | "assert"
   | "setVariable"
-  | "delay"
-  | "swipe"
-  | "scroll";
+  | "launchApp"
+  | "closeApp"
+  | "back"
+  | "home"
+  | "screenshot"
 
 export interface NodeDebug {
   breakpoint: boolean;
@@ -78,19 +84,68 @@ export interface ScrollNodeData
   action: "scroll";
 
   direction:
-    | "up"
-    | "down";
+  | "up"
+  | "down";
 
   amount: number;
+}
+
+export interface WaitNodeData
+  extends LocatorNodeData {
+
+  action: "wait";
+
+  timeout: number;
+
+  pollingInterval: number;
+}
+
+export interface LaunchAppNodeData extends BaseNodeData {
+  action: "launchApp";
+
+  appPackage: string;
+  appActivity: string;
+  noReset: boolean;
+}
+
+export interface CloseAppNodeData
+  extends BaseNodeData {
+  action: "closeApp";
+
+  appPackage: string;
+}
+
+export interface BackNodeData
+  extends BaseNodeData {
+  action: "back";
+}
+
+export interface HomeNodeData
+  extends BaseNodeData {
+  action: "home";
+}
+
+export interface ScreenshotNodeData
+  extends BaseNodeData {
+  action: "screenshot";
+
+  fileName: string;
 }
 
 export type FlowNodeData =
   | TapNodeData
   | InputNodeData
+  | SwipeNodeData
+  | ScrollNodeData
+  | DelayNodeData
+  | WaitNodeData
   | AssertNodeData
   | SetVariableNodeData
-  | DelayNodeData
-  | SwipeNodeData
-  | ScrollNodeData;
+  | LaunchAppNodeData
+  | CloseAppNodeData
+  | BackNodeData
+  | HomeNodeData
+  | ScreenshotNodeData; 
+
 
 export type FlowNode = Node<FlowNodeData>;

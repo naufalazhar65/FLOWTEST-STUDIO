@@ -1,39 +1,49 @@
+import { useMemo } from "react";
+
 import { useExecutionLogStore } from "../store/useExecutionLogStore";
 import { TimelineItem } from "./TimelineItem";
 
 export function ExecutionTimeline() {
-    const logs = useExecutionLogStore((state) => {
-        if (state.filter === "all") {
-            return state.logs;
-        }
+  const logs = useExecutionLogStore(
+    (state) => state.logs
+  );
 
-        return state.logs.filter(
-            (log) => log.level === state.filter
-        );
-    });
+  const filter = useExecutionLogStore(
+    (state) => state.filter
+  );
 
-    if (logs.length === 0) {
-        return (
-            <div
-                style={{
-                    color: "#6B7280",
-                    textAlign: "center",
-                    marginTop: 20,
-                }}
-            >
-                No execution logs.
-            </div>
-        );
+  const filteredLogs = useMemo(() => {
+    if (filter === "all") {
+      return logs;
     }
 
-    return (
-        <>
-            {logs.map((log) => (
-                <TimelineItem
-                    key={log.id}
-                    log={log}
-                />
-            ))}
-        </>
+    return logs.filter(
+      (log) => log.level === filter
     );
+  }, [logs, filter]);
+
+  if (filteredLogs.length === 0) {
+    return (
+      <div
+        style={{
+          color: "#6B7280",
+          textAlign: "center",
+          marginTop: 20,
+        }}
+      >
+        No execution logs.
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {filteredLogs.map((log) => (
+        <TimelineItem
+          key={log.id}
+          log={log}
+        />
+      ))}
+    </>
+  );
 }

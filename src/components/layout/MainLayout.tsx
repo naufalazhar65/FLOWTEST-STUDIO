@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import { TopBar } from "../topbar/TopBar";
 import { Sidebar } from "../sidebar/Sidebar";
 import { FlowCanvas } from "../../features/flow/components/canvas/FlowCanvas";
@@ -6,15 +8,20 @@ import { ConsolePanel } from "../console/ConsolePanel";
 import { StatusBar } from "../statusbar/StatusBar";
 import { InspectorPanel } from "../inspector/InspectorPanel";
 
-
 export function MainLayout() {
+  const [consoleExpanded, setConsoleExpanded] =
+    useState(false);
+
   return (
     <div
       style={{
         height: "100vh",
         display: "grid",
-        gridTemplateRows: "auto 1fr 180px 32px",
+        gridTemplateRows: `auto 1fr ${
+          consoleExpanded ? "220px" : "48px"
+        } 32px`,
         background: "#0D1117",
+        transition: "grid-template-rows .25s ease",
       }}
     >
       <TopBar />
@@ -22,9 +29,10 @@ export function MainLayout() {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "300px 1fr 420px",
+          gridTemplateColumns:
+            "300px 1fr 420px",
           overflow: "hidden",
-          minHeight: 0, // penting
+          minHeight: 0,
         }}
       >
         <Sidebar />
@@ -53,7 +61,8 @@ export function MainLayout() {
           style={{
             overflow: "hidden",
             minHeight: 0,
-            borderLeft: "1px solid #30363D",
+            borderLeft:
+              "1px solid #30363D",
             background: "#0D1117",
           }}
         >
@@ -61,7 +70,12 @@ export function MainLayout() {
         </div>
       </div>
 
-      <ConsolePanel />
+      <ConsolePanel
+        expanded={consoleExpanded}
+        onToggle={() =>
+          setConsoleExpanded((v) => !v)
+        }
+      />
 
       <StatusBar />
     </div>

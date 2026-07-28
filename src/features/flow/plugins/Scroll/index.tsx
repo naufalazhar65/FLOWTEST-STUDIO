@@ -1,7 +1,7 @@
 import { ArrowDownUp } from "lucide-react";
 
 import type { NodePlugin } from "../../types/NodePlugin";
-import type { ScrollNodeData } from "../../types/flowNode";
+import type { WaitNodeData } from "../../types/flowNode";
 
 export const scrollPlugin: NodePlugin = {
     type: "scroll",
@@ -39,14 +39,11 @@ export const scrollPlugin: NodePlugin = {
     ],
 
     preview: (data) => {
-        const scroll = data as ScrollNodeData;
+        const wait = data as WaitNodeData;
 
         return (
             <>
-                <div>
-                    {scroll.direction === "up" ? "⬆" : "⬇"} Scroll{" "}
-                    {scroll.direction}
-                </div>
+                <div>⏳ Wait Until Element</div>
 
                 <div
                     style={{
@@ -55,7 +52,16 @@ export const scrollPlugin: NodePlugin = {
                         marginTop: 4,
                     }}
                 >
-                    {scroll.amount}%
+                    {wait.locatorStrategy} = {wait.locator || "-"}
+                </div>
+
+                <div
+                    style={{
+                        fontSize: 12,
+                        opacity: 0.7,
+                    }}
+                >
+                    {wait.timeout} ms
                 </div>
             </>
         );
