@@ -12,6 +12,9 @@ import { backPlugin } from "./Back";
 import { homePlugin } from "./Home";
 import { screenshotPlugin } from "./Screenshot";
 import { ifPlugin } from "./If";
+import { getTextNode } from "./GetText";
+import { elementExistsNode } from "./ElementExists";
+
 
 
 
@@ -32,4 +35,7 @@ export const plugins: NodePlugin[] = [
   homePlugin,
   screenshotPlugin,
   ifPlugin,
+  getTextNode,
+  elementExistsNode
+  
 ];

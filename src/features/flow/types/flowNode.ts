@@ -15,6 +15,9 @@ export type NodeAction =
   | "home"
   | "screenshot"
   | "if"
+  | "getText"
+  | "elementExists"
+  
 
 export interface NodeDebug {
   breakpoint: boolean;
@@ -141,6 +144,22 @@ export interface IfNodeData
   condition: string;
 }
 
+export interface GetTextNodeData extends LocatorNodeData {
+  action: "getText";
+
+  variableName: string;
+}
+
+export interface ElementExistsNodeData
+  extends LocatorNodeData {
+
+  action: "elementExists";
+
+  variableName: string;
+}
+
+
+
 export type FlowNodeData =
   | TapNodeData
   | InputNodeData
@@ -156,6 +175,8 @@ export type FlowNodeData =
   | HomeNodeData
   | ScreenshotNodeData
   | IfNodeData
+  | GetTextNodeData
+  | ElementExistsNodeData
 
 
 export type FlowNode = Node<FlowNodeData>;

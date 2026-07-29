@@ -100,10 +100,20 @@ export type NodeDefaults =
     condition: string;
   }
   | {
-    action: "repeat";
+    action: "getText";
 
-    count: number;
-  };
+    locatorStrategy: string;
+
+    locator: string;
+
+    variableName: string;
+  }
+  | {
+    action: "elementExists";
+    locatorStrategy: string;
+    locator: string;
+    variableName: string;
+  }
 
 
 export interface NodeHandles {

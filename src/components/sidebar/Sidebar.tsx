@@ -28,20 +28,38 @@ export function Sidebar() {
   const sections = [
     {
       title: "Interaction",
-      actions: ["tap", "input", "swipe", "scroll"],
+      actions: [
+        "tap",
+        "input",
+        "swipe",
+        "scroll",
+      ],
     },
+
     {
-      title: "Synchronization",
-      actions: ["delay", "wait"],
+      title: "Element",
+      actions: [
+        "getText",
+        "elementExists",
+        "wait",
+        "assert",
+      ],
     },
-    {
-      title: "Validation",
-      actions: ["assert"],
-    },
+
     {
       title: "Variables",
-      actions: ["setVariable"],
+      actions: [
+        "setVariable",
+      ],
     },
+
+    {
+      title: "Synchronization",
+      actions: [
+        "delay",
+      ],
+    },
+
     {
       title: "Device",
       actions: [
@@ -50,11 +68,11 @@ export function Sidebar() {
         "back",
         "home",
         "screenshot",
-      ]
+      ],
     },
+
     {
       title: "Logic",
-
       actions: [
         "if",
       ],

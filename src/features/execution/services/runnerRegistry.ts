@@ -15,6 +15,9 @@ import { backRunner } from "../runners/BackRunner";
 import { homeRunner } from "../runners/HomeRunner";
 import { screenshotRunner } from "../runners/ScreenshotRunner";
 import { ifRunner } from "../runners/IfRunner";
+import { getTextRunner } from "../runners/GetTextRunner";
+import { elementExistsRunner } from "../runners/ElementExistsRunner";
+
 
 
 const registry = new Map<NodeAction, NodeRunner>([
@@ -32,7 +35,9 @@ const registry = new Map<NodeAction, NodeRunner>([
   ["back", backRunner],
   ["home", homeRunner],
   ["screenshot", screenshotRunner],
-  ["if", ifRunner]
+  ["if", ifRunner],
+  ["getText", getTextRunner],
+  ["elementExists", elementExistsRunner]
 
 
 ]);

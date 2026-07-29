@@ -138,20 +138,52 @@ export class AppiumClient {
       );
 
     await this.delay(500);
-  } 
+  }
 
   async screenshot(
-  fileName: string
-) {
-  useExecutionLogStore
-    .getState()
-    .addLog(
-      "info",
-      `Take Screenshot: ${fileName}`
+    fileName: string
+  ) {
+    useExecutionLogStore
+      .getState()
+      .addLog(
+        "info",
+        `Take Screenshot: ${fileName}`
+      );
+
+    await this.delay(700);
+  }
+
+
+  async getText(
+    locatorStrategy: string,
+    locator: string
+  ): Promise<string> {
+    useExecutionLogStore
+      .getState()
+      .addLog(
+        "info",
+        `Get Text ${locatorStrategy}=${locator}`
+      );
+
+    await this.delay(300);
+
+    return "Welcome to FlowTest";
+  }
+
+  async elementExists(
+    locatorStrategy: string,
+    locator: string
+  ): Promise<boolean> {
+    console.log(
+      "Element Exists",
+      locatorStrategy,
+      locator
     );
 
-  await this.delay(700);
-}
+    return true;
+  }
+
+
 
   private delay(ms: number) {
     return new Promise((resolve) =>

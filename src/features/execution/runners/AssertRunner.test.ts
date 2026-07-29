@@ -53,13 +53,22 @@ describe("AssertRunner", () => {
     });
 
     it("calls appiumClient.assert with resolved expected value", async () => {
-        resolveVariablesMock.mockReturnValue("Login Success");
+        resolveVariablesMock.mockImplementation((value) => {
+            if (value === "${expectedMessage}") {
+                return "Login Success";
+            }
+
+            return value;
+        });
 
         await assertRunner.run(
             createAssertNode(),
             context,
         );
 
+        expect(resolveVariablesMock).toHaveBeenCalledWith(
+            "message",
+        );
         expect(resolveVariablesMock).toHaveBeenCalledWith(
             "${expectedMessage}",
         );

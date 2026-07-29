@@ -8,14 +8,17 @@ export const assertRunner: NodeRunner = {
       return;
     }
 
-    const expected =
-      resolveVariables(
-        node.data.expected
-      );
+    const locator = resolveVariables(
+      node.data.locator
+    );
+
+    const expected = resolveVariables(
+      node.data.expected
+    );
 
     await appiumClient.assert(
       node.data.locatorStrategy,
-      node.data.locator,
+      locator,
       expected
     );
   },
