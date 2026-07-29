@@ -4,11 +4,12 @@ import type { ExecutionContext } from "../types/ExecutionContext";
 import { getRunner } from "../services/runnerRegistry";
 import { executionLogger } from "../services/executionLogger";
 import { useExecutionStore } from "../store/useExecutionStore";
+import type { RunnerResult } from "../types/RunnerResult";
 
 export async function executeNode(
   node: FlowNode,
   context: ExecutionContext
-) {
+): Promise<RunnerResult> {
   const execution = useExecutionStore.getState();
   const runner = getRunner(node.data.action);
 
@@ -28,7 +29,10 @@ export async function executeNode(
       node.data.action
     );
 
-    await runner.run(node, context);
+    const result = await runner.run(
+      node,
+      context
+    );
 
     const duration = performance.now() - startedAt;
 
@@ -40,6 +44,11 @@ export async function executeNode(
       node.data.action,
       duration
     );
+
+    return result ?? {
+      outputs: ["next"],
+    };
+
   } catch (error) {
     const duration = performance.now() - startedAt;
 

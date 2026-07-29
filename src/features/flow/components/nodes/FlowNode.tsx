@@ -43,10 +43,12 @@ export function FlowNode({
       subtitle={plugin.subtitle}
       icon={<Icon size={18} />}
       color={plugin.color}
+      handles={plugin.handles}
       running={currentNodeId === id}
       executionStatus={nodeStatus[id] ?? "idle"}
       valid={validation.valid}
-      breakpoint={data.debug?.breakpoint ?? false} onToggleBreakpoint={handleToggleBreakpoint}
+      breakpoint={data.debug?.breakpoint ?? false}
+      onToggleBreakpoint={handleToggleBreakpoint}
     >
       {plugin.preview?.(data)}
     </BaseNode>

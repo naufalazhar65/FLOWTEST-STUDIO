@@ -29,6 +29,10 @@ export const delayNode: NodePlugin = {
             step: 100,
         },
     ],
+    
+    handles: {
+        outputs: ["next"],
+    },
 
     preview(data: FlowNodeData) {
         if (data.action !== "delay") {

@@ -9,7 +9,7 @@ import type {
   WaitNodeData,
   LaunchAppNodeData,
   CloseAppNodeData,
-  ScreenshotNodeData
+  ScreenshotNodeData,
   IfNodeData,
 } from "./flowNode";
 

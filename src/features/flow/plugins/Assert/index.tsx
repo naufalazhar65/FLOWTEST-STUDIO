@@ -44,6 +44,10 @@ export const assertNode: NodePlugin = {
     },
   ],
 
+  handles: {
+    outputs: ["next"],
+  },
+
   preview(data: FlowNodeData) {
     if (data.action !== "assert") {
       return null;

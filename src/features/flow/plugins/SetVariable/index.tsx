@@ -15,10 +15,10 @@ export const setVariableNode: NodePlugin = {
   icon: Variable,
 
   defaults: {
-  action: "setVariable",
-  variableName: "",
-  value: "",
-},
+    action: "setVariable",
+    variableName: "",
+    value: "",
+  },
 
   fields: [
     {
@@ -32,6 +32,10 @@ export const setVariableNode: NodePlugin = {
       type: "text",
     },
   ],
+
+  handles: {
+    outputs: ["next"],
+  },
 
   preview(data: FlowNodeData) {
     if (data.action !== "setVariable") {

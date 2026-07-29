@@ -28,6 +28,10 @@ export const closeAppPlugin: NodePlugin = {
       placeholder: "com.demo.app",
     },
   ],
+  
+  handles: {
+    outputs: ["next"],
+  },
 
   preview(data) {
     const app = data as CloseAppNodeData;

@@ -17,6 +17,10 @@ export const backPlugin: NodePlugin = {
     action: "back",
   },
 
+  handles: {
+    outputs: ["next"],
+  },
+
   fields: [],
 
   preview() {

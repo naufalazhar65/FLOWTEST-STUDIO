@@ -14,6 +14,7 @@ import { closeAppRunner } from "../runners/CloseAppRunner";
 import { backRunner } from "../runners/BackRunner";
 import { homeRunner } from "../runners/HomeRunner";
 import { screenshotRunner } from "../runners/ScreenshotRunner";
+import { ifRunner } from "../runners/IfRunner";
 
 
 const registry = new Map<NodeAction, NodeRunner>([
@@ -30,7 +31,8 @@ const registry = new Map<NodeAction, NodeRunner>([
   ["closeApp", closeAppRunner],
   ["back", backRunner],
   ["home", homeRunner],
-  ["screenshot", screenshotRunner]
+  ["screenshot", screenshotRunner],
+  ["if", ifRunner]
 
 
 ]);

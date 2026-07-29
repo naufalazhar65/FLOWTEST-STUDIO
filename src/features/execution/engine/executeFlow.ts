@@ -4,7 +4,7 @@ import type { ExecutionContext } from "../types/ExecutionContext";
 import { useExecutionStore } from "../store/useExecutionStore";
 
 import { validateFlow } from "../../flow/validation/validateFlow";
-import { buildExecutionOrder } from "../../flow/graph/buildExecutionOrder";
+import { GraphNavigator } from "../graph/GraphNavigator";
 
 import { clearVariables } from "../variables/VariableStore";
 import { formatDuration } from "../utils/formatDuration";
@@ -26,14 +26,15 @@ export async function executeFlow(
     executionLogger.clear();
     execution.reset();
 
-    const orderedNodes = buildExecutionOrder(
+    const graph = new GraphNavigator(
         nodes,
         context.edges
     );
 
     clearVariables();
+
     execution.startExecution(
-        orderedNodes.length
+        nodes.length
     );
 
 
@@ -97,14 +98,23 @@ export async function executeFlow(
         // Execute Nodes
         // ---------------------------------------
 
-        for (const node of orderedNodes) {
+        let currentNode =
+            graph.getStartNode();
+
+        while (currentNode) {
+
             await waitWhilePaused();
 
-            execution.setCurrentNode(node.id);
+            execution.setCurrentNode(
+                currentNode.id
+            );
 
-            if (node.data.debug.breakpoint) {
+            if (
+                currentNode.data.debug.breakpoint
+            ) {
+
                 executionLogger.info(
-                    `🛑 Breakpoint reached: ${node.data.title}`
+                    `🛑 Breakpoint reached: ${currentNode.data.title}`
                 );
 
                 execution.pauseExecution();
@@ -112,7 +122,20 @@ export async function executeFlow(
                 await waitWhilePaused();
             }
 
-            await executeNode(node, context);
+            const result =
+                await executeNode(
+                    currentNode,
+                    context
+                );
+
+            const output =
+                result.outputs[0] ?? "next";
+
+            currentNode =
+                graph.getNextNode(
+                    currentNode.id,
+                    output
+                );
         }
 
         // ---------------------------------------

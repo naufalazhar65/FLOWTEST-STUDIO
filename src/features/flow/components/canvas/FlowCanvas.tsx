@@ -1,4 +1,5 @@
 import "reactflow/dist/style.css";
+import { useEffect } from "react";
 
 import ReactFlow, {
   Background,
@@ -20,6 +21,8 @@ import { useExecutionCamera } from "../../../execution/hooks/useExecutionCamera"
 // =========================
 // React Flow Types
 // =========================
+
+
 
 const nodeTypes = {
   flow: FlowNode,
@@ -47,7 +50,16 @@ export function FlowCanvas() {
     setSelectedNode,
   } = useFlowStore();
 
+
   const callbacks = useFlowCallbacks();
+
+  console.log(edges);
+
+  useEffect(() => {
+    console.log("Edges:", edges);
+  }, [edges]);
+
+
 
   useDeleteNode({
     selectedNodeId,

@@ -98,8 +98,17 @@ export type NodeDefaults =
     action: "if";
 
     condition: string;
+  }
+  | {
+    action: "repeat";
+
+    count: number;
   };
 
+
+export interface NodeHandles {
+  outputs: string[];
+}
 
 export interface NodePlugin {
   type: NodeType;
@@ -112,6 +121,8 @@ export interface NodePlugin {
 
   icon: LucideIcon;
 
+  handles?: NodeHandles;
+
   defaults: NodeDefaults;
 
   fields: NodeField[];
@@ -120,3 +131,4 @@ export interface NodePlugin {
     data: FlowNodeData
   ) => ReactNode;
 }
+

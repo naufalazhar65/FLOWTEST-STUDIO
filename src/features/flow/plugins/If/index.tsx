@@ -4,49 +4,53 @@ import type { NodePlugin } from "../../types/NodePlugin";
 import type { IfNodeData } from "../../types/flowNode";
 
 export const ifPlugin: NodePlugin = {
-  type: "if",
+    type: "if",
 
-  title: "If",
+    title: "If",
 
-  subtitle: "Conditional branching",
+    subtitle: "Conditional branching",
 
-  color: "#F59E0B",
+    color: "#F59E0B",
 
-  icon: GitBranch,
+    icon: GitBranch,
 
-  defaults: {
-    action: "if",
+    defaults: {
+        action: "if",
 
-    condition: "",
-  },
-
-  fields: [
-    {
-      key: "condition",
-      label: "Condition",
-      type: "text",
-      placeholder: '${status} == "success"',
+        condition: "",
     },
-  ],
 
-  preview(data) {
-    const condition =
-      data as IfNodeData;
+    fields: [
+        {
+            key: "condition",
+            label: "Condition",
+            type: "text",
+            placeholder: '${status} == "success"',
+        },
+    ],
 
-    return (
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: 6,
-        }}
-      >
-        <strong>🔀 IF</strong>
+    handles: {
+        outputs: ["true", "false"],
+    },
 
-        <span>
-          {condition.condition || "-"}
-        </span>
-      </div>
-    );
-  },
+    preview(data) {
+        const condition =
+            data as IfNodeData;
+
+        return (
+            <div
+                style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 6,
+                }}
+            >
+                <strong>🔀 IF</strong>
+
+                <span>
+                    {condition.condition || "-"}
+                </span>
+            </div>
+        );
+    },
 };

@@ -50,6 +50,10 @@ export const swipeNode: NodePlugin = {
         },
     ],
 
+    handles: {
+        outputs: ["next"],
+    },
+
     preview(data: FlowNodeData) {
         if (data.action !== "swipe") {
             return null;

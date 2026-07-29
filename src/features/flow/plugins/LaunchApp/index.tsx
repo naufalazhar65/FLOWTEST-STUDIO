@@ -46,6 +46,10 @@ export const launchAppPlugin: NodePlugin = {
     },
   ],
 
+  handles: {
+    outputs: ["next"],
+  },
+
   preview(data) {
     const launch =
       data as LaunchAppNodeData;

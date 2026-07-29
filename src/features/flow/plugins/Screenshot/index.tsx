@@ -29,6 +29,10 @@ export const screenshotPlugin: NodePlugin = {
     },
   ],
 
+  handles: {
+    outputs: ["next"],
+  },
+
   preview(data) {
     const screenshot =
       data as ScreenshotNodeData;

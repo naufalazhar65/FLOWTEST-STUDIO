@@ -33,6 +33,10 @@ export const tapNode: NodePlugin = {
     },
   ],
 
+  handles: {
+    outputs: ["next"],
+  },
+
   preview(data: FlowNodeData) {
     if (data.action !== "tap") {
       return null;

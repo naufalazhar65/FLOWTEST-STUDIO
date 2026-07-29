@@ -66,6 +66,10 @@ export const waitPlugin: NodePlugin = {
         },
     ],
 
+    handles: {
+        outputs: ["next"],
+    },
+
     preview: (data) => {
         const wait = data as WaitNodeData;
 

@@ -44,6 +44,10 @@ export const inputNode: NodePlugin = {
     },
   ],
 
+  handles: {
+    outputs: ["next"],
+  },
+
   preview(data: FlowNodeData) {
     if (data.action !== "input") {
       return null;

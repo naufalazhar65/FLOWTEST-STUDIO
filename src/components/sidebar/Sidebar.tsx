@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import {
-  Camera,
   Search,
 } from "lucide-react";
 
@@ -128,7 +127,7 @@ export function Sidebar() {
           );
         })}
 
-        <div style={{ marginTop: 24 }}>
+        {/* <div style={{ marginTop: 24 }}>
           <SectionTitle>Coming Soon</SectionTitle>
 
           <SidebarButton
@@ -136,7 +135,7 @@ export function Sidebar() {
             icon={<Camera size={18} />}
             label=""
           />
-        </div>
+        </div> */}
       </div>
     </aside>
   );

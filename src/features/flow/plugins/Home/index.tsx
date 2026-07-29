@@ -17,6 +17,10 @@ export const homePlugin: NodePlugin = {
     action: "home",
   },
 
+  handles: {
+    outputs: ["next"],
+  },
+
   fields: [],
 
   preview() {

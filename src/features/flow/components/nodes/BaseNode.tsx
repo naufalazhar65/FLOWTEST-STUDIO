@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 import { Handle, Position } from "reactflow";
 
 import type { NodeExecutionStatus } from "../../../execution/types/NodeExecutionStatus";
+import type { NodeHandles } from "../../types/NodePlugin";
+
 
 interface BaseNodeProps {
   title: string;
@@ -21,6 +23,8 @@ interface BaseNodeProps {
   valid?: boolean;
 
   breakpoint?: boolean;
+
+  handles?: NodeHandles;
 
   onToggleBreakpoint?: () => void;
 }
@@ -48,6 +52,9 @@ export function BaseNode({
   subtitle,
   icon,
   color,
+  handles = {
+    outputs: ["next"],
+  },
   children,
   running = false,
   executionStatus = "idle",
@@ -205,15 +212,24 @@ export function BaseNode({
           {children}
         </div>
 
-        <Handle
-          type="source"
-          position={Position.Bottom}
-          style={{
-            width: 12,
-            height: 12,
-            background: color,
-          }}
-        />
+        {handles.outputs.map((output, index) => (
+          <Handle
+            key={output}
+            id={output}
+            type="source"
+            position={Position.Bottom}
+            style={{
+              width: 12,
+              height: 12,
+              background: color,
+
+              left:
+                handles.outputs.length === 1
+                  ? "50%"
+                  : `${((index + 1) / (handles.outputs.length + 1)) * 100}%`,
+            }}
+          />
+        ))}
       </div>
     </>
   );
