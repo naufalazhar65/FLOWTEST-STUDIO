@@ -89,6 +89,8 @@ export function Sidebar() {
 
                     return (
                         <SidebarSection
+                            accent={section.accent}
+
                             key={section.id}
                             title={section.title}
                             icon={

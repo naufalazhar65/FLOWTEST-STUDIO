@@ -14,6 +14,12 @@ export interface SidebarSectionConfig {
     icon: LucideIcon;
     defaultOpen: boolean;
     actions: string[];
+
+    /**
+     * Accent color used across the UI
+     * (sidebar, nodes, timeline, execution console, etc.)
+     */
+    accent: string;
 }
 
 export const sidebarSections: SidebarSectionConfig[] = [
@@ -22,6 +28,7 @@ export const sidebarSections: SidebarSectionConfig[] = [
         title: "Interaction",
         icon: MousePointer2,
         defaultOpen: true,
+        accent: "#3B82F6",
         actions: [
             "tap",
             "input",
@@ -35,6 +42,7 @@ export const sidebarSections: SidebarSectionConfig[] = [
         title: "Element",
         icon: SquareDashedMousePointer,
         defaultOpen: true,
+        accent: "#8B5CF6",
         actions: [
             "getText",
             "elementExists",
@@ -49,6 +57,7 @@ export const sidebarSections: SidebarSectionConfig[] = [
         title: "Variables",
         icon: Database,
         defaultOpen: false,
+        accent: "#F59E0B",
         actions: [
             "setVariable",
         ],
@@ -59,6 +68,7 @@ export const sidebarSections: SidebarSectionConfig[] = [
         title: "Synchronization",
         icon: Clock3,
         defaultOpen: false,
+        accent: "#06B6D4",
         actions: [
             "delay",
         ],
@@ -69,6 +79,7 @@ export const sidebarSections: SidebarSectionConfig[] = [
         title: "Device",
         icon: Smartphone,
         defaultOpen: false,
+        accent: "#22C55E",
         actions: [
             "launchApp",
             "closeApp",
@@ -83,6 +94,7 @@ export const sidebarSections: SidebarSectionConfig[] = [
         title: "Logic",
         icon: GitBranch,
         defaultOpen: false,
+        accent: "#F97316",
         actions: [
             "if",
         ],

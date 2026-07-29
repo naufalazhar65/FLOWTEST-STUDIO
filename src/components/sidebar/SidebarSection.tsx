@@ -1,7 +1,5 @@
 import type { ReactNode } from "react";
-import {
-    ChevronDown,
-} from "lucide-react";
+import { ChevronDown } from "lucide-react";
 
 interface SidebarSectionProps {
     title: string;
@@ -10,6 +8,7 @@ interface SidebarSectionProps {
     open: boolean;
     onToggle: () => void;
     children: ReactNode;
+    accent: string;
 }
 
 export function SidebarSection({
@@ -19,6 +18,7 @@ export function SidebarSection({
     open,
     onToggle,
     children,
+    accent,
 }: SidebarSectionProps) {
     return (
         <div
@@ -34,7 +34,7 @@ export function SidebarSection({
                     justifyContent: "space-between",
                     alignItems: "center",
 
-                    background: "transparent",
+                    background: open ? "#1A1F27" : "transparent",
                     border: "none",
 
                     color: "#FFFFFF",
@@ -45,18 +45,36 @@ export function SidebarSection({
 
                     cursor: "pointer",
 
-                    transition:
-                        "background .18s ease",
+                    position: "relative",
+
+                    transition: "all .18s ease",
                 }}
                 onMouseEnter={(e) => {
-                    e.currentTarget.style.background =
-                        "#1C212B";
+                    e.currentTarget.style.background = "#1C212B";
                 }}
                 onMouseLeave={(e) => {
-                    e.currentTarget.style.background =
-                        "transparent";
+                    e.currentTarget.style.background = open
+                        ? "#1A1F27"
+                        : "transparent";
                 }}
             >
+                {/* Left accent indicator */}
+                <div
+                    style={{
+                        position: "absolute",
+                        left: 0,
+                        top: 6,
+                        bottom: 6,
+                        width: 3,
+                        borderRadius: 999,
+                        background: accent,
+
+                        opacity: open ? 1 : 0,
+
+                        transition: "opacity .18s ease",
+                    }}
+                />
+
                 <div
                     style={{
                         display: "flex",
@@ -67,22 +85,29 @@ export function SidebarSection({
                     <ChevronDown
                         size={16}
                         style={{
-                            transition:
-                                "transform .18s ease",
+                            color: "#8B949E",
                             transform: open
                                 ? "rotate(0deg)"
                                 : "rotate(-90deg)",
+                            transition: "transform .18s ease",
                         }}
                     />
 
-                    {icon}
+                    <div
+                        style={{
+                            color: accent,
+                            display: "flex",
+                            alignItems: "center",
+                        }}
+                    >
+                        {icon}
+                    </div>
 
                     <span
                         style={{
                             fontSize: 12,
                             fontWeight: 700,
-                            textTransform:
-                                "uppercase",
+                            textTransform: "uppercase",
                             letterSpacing: 1,
                         }}
                     >
@@ -97,18 +122,19 @@ export function SidebarSection({
 
                         borderRadius: 999,
 
-                        background: "#30363D",
+                        background: `${accent}22`,
+                        border: `1px solid ${accent}55`,
+
+                        color: accent,
 
                         display: "flex",
-
                         alignItems: "center",
-
                         justifyContent: "center",
 
                         fontSize: 11,
+                        fontWeight: 700,
 
-                        transition:
-                            "all .18s ease",
+                        transition: "all .18s ease",
                     }}
                 >
                     {count}
@@ -119,20 +145,14 @@ export function SidebarSection({
                 style={{
                     overflow: "hidden",
 
-                    maxHeight: open
-                        ? 900
-                        : 0,
+                    maxHeight: open ? 900 : 0,
 
-                    opacity: open
-                        ? 1
-                        : 0,
+                    opacity: open ? 1 : 0,
 
                     transition:
                         "max-height .22s ease, opacity .18s ease",
 
-                    paddingTop: open
-                        ? 10
-                        : 0,
+                    paddingTop: open ? 10 : 0,
                 }}
             >
                 {children}
