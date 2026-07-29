@@ -17,6 +17,8 @@ import { screenshotRunner } from "../runners/ScreenshotRunner";
 import { ifRunner } from "../runners/IfRunner";
 import { getTextRunner } from "../runners/GetTextRunner";
 import { elementExistsRunner } from "../runners/ElementExistsRunner";
+import { getAttributeRunner } from "../runners/GetAttributeRunner";
+
 
 
 
@@ -37,7 +39,8 @@ const registry = new Map<NodeAction, NodeRunner>([
   ["screenshot", screenshotRunner],
   ["if", ifRunner],
   ["getText", getTextRunner],
-  ["elementExists", elementExistsRunner]
+  ["elementExists", elementExistsRunner],
+  ["getAttribute", getAttributeRunner]
 
 
 ]);

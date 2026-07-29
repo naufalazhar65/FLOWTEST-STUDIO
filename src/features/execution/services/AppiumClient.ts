@@ -183,6 +183,21 @@ export class AppiumClient {
     return true;
   }
 
+  async getAttribute(
+    locatorStrategy: string,
+    locator: string,
+    attribute: string,
+  ): Promise<string> {
+    console.log(
+      "Get Attribute",
+      locatorStrategy,
+      locator,
+      attribute,
+    );
+
+    return "Login";
+  }
+
 
 
   private delay(ms: number) {

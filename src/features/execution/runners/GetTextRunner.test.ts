@@ -9,11 +9,15 @@ vi.mock("../services/AppiumClient", () => ({
 import { appiumClient } from "../services/AppiumClient";
 import { getTextRunner } from "./GetTextRunner";
 
-import type { FlowNode } from "../../flow/types/flowNode";
 import type { ExecutionContext } from "../types/ExecutionContext";
 import {
+    clearVariables,
     getVariable,
 } from "../variables/VariableStore";
+import type {
+    FlowNode,
+    GetTextNodeData,
+} from "../../flow/types/flowNode";
 
 const context: ExecutionContext = {
     device: "Android",
@@ -47,6 +51,7 @@ function createGetTextNode(): FlowNode {
 describe("GetTextRunner", () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        clearVariables();
     });
 
     it("calls appiumClient.getText", async () => {
@@ -67,7 +72,7 @@ describe("GetTextRunner", () => {
             outputs: ["next"],
         });
     });
-    
+
 
     it("returns immediately when action is not getText", async () => {
         const node = createGetTextNode();
@@ -97,5 +102,38 @@ describe("GetTextRunner", () => {
         expect(
             getVariable("welcomeMessage")
         ).toBe("Welcome");
+    });
+    it("does not store variable when variableName is empty", async () => {
+        getTextMock.mockResolvedValue("Welcome");
+
+        const node = createGetTextNode();
+
+        (node.data as GetTextNodeData).variableName = "";
+
+        await getTextRunner.run(
+            node,
+            context,
+        );
+
+        expect(
+            getVariable("welcomeMessage"),
+        ).toBeUndefined();
+    });
+
+    it("does not store variable when variableName is empty", async () => {
+        getTextMock.mockResolvedValue("Welcome");
+
+        const node = createGetTextNode();
+
+        (node.data as GetTextNodeData).variableName = "";
+
+        await getTextRunner.run(
+            node,
+            context,
+        );
+
+        expect(
+            getVariable("welcomeMessage"),
+        ).toBeUndefined();
     });
 });

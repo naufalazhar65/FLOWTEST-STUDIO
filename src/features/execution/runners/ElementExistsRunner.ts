@@ -1,6 +1,6 @@
 import { appiumClient } from "../services/AppiumClient";
 import type { NodeRunner } from "../types/NodeRunner";
-import { getVariable, setVariable } from "../variables/VariableStore";
+import { storeResult } from "../utils/storeResult";
 
 export const elementExistsRunner: NodeRunner = {
     async run(node) {
@@ -13,20 +13,11 @@ export const elementExistsRunner: NodeRunner = {
             node.data.locator
         );
 
-        if (node.data.variableName.trim()) {
-            setVariable(
-                node.data.variableName,
-                exists
-            );
-            console.log(
-                "VARIABLE =",
-                node.data.variableName,
-                exists
-            );
-        }
-        console.log(
-            getVariable("loginVisible")
+        storeResult(
+            node.data.variableName,
+            exists,
         );
+        
 
         return {
             outputs: ["next"],

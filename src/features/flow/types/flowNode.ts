@@ -17,6 +17,7 @@ export type NodeAction =
   | "if"
   | "getText"
   | "elementExists"
+  | "getAttribute"
   
 
 export interface NodeDebug {
@@ -158,6 +159,18 @@ export interface ElementExistsNodeData
   variableName: string;
 }
 
+export interface GetAttributeNodeData extends BaseNodeData {
+    action: "getAttribute";
+
+    locatorStrategy: string;
+
+    locator: string;
+
+    attribute: string;
+
+    variableName: string;
+}
+
 
 
 export type FlowNodeData =
@@ -177,6 +190,7 @@ export type FlowNodeData =
   | IfNodeData
   | GetTextNodeData
   | ElementExistsNodeData
+  | GetAttributeNodeData
 
 
 export type FlowNode = Node<FlowNodeData>;

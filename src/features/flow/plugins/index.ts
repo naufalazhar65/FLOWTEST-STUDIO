@@ -14,6 +14,7 @@ import { screenshotPlugin } from "./Screenshot";
 import { ifPlugin } from "./If";
 import { getTextNode } from "./GetText";
 import { elementExistsNode } from "./ElementExists";
+import { getAttributeNode } from "./GetAttribute";
 
 
 
@@ -36,6 +37,7 @@ export const plugins: NodePlugin[] = [
   screenshotPlugin,
   ifPlugin,
   getTextNode,
-  elementExistsNode
+  elementExistsNode,
+  getAttributeNode
   
 ];

@@ -114,6 +114,17 @@ export type NodeDefaults =
     locator: string;
     variableName: string;
   }
+  | {
+    action: "getAttribute";
+
+    locatorStrategy: string;
+
+    locator: string;
+
+    attribute: string;
+
+    variableName: string;
+  }
 
 
 export interface NodeHandles {

@@ -11,6 +11,9 @@ import type {
   CloseAppNodeData,
   ScreenshotNodeData,
   IfNodeData,
+  GetTextNodeData,
+  ElementExistsNodeData,
+  GetAttributeNodeData,
 } from "./flowNode";
 
 export type NodeFieldKey =
@@ -26,6 +29,9 @@ export type NodeFieldKey =
   | keyof CloseAppNodeData
   | keyof ScreenshotNodeData
   | keyof IfNodeData
+  | keyof GetTextNodeData
+  | keyof ElementExistsNodeData
+  | keyof GetAttributeNodeData;
 
 export interface NodeField {
   key: NodeFieldKey;

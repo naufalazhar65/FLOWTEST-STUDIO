@@ -14,7 +14,10 @@ import {
     getVariable,
 } from "../variables/VariableStore";
 
-import type { FlowNode } from "../../flow/types/flowNode";
+import type {
+    FlowNode,
+    ElementExistsNodeData,
+} from "../../flow/types/flowNode";
 import type { ExecutionContext } from "../types/ExecutionContext";
 
 const context: ExecutionContext = {
@@ -90,6 +93,23 @@ describe("ElementExistsRunner", () => {
         expect(
             getVariable("loginVisible")
         ).toBe(true);
+    });
+
+    it("does not store variable when variableName is empty", async () => {
+        elementExistsMock.mockResolvedValue(true);
+
+        const node = createElementExistsNode();
+
+        (node.data as ElementExistsNodeData).variableName = "";
+
+        await elementExistsRunner.run(
+            node,
+            context,
+        );
+
+        expect(
+            getVariable("loginVisible"),
+        ).toBeUndefined();
     });
 
     it("returns immediately when action is not elementExists", async () => {
