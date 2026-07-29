@@ -1,5 +1,5 @@
 import { appiumClient } from "../services/AppiumClient";
-import { resolveVariables } from "../variables/resolveVariable";
+import { resolveNodeVariables } from "../variables/resolveNodeVariables";
 import type { NodeRunner } from "../types/NodeRunner";
 
 export const inputRunner: NodeRunner = {
@@ -8,18 +8,15 @@ export const inputRunner: NodeRunner = {
       return;
     }
 
-    const locator = resolveVariables(
-      node.data.locator
-    );
-
-    const text = resolveVariables(
-      node.data.text
-    );
+    const data = resolveNodeVariables({
+      locator: node.data.locator,
+      text: node.data.text,
+    });
 
     await appiumClient.input(
       node.data.locatorStrategy,
-      locator,
-      text
+      data.locator,
+      data.text
     );
   },
 };

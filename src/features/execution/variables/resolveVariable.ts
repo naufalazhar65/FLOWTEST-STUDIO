@@ -1,4 +1,5 @@
 import { getVariable } from "./VariableStore";
+import { executionLogger } from "../services/executionLogger";
 
 const variablePattern = /\$\{([^}]+)\}/g;
 
@@ -41,7 +42,11 @@ export function resolveVariables(
       const variable = getVariable(variableName);
 
       if (variable === undefined) {
-        return "";
+        executionLogger.warning(
+          `Variable "${variableName}" not found`
+        );
+
+        return `\${${expression}}`;
       }
 
       const resolved = getNestedValue(
@@ -50,7 +55,11 @@ export function resolveVariables(
       );
 
       if (resolved === undefined) {
-        return "";
+        executionLogger.warning(
+          `Property "${expression}" not found`
+        );
+
+        return `\${${expression}}`;
       }
 
       return String(resolved);

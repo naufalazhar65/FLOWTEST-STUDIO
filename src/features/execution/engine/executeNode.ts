@@ -15,8 +15,14 @@ export async function executeNode(
 
   const startedAt = performance.now();
 
+  execution.setCurrentNode(node.id);
+
+  execution.setNodeStatus(
+    node.id,
+    "running"
+  );
+
   try {
-    // Log sebelum menjalankan node
     let message = `Executing ${node.data.title}`;
 
     if (node.data.action === "delay") {
@@ -34,9 +40,17 @@ export async function executeNode(
       context
     );
 
-    const duration = performance.now() - startedAt;
+    const duration =
+      performance.now() - startedAt;
+
+    execution.setNodeStatus(
+      node.id,
+      "passed"
+    );
 
     execution.completeNode(true);
+
+    execution.setCurrentNode(null);
 
     executionLogger.success(
       `${node.data.title} completed`,
@@ -48,11 +62,18 @@ export async function executeNode(
     return result ?? {
       outputs: ["next"],
     };
-
   } catch (error) {
-    const duration = performance.now() - startedAt;
+    const duration =
+      performance.now() - startedAt;
+
+    execution.setNodeStatus(
+      node.id,
+      "failed"
+    );
 
     execution.completeNode(false);
+
+    execution.setCurrentNode(null);
 
     executionLogger.error(
       `${node.data.title} failed`,

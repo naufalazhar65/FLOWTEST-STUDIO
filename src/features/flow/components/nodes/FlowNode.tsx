@@ -18,10 +18,9 @@ export function FlowNode({
 
   const Icon = plugin.icon;
 
-  const {
-    currentNodeId,
-    nodeStatus,
-  } = useExecutionStore();
+  const nodeStatus = useExecutionStore(
+    (state) => state.nodeStatus
+  );
 
   const updateNodeData = useFlowStore(
     (state) => state.updateNodeData
@@ -44,8 +43,9 @@ export function FlowNode({
       icon={<Icon size={18} />}
       color={plugin.color}
       handles={plugin.handles}
-      running={currentNodeId === id}
-      executionStatus={nodeStatus[id] ?? "idle"}
+      executionStatus={
+        nodeStatus[id] ?? "idle"
+      }
       valid={validation.valid}
       breakpoint={data.debug?.breakpoint ?? false}
       onToggleBreakpoint={handleToggleBreakpoint}

@@ -1,9 +1,6 @@
-export interface DeviceActionNodeData {
-    title: string;
-    subtitle: string;
-}
+import type { BaseNodeData } from "./flowNode";
 
 export interface DeviceGetterNodeData
-    extends DeviceActionNodeData {
+    extends BaseNodeData {
     variableName: string;
 }

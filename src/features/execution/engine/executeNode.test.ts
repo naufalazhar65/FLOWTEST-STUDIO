@@ -1,23 +1,19 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+    beforeEach,
+    describe,
+    expect,
+    it,
+    vi,
+} from "vitest";
 
 import { executeNode } from "./executeNode";
 
-import type { FlowNode } from "../../flow/types/flowNode";
-import type { ExecutionContext } from "../types/ExecutionContext";
-import type { RunnerResult } from "../types/RunnerResult";
+import { getRunner } from "../services/runnerRegistry";
 import { executionLogger } from "../services/executionLogger";
-
-
-const executionLoggerMock = vi.mocked(executionLogger);
-
-const completeNode = vi.fn();
-
-const mockRunner = {
-    run: vi.fn(),
-};
+import { useExecutionStore } from "../store/useExecutionStore";
 
 vi.mock("../services/runnerRegistry", () => ({
-    getRunner: vi.fn(() => mockRunner),
+    getRunner: vi.fn(),
 }));
 
 vi.mock("../services/executionLogger", () => ({
@@ -30,118 +26,197 @@ vi.mock("../services/executionLogger", () => ({
 
 vi.mock("../store/useExecutionStore", () => ({
     useExecutionStore: {
-        getState: () => ({
-            completeNode,
-        }),
+        getState: vi.fn(),
     },
 }));
 
-const context = {} as ExecutionContext;
-
-const node = {
-    id: "node-1",
-    data: {
-        action: "tap",
-        title: "Tap",
-    },
-} as FlowNode;
-
 describe("executeNode", () => {
+    const execution = {
+        setCurrentNode: vi.fn(),
+        setNodeStatus: vi.fn(),
+        completeNode: vi.fn(),
+    };
+
+    const runner = {
+        run: vi.fn(),
+    };
+
+    const node = {
+        id: "node-1",
+        data: {
+            action: "tap",
+            title: "Tap",
+            subtitle: "",
+            debug: {
+                breakpoint: false,
+            },
+            locatorStrategy: "id",
+            locator: "login",
+        },
+    };
+
+    const context = {
+        device: "emulator",
+        edges: [],
+    };
+
     beforeEach(() => {
         vi.clearAllMocks();
+
+        vi.mocked(
+            useExecutionStore.getState
+        ).mockReturnValue(
+            execution as never
+        );
+
+        vi.mocked(
+            getRunner
+        ).mockReturnValue(
+            runner as never
+        );
     });
 
-    it("returns runner result", async () => {
-        // Arrange
-        const runnerResult: RunnerResult = {
-            outputs: ["success"],
-        };
-
-        mockRunner.run.mockResolvedValue(
-            runnerResult
-        );
-
-        // Act
-        const result = await executeNode(
-            node,
-            context
-        );
-
-        // Assert
-        expect(result).toEqual(
-            runnerResult
-        );
-
-        expect(completeNode)
-            .toHaveBeenCalledWith(true);
-    });
-
-    it("returns default output when runner returns void", async () => {
-        // Arrange
-        mockRunner.run.mockResolvedValue(
-            undefined
-        );
-
-        // Act
-        const result = await executeNode(
-            node,
-            context
-        );
-
-        // Assert
-        expect(result).toEqual({
+    it("executes a node successfully", async () => {
+        runner.run.mockResolvedValue({
             outputs: ["next"],
         });
 
-        expect(completeNode)
-            .toHaveBeenCalledWith(true);
+        const result = await executeNode(
+            node as never,
+            context
+        );
+
+        expect(
+            execution.setCurrentNode
+        ).toHaveBeenNthCalledWith(
+            1,
+            "node-1"
+        );
+
+        expect(
+            execution.setNodeStatus
+        ).toHaveBeenNthCalledWith(
+            1,
+            "node-1",
+            "running"
+        );
+
+        expect(
+            runner.run
+        ).toHaveBeenCalledWith(
+            node,
+            context
+        );
+
+        expect(
+            execution.setNodeStatus
+        ).toHaveBeenNthCalledWith(
+            2,
+            "node-1",
+            "passed"
+        );
+
+        expect(
+            execution.completeNode
+        ).toHaveBeenCalledWith(
+            true
+        );
+
+        expect(
+            execution.setCurrentNode
+        ).toHaveBeenNthCalledWith(
+            2,
+            null
+        );
+
+        expect(
+            executionLogger.success
+        ).toHaveBeenCalled();
+
+        expect(result).toEqual({
+            outputs: ["next"],
+        });
+    });
+
+    it("returns default output when runner returns undefined", async () => {
+        runner.run.mockResolvedValue(
+            undefined
+        );
+
+        await expect(
+            executeNode(
+                node as never,
+                context
+            )
+        ).resolves.toEqual({
+            outputs: ["next"],
+        });
     });
 
     it("marks node as failed when runner throws", async () => {
-        // Arrange
-        mockRunner.run.mockRejectedValue(
-            new Error("Runner failed")
+        runner.run.mockRejectedValue(
+            new Error("Boom")
         );
 
-        // Act & Assert
         await expect(
-            executeNode(node, context)
-        ).rejects.toThrow(
-            "Runner failed"
+            executeNode(
+                node as never,
+                context
+            )
+        ).rejects.toThrow("Boom");
+
+        expect(
+            execution.setNodeStatus
+        ).toHaveBeenNthCalledWith(
+            2,
+            "node-1",
+            "failed"
         );
 
-        expect(completeNode)
-            .toHaveBeenCalledWith(false);
+        expect(
+            execution.completeNode
+        ).toHaveBeenCalledWith(
+            false
+        );
+
+        expect(
+            execution.setCurrentNode
+        ).toHaveBeenLastCalledWith(
+            null
+        );
+
+        expect(
+            executionLogger.error
+        ).toHaveBeenCalled();
     });
 
-    it("logs waiting message for delay node", async () => {
-    const delayNode = {
-        ...node,
-        data: {
-            action: "delay",
-            title: "Delay",
-            duration: 500,
-        },
-    } as FlowNode;
+    it("logs delay message", async () => {
+        runner.run.mockResolvedValue({
+            outputs: ["next"],
+        });
 
-    mockRunner.run.mockResolvedValue({
-        outputs: ["next"],
+        await executeNode(
+            {
+                ...node,
+                data: {
+                    action: "delay",
+                    title: "Delay",
+                    subtitle: "",
+                    debug: {
+                        breakpoint: false,
+                    },
+                    duration: 1000,
+                },
+            } as never,
+            context
+        );
+
+        expect(
+            executionLogger.info
+        ).toHaveBeenCalledWith(
+            "Waiting 1000 ms",
+            "node-1",
+            "delay"
+        );
     });
-
-    await executeNode(
-        delayNode,
-        context,
-    );
-
-    expect(
-        executionLoggerMock.info
-    ).toHaveBeenCalledWith(
-        "Waiting 500 ms",
-        "node-1",
-        "delay",
-    );
-
-    expect(completeNode)
-        .toHaveBeenCalledWith(true);
-});
 });

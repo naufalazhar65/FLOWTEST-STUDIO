@@ -4,7 +4,6 @@ import { Handle, Position } from "reactflow";
 import type { NodeExecutionStatus } from "../../../execution/types/NodeExecutionStatus";
 import type { NodeHandles } from "../../types/NodePlugin";
 
-
 interface BaseNodeProps {
   title: string;
 
@@ -15,8 +14,6 @@ interface BaseNodeProps {
   color: string;
 
   children?: ReactNode;
-
-  running?: boolean;
 
   executionStatus?: NodeExecutionStatus;
 
@@ -56,13 +53,14 @@ export function BaseNode({
     outputs: ["next"],
   },
   children,
-  running = false,
   executionStatus = "idle",
   valid = true,
-
   breakpoint = false,
   onToggleBreakpoint,
 }: BaseNodeProps) {
+  const isRunning =
+    executionStatus === "running";
+
   return (
     <>
       <style>
@@ -88,10 +86,10 @@ export function BaseNode({
           width: 240,
           background: "#1A1F29",
           border: `2px solid ${!valid
-            ? "#EF4444"
-            : running
-              ? "#FBBF24"
-              : color
+              ? "#EF4444"
+              : isRunning
+                ? "#FBBF24"
+                : color
             }`,
           borderRadius: 14,
           overflow: "hidden",
@@ -99,16 +97,20 @@ export function BaseNode({
 
           boxShadow: !valid
             ? "0 0 18px rgba(239,68,68,.35)"
-            : running
+            : isRunning
               ? "0 0 20px rgba(251,191,36,.5)"
               : "0 8px 30px rgba(0,0,0,.30)",
 
           transition:
             "transform .2s ease, border .25s ease, box-shadow .25s ease",
 
-          transform: running ? "scale(1.02)" : "scale(1)",
+          transform: isRunning
+            ? "scale(1.02)"
+            : "scale(1)",
 
-          animation: running ? "pulse 1s infinite" : undefined,
+          animation: isRunning
+            ? "pulse 1s infinite"
+            : undefined,
         }}
       >
         <Handle
@@ -222,11 +224,12 @@ export function BaseNode({
               width: 12,
               height: 12,
               background: color,
-
               left:
                 handles.outputs.length === 1
                   ? "50%"
-                  : `${((index + 1) / (handles.outputs.length + 1)) * 100}%`,
+                  : `${((index + 1) /
+                    (handles.outputs.length + 1)) *
+                  100}%`,
             }}
           />
         ))}

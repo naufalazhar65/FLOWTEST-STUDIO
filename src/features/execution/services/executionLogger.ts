@@ -35,6 +35,23 @@ class ExecutionLogger {
       );
   }
 
+  warning(
+    message: string,
+    nodeId?: string,
+    nodeType?: string,
+    duration?: number
+  ) {
+    useExecutionLogStore
+      .getState()
+      .addLog(
+        "warning",
+        message,
+        nodeId,
+        nodeType,
+        duration
+      );
+  }
+
   error(
     message: string,
     nodeId?: string,
