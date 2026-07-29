@@ -14,6 +14,13 @@ import type {
   GetTextNodeData,
   ElementExistsNodeData,
   GetAttributeNodeData,
+  GetCurrentActivityNodeData,
+  GetCurrentPackageNodeData,
+  GetOrientationNodeData,
+  GetPlatformVersionNodeData,
+  GetDeviceNameNodeData,
+  GetDeviceTimeNodeData
+  
 } from "./flowNode";
 
 export type NodeFieldKey =
@@ -31,7 +38,13 @@ export type NodeFieldKey =
   | keyof IfNodeData
   | keyof GetTextNodeData
   | keyof ElementExistsNodeData
-  | keyof GetAttributeNodeData;
+  | keyof GetAttributeNodeData
+  | keyof GetCurrentActivityNodeData
+  | keyof GetCurrentPackageNodeData
+  | keyof GetOrientationNodeData
+  | keyof GetPlatformVersionNodeData
+  | keyof GetDeviceNameNodeData
+  | keyof GetDeviceTimeNodeData
 
 export interface NodeField {
   key: NodeFieldKey;

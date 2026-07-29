@@ -86,6 +86,12 @@ export const sidebarSections: SidebarSectionConfig[] = [
             "back",
             "home",
             "screenshot",
+            "getCurrentActivity",
+            "getCurrentPackage",
+            "getOrientation",
+            "getPlatformVersion",
+            "getDeviceName",
+            "getDeviceTime",
         ],
     },
 

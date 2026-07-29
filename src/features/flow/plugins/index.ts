@@ -15,6 +15,13 @@ import { ifPlugin } from "./If";
 import { getTextNode } from "./GetText";
 import { elementExistsNode } from "./ElementExists";
 import { getAttributeNode } from "./GetAttribute";
+import { getCurrentActivityPlugin } from "./getCurrentActivityPlugin";
+import { getCurrentPackagePlugin } from "./getCurrentPackagePlugin";
+import { getOrientationPlugin } from "./getOrientationPlugin/plugin";
+import { getPlatformVersionPlugin } from "./getPlatformVersionPlugin";
+import { getDeviceNamePlugin } from "./getDeviceNamePlugin";
+import { getDeviceTimePlugin } from "./getDeviceTimePlugin";
+
 
 
 
@@ -38,6 +45,12 @@ export const plugins: NodePlugin[] = [
   ifPlugin,
   getTextNode,
   elementExistsNode,
-  getAttributeNode
-  
+  getAttributeNode,
+  getCurrentActivityPlugin,
+  getCurrentPackagePlugin,
+  getOrientationPlugin,
+  getPlatformVersionPlugin,
+  getDeviceNamePlugin,
+  getDeviceTimePlugin
+
 ];

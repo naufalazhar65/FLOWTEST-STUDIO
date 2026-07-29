@@ -1,4 +1,5 @@
 import type { Node } from "reactflow";
+import type { DeviceGetterNodeData } from "./deviceNode";
 
 export type NodeAction =
   | "tap"
@@ -18,7 +19,13 @@ export type NodeAction =
   | "getText"
   | "elementExists"
   | "getAttribute"
-  
+  | "getCurrentActivity"
+  | "getCurrentPackage"
+  | "getOrientation"
+  | "getPlatformVersion"
+  | "getDeviceName"
+  | "getDeviceTime"
+
 
 export interface NodeDebug {
   breakpoint: boolean;
@@ -160,14 +167,48 @@ export interface ElementExistsNodeData
 }
 
 export interface GetAttributeNodeData extends BaseNodeData {
-    action: "getAttribute";
+  action: "getAttribute";
 
-    locatorStrategy: string;
+  locatorStrategy: string;
 
-    locator: string;
+  locator: string;
 
-    attribute: string;
+  attribute: string;
 
+  variableName: string;
+}
+
+export interface GetCurrentActivityNodeData
+  extends DeviceGetterNodeData {
+  action: "getCurrentActivity";
+}
+
+export interface GetCurrentPackageNodeData
+  extends BaseNodeData {
+  action: "getCurrentPackage";
+  variableName: string;
+}
+
+export interface GetOrientationNodeData
+  extends BaseNodeData {
+  action: "getOrientation";
+  variableName: string;
+}
+
+export interface GetPlatformVersionNodeData
+  extends BaseNodeData {
+  action: "getPlatformVersion";
+  variableName: string;
+}
+
+export interface GetDeviceNameNodeData
+  extends BaseNodeData {
+  action: "getDeviceName";
+  variableName: string;
+}
+
+export interface GetDeviceTimeNodeData extends BaseNodeData {
+    action: "getDeviceTime";
     variableName: string;
 }
 
@@ -191,6 +232,12 @@ export type FlowNodeData =
   | GetTextNodeData
   | ElementExistsNodeData
   | GetAttributeNodeData
+  | GetCurrentActivityNodeData
+  | GetCurrentPackageNodeData
+  | GetOrientationNodeData
+  | GetPlatformVersionNodeData
+  | GetDeviceNameNodeData
+  | GetDeviceTimeNodeData
 
 
 export type FlowNode = Node<FlowNodeData>;

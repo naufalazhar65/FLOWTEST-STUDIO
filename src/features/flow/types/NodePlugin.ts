@@ -125,6 +125,31 @@ export type NodeDefaults =
 
     variableName: string;
   }
+  | {
+    action: "getCurrentActivity";
+
+    variableName: string;
+  }
+  | {
+    action: "getCurrentPackage";
+    variableName: string;
+  }
+  | {
+    action: "getOrientation";
+    variableName: string;
+  }
+  | {
+    action: "getPlatformVersion";
+    variableName: string;
+  }
+  | {
+    action: "getDeviceName";
+    variableName: string;
+  }
+  | {
+    action: "getDeviceTime";
+    variableName: string;
+  }
 
 
 export interface NodeHandles {

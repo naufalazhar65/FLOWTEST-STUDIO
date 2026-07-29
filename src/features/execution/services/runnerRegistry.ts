@@ -18,9 +18,12 @@ import { ifRunner } from "../runners/IfRunner";
 import { getTextRunner } from "../runners/GetTextRunner";
 import { elementExistsRunner } from "../runners/ElementExistsRunner";
 import { getAttributeRunner } from "../runners/GetAttributeRunner";
-
-
-
+import { getCurrentActivityRunner } from "../runners/GetCurrentActivityRunner";
+import { getCurrentPackageRunner } from "../runners/GetCurrentPackageRunner"
+import { getOrientationRunner } from "../runners/GetOrientationRunner";
+import { getPlatformVersionRunner } from "../runners/GetPlatformVersionRunner";
+import { getDeviceNameRunner } from "../runners/GetDeviceNameRunner";
+import { getDeviceTimeRunner } from "../runners/GetDeviceTimeRunner";
 
 const registry = new Map<NodeAction, NodeRunner>([
   ["tap", tapRunner],
@@ -40,9 +43,13 @@ const registry = new Map<NodeAction, NodeRunner>([
   ["if", ifRunner],
   ["getText", getTextRunner],
   ["elementExists", elementExistsRunner],
-  ["getAttribute", getAttributeRunner]
-
-
+  ["getAttribute", getAttributeRunner],
+  ["getCurrentActivity", getCurrentActivityRunner],
+  ["getCurrentPackage", getCurrentPackageRunner],
+  ["getOrientation", getOrientationRunner],
+  ["getPlatformVersion", getPlatformVersionRunner],
+  ["getDeviceName", getDeviceNameRunner],
+  ["getDeviceTime", getDeviceTimeRunner]
 ]);
 
 export function getRunner(

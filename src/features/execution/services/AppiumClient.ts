@@ -198,6 +198,74 @@ export class AppiumClient {
     return "Login";
   }
 
+  async getCurrentActivity(): Promise<string> {
+    useExecutionLogStore
+      .getState()
+      .addLog(
+        "info",
+        "Get Current Activity",
+      );
+
+    await this.delay(300);
+
+    return "com.demo.MainActivity";
+  }
+
+  async getCurrentPackage(): Promise<string> {
+    useExecutionLogStore.getState().addLog(
+      "info",
+      "Get Current Package",
+    );
+
+    await this.delay(300);
+
+    return "com.demo.app";
+  }
+
+  async getOrientation(): Promise<string> {
+    useExecutionLogStore.getState().addLog(
+      "info",
+      "Get Orientation",
+    );
+
+    await this.delay(300);
+
+    return "PORTRAIT";
+  }
+
+  async getPlatformVersion(): Promise<string> {
+    useExecutionLogStore.getState().addLog(
+      "info",
+      "Get Platform Version",
+    );
+
+    await this.delay(300);
+
+    return "Android 15";
+  }
+
+  async getDeviceName(): Promise<string> {
+    useExecutionLogStore.getState().addLog(
+      "info",
+      "Get Device Name",
+    );
+
+    await this.delay(300);
+
+    return "Pixel 9 Pro";
+  }
+
+  async getDeviceTime(): Promise<string> {
+    useExecutionLogStore.getState().addLog(
+      "info",
+      "Get Device Time",
+    );
+
+    await this.delay(300);
+
+    return "2026-07-29T22:30:00+07:00";
+  }
+
 
 
   private delay(ms: number) {
