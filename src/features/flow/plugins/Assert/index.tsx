@@ -16,26 +16,38 @@ export const assertNode: NodePlugin = {
 
   defaults: {
     action: "assert",
-    locatorStrategy: "id",
-    locator: "",
+    actual: "",
+    operator: "equals",
     expected: "",
   },
 
   fields: [
     {
-      key: "locatorStrategy",
-      label: "Locator Strategy",
-      type: "select",
-      options: [
-        "id",
-        "xpath",
-        "accessibilityId",
-      ],
+      key: "actual",
+      label: "Actual",
+      type: "text",
     },
     {
-      key: "locator",
-      label: "Locator",
-      type: "text",
+      key: "operator",
+      label: "Operator",
+      type: "select",
+      options: [
+        "equals",
+        "notEquals",
+        "contains",
+        "notContains",
+        "startsWith",
+        "endsWith",
+        "greaterThan",
+        "greaterThanOrEqual",
+        "lessThan",
+        "lessThanOrEqual",
+        "isTrue",
+        "isFalse",
+        "isEmpty",
+        "isNotEmpty",
+        "matches",
+      ],
     },
     {
       key: "expected",
@@ -79,7 +91,27 @@ export const assertNode: NodePlugin = {
             wordBreak: "break-word",
           }}
         >
-          {data.locatorStrategy}={data.locator || "-"}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 4,
+              color: "#94A3B8",
+              fontSize: 13,
+            }}
+          >
+            <div>
+              Actual: {String(data.actual || "-")}
+            </div>
+
+            <div>
+              Operator: {data.operator}
+            </div>
+
+            <div>
+              Expected: {String(data.expected || "-")}
+            </div>
+          </div>
         </div>
 
         <div

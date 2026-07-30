@@ -1,4 +1,22 @@
 import type { Node } from "reactflow";
+import type { LocatorStrategy } from "../../execution/types/LocatorStrategy";
+
+export type AssertOperator =
+  | "equals"
+  | "notEquals"
+  | "contains"
+  | "notContains"
+  | "startsWith"
+  | "endsWith"
+  | "greaterThan"
+  | "greaterThanOrEqual"
+  | "lessThan"
+  | "lessThanOrEqual"
+  | "isTrue"
+  | "isFalse"
+  | "isEmpty"
+  | "isNotEmpty"
+  | "matches";
 
 export type NodeAction =
   | "tap"
@@ -46,7 +64,7 @@ export interface BaseNodeData {
 }
 
 export interface LocatorNodeData extends BaseNodeData {
-  locatorStrategy: string;
+  locatorStrategy: LocatorStrategy;
 
   locator: string;
 }
@@ -73,10 +91,12 @@ export interface InputNodeData extends LocatorNodeData {
   text: string;
 }
 
-export interface AssertNodeData extends LocatorNodeData {
+export interface AssertNodeData extends BaseNodeData {
   action: "assert";
 
+  actual: string;
   expected: string;
+  operator: AssertOperator;
 }
 
 export interface SetVariableNodeData extends BaseNodeData {
@@ -166,7 +186,11 @@ export interface IfNodeData
 
   action: "if";
 
-  condition: string;
+  actual: string;
+
+  expected: string;
+
+  operator: AssertOperator;
 }
 
 export interface GetTextNodeData

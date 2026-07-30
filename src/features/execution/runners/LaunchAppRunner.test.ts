@@ -6,7 +6,7 @@ vi.mock("../services/AppiumClient", () => ({
     },
 }));
 
-import { appiumClient } from "../services/AppiumClient";
+import { appiumClient } from "../services/appium/AppiumClient";
 import { launchAppRunner } from "./LaunchAppRunner";
 
 import type { ExecutionContext } from "../types/ExecutionContext";

@@ -1,4 +1,4 @@
-import { appiumClient } from "../services/AppiumClient";
+import { appiumClient } from "../services/appium/AppiumClient";
 import { resolveNodeVariables } from "../variables/resolveNodeVariables";
 import type { NodeRunner } from "../types/NodeRunner";
 

@@ -7,7 +7,7 @@ import type {
 import type { ExecutionContext } from "../types/ExecutionContext";
 
 import { getEnabledRunner } from "./GetEnabledRunner";
-import { appiumClient } from "../services/AppiumClient";
+import { appiumClient } from "../services/appium/AppiumClient";
 import { executeGetter } from "../utils/executeGetter";
 
 vi.mock("../services/AppiumClient", () => ({

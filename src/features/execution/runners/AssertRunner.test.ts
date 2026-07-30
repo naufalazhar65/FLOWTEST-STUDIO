@@ -10,7 +10,7 @@ vi.mock("../variables/resolveVariable", () => ({
     resolveVariables: vi.fn(),
 }));
 
-import { appiumClient } from "../services/AppiumClient";
+import { appiumClient } from "../services/appium/AppiumClient";
 import { resolveVariables } from "../variables/resolveVariable";
 import { assertRunner } from "./AssertRunner";
 

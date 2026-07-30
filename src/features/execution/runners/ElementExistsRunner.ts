@@ -1,4 +1,4 @@
-import { appiumClient } from "../services/AppiumClient";
+import { appiumClient } from "../services/appium/AppiumClient";
 import type { NodeRunner } from "../types/NodeRunner";
 import { storeResult } from "../utils/storeResult";
 

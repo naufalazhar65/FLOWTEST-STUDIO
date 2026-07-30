@@ -6,7 +6,7 @@ vi.mock("../services/AppiumClient", () => ({
     },
 }));
 
-import { appiumClient } from "../services/AppiumClient";
+import { appiumClient } from "../services/appium/AppiumClient";
 import { elementExistsRunner } from "./ElementExistsRunner";
 
 import {

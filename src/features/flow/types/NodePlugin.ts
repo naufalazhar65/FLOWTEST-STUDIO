@@ -2,16 +2,18 @@ import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 
 import type {
+  AssertOperator,
   FlowNodeData,
   NodeAction,
 } from "./flowNode";
 
 import type { NodeField } from "./nodeField";
+import type { LocatorStrategy } from "../../execution/types/LocatorStrategy";
 
 export type NodeType = NodeAction;
 
 type ElementGetterDefaults = {
-  locatorStrategy: string;
+  locatorStrategy: LocatorStrategy;
   locator: string;
   variableName: string;
 };
@@ -23,20 +25,20 @@ type DeviceGetterDefaults = {
 export type NodeDefaults =
   | {
     action: "tap";
-    locatorStrategy: string;
+    locatorStrategy: LocatorStrategy;
     locator: string;
   }
   | {
     action: "input";
-    locatorStrategy: string;
+    locatorStrategy: LocatorStrategy;
     locator: string;
     text: string;
   }
   | {
     action: "assert";
-    locatorStrategy: string;
-    locator: string;
+    actual: string;
     expected: string;
+    operator: AssertOperator;
   }
   | {
     action: "setVariable";
@@ -69,7 +71,7 @@ export type NodeDefaults =
   | {
     action: "wait";
 
-    locatorStrategy: string;
+    locatorStrategy: LocatorStrategy;
 
     locator: string;
 

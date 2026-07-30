@@ -1,22 +1,22 @@
-import type { FlowNode } from "../../flow/types/flowNode";
+import type { IfNodeData } from "../../flow/types/flowNode";
 import type { NodeRunner } from "../types/NodeRunner";
+import { compare } from "../utils/assertCompare";
+import { resolveVariables } from "../variables/resolveVariable";
 
-import { evaluateExpression } from "../variables/evaluateExpression";
+export const ifRunner: NodeRunner<IfNodeData> = {
+    async run(node) {
+        const actual = resolveVariables(node.data.actual);
 
-export const ifRunner: NodeRunner = {
-    async run(node: FlowNode) {
-        if (node.data.action !== "if") {
-            return;
-        }
+        const expected = resolveVariables(node.data.expected);
 
-        const passed = evaluateExpression(
-            node.data.condition
+        const passed = compare(
+            actual,
+            expected,
+            node.data.operator,
         );
 
         return {
-            outputs: [
-                passed ? "true" : "false",
-            ],
+            outputs: [passed ? "true" : "false"],
         };
     },
 };

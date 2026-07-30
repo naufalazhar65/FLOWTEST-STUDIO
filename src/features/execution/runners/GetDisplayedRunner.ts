@@ -1,4 +1,4 @@
-import { appiumClient } from "../services/AppiumClient";
+import { appiumClient } from "../services/appium/AppiumClient";
 import type { NodeRunner } from "../types/NodeRunner";
 import { executeGetter } from "../utils/executeGetter";
 import type { GetDisplayedNodeData } from "../../flow/types/flowNode";

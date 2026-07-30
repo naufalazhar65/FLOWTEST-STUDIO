@@ -3,13 +3,20 @@ import type { ExecutionContext } from "../types/ExecutionContext";
 
 import { executeFlow } from "../engine/executeFlow";
 import { useExecutionStore } from "../store/useExecutionStore";
+import { appiumClient } from "../services/appium/AppiumClient";
 
 export class ExecutionController {
   static async run(
     nodes: FlowNode[],
-    context: ExecutionContext
+    context: ExecutionContext,
   ) {
-    await executeFlow(nodes, context);
+    await appiumClient.deleteSession();
+
+    try {
+      await executeFlow(nodes, context);
+    } finally {
+      await appiumClient.deleteSession();
+    }
   }
 
   static pause() {

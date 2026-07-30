@@ -6,7 +6,7 @@ vi.mock("../services/AppiumClient", () => ({
     },
 }));
 
-import { appiumClient } from "../services/AppiumClient";
+import { appiumClient } from "../services/appium/AppiumClient";
 import { tapRunner } from "./TapRunner";
 
 import type { FlowNode } from "../../flow/types/flowNode";

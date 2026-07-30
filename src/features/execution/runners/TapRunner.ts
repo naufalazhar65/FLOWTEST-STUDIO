@@ -1,5 +1,5 @@
 import { isTapNode } from "../../flow/utils/nodeGuards";
-import { appiumClient } from "../services/AppiumClient";
+import { appiumClient } from "../services/appium/AppiumClient";
 import type { NodeRunner } from "../types/NodeRunner";
 import { resolveVariables } from "../variables/resolveVariable";
 

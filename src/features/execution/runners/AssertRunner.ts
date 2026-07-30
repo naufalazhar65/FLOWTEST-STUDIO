@@ -1,7 +1,7 @@
 import { isAssertNode } from "../../flow/utils/nodeGuards";
-import { appiumClient } from "../services/AppiumClient";
 import type { NodeRunner } from "../types/NodeRunner";
 import { resolveVariables } from "../variables/resolveVariable";
+import { compare } from "../utils/assertCompare";
 
 export const assertRunner: NodeRunner = {
   async run(node) {
@@ -9,18 +9,29 @@ export const assertRunner: NodeRunner = {
       return;
     }
 
-    const locator = resolveVariables(
-      node.data.locator,
+    const actual = resolveVariables(
+      node.data.actual,
     );
 
     const expected = resolveVariables(
       node.data.expected,
     );
 
-    await appiumClient.assert(
-      node.data.locatorStrategy,
-      locator,
+    const passed = compare(
+      actual,
       expected,
+      node.data.operator,
     );
+
+    if (!passed) {
+      throw new Error(
+        [
+          "Assertion failed",
+          `Actual   : ${actual}`,
+          `Expected : ${expected}`,
+          `Operator : ${node.data.operator}`,
+        ].join("\n"),
+      );
+    }
   },
 };

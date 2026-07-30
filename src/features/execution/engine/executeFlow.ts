@@ -89,15 +89,6 @@ export async function executeFlow(
         let currentNode =
             graph.getStartNode();
 
-
-        const incomingEdgeMap = new Map<string, string>();
-
-        for (const edge of context.edges) {
-            incomingEdgeMap.set(
-                edge.target,
-                edge.id
-            );
-        }
         let activeEdgeId: string | null = null;
 
         while (currentNode) {

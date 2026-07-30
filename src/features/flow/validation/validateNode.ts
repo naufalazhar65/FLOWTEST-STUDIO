@@ -9,7 +9,7 @@ import type { ValidationResult } from "./ValidationResult";
 
 function validateLocator(
   data: LocatorNodeData,
-  errors: string[]
+  errors: string[]  
 ) {
   if (!data.locatorStrategy.trim()) {
     errors.push("Locator strategy is required.");
@@ -40,6 +40,26 @@ function validateDeviceGetter(
   }
 }
 
+
+
+
+
+function validateComparison(
+  data: {
+    actual?: string;
+    expected?: string;
+  },
+  errors: string[],
+) {
+  if (!(data.actual ?? "").trim()) {
+    errors.push("Actual value is required.");
+  }
+
+  if (!(data.expected ?? "").trim()) {
+    errors.push("Expected value is required.");
+  }
+}
+
 export function validateNode(
   data: FlowNodeData
 ): ValidationResult {
@@ -60,13 +80,12 @@ export function validateNode(
       break;
 
     case "assert":
-      validateLocator(data, errors);
+  validateComparison(data, errors);
+  break;
 
-      if (!data.expected.trim()) {
-        errors.push("Expected value is required.");
-      }
-
-      break;
+case "if":
+  validateComparison(data, errors);
+  break;
 
     case "getText":
     case "getAttribute":
