@@ -25,6 +25,8 @@ import { getDisplayedPlugin } from "./getDisplayedPlugin";
 import { getEnabledPlugin } from "./getEnabledPlugin";
 import { getSelectedPlugin } from "./getSelectedPlugin";
 import { getLocationPlugin } from "./getLocationPlugin";
+import { getSizePlugin } from "./getSizePlugin";
+import { getRectPlugin } from "./getRectPlugin";
 
 
 
@@ -63,5 +65,7 @@ export const plugins: NodePlugin[] = [
   getPlatformVersionPlugin,
   getDeviceNamePlugin,
   getDeviceTimePlugin,
-  getLocationPlugin
+  getLocationPlugin,
+  getSizePlugin,
+  getRectPlugin,
 ];

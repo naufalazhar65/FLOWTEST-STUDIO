@@ -28,6 +28,8 @@ import { getDisplayedRunner } from "../runners/GetDisplayedRunner";
 import { getEnabledRunner } from "../runners/GetEnabledRunner";
 import { getSelectedRunner } from "../runners/GetSelectedRunner";
 import { getLocationRunner } from "../runners/GetLocationRunner";
+import { getSizeRunner } from "../runners/GetSizeRunner";
+import { getRectRunner } from "../runners/GetRectRunner";
 
 const registry = new Map<NodeAction, NodeRunner>([
   ["tap", tapRunner],
@@ -57,7 +59,9 @@ const registry = new Map<NodeAction, NodeRunner>([
   ["getDisplayed", getDisplayedRunner],
   ["getSelected", getSelectedRunner],
   ["getEnabled", getEnabledRunner],
-  ["getLocation", getLocationRunner]
+  ["getLocation", getLocationRunner],
+  ["getSize", getSizeRunner],
+  ["getRect", getRectRunner]
   
 
 ]);

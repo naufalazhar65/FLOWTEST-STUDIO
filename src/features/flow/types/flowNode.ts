@@ -28,6 +28,8 @@ export type NodeAction =
   | "getEnabled"
   | "getSelected"
   | "getLocation"
+  | "getSize"
+  | "getRect"
 
 
 export interface NodeDebug {
@@ -242,8 +244,17 @@ export interface GetDeviceTimeNodeData
 }
 
 export interface GetLocationNodeData
-    extends ElementGetterNodeData {
-    action: "getLocation";
+  extends ElementGetterNodeData {
+  action: "getLocation";
+}
+
+export interface GetSizeNodeData
+  extends ElementGetterNodeData {
+  action: "getSize";
+}
+export interface GetRectNodeData
+  extends ElementGetterNodeData {
+  action: "getRect";
 }
 
 
@@ -276,6 +287,8 @@ export type FlowNodeData =
   | GetDeviceNameNodeData
   | GetDeviceTimeNodeData
   | GetLocationNodeData
+  | GetSizeNodeData
+  | GetRectNodeData
 
 
 export type FlowNode = Node<FlowNodeData>;

@@ -160,6 +160,12 @@ export type NodeDefaults =
   | ({
     action: "getLocation";
   } & ElementGetterDefaults)
+  | ({
+    action: "getSize";
+  } & ElementGetterDefaults)
+  | ({
+    action: "getRect";
+  } & ElementGetterDefaults)
 
 
 export interface NodeHandles {

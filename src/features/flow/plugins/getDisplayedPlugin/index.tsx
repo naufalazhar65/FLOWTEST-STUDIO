@@ -1,7 +1,7 @@
 import { Eye } from "lucide-react";
 
 import type { NodePlugin } from "../../types/NodePlugin";
-import type { FlowNodeData } from "../../types/flowNode";
+import { createElementGetterPreview } from "../shared/createElementGetterPreview";
 
 export const getDisplayedPlugin: NodePlugin = {
     type: "getDisplayed",
@@ -44,41 +44,16 @@ export const getDisplayedPlugin: NodePlugin = {
         outputs: ["next"],
     },
 
-    preview(data: FlowNodeData) {
-        if (data.action !== "getDisplayed") {
-            return null;
-        }
+    preview(data) {
+    if (data.action !== "getDisplayed") {
+        return null;
+    }
 
-        return (
-            <>
-                <div
-                    style={{
-                        color: "#FFFFFF",
-                        fontWeight: 700,
-                        fontSize: 14,
-                    }}
-                >
-                    Get Displayed
-                </div>
-
-                <div
-                    style={{
-                        color: "#94A3B8",
-                        fontSize: 13,
-                    }}
-                >
-                    {data.locatorStrategy}={data.locator || "-"}
-                </div>
-
-                <div
-                    style={{
-                        color: "#64748B",
-                        fontSize: 12,
-                    }}
-                >
-                    → {data.variableName || "(variable)"}
-                </div>
-            </>
-        );
-    },
+    return createElementGetterPreview({
+        title: "Get Displayed",
+        locatorStrategy: data.locatorStrategy,
+        locator: data.locator,
+        variableName: data.variableName,
+    });
+},
 };

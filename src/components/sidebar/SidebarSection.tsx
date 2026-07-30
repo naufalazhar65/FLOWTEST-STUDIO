@@ -1,4 +1,9 @@
-import type { ReactNode } from "react";
+import {
+    useLayoutEffect,
+    useRef,
+    useState,
+    type ReactNode,
+} from "react";
 import { ChevronDown } from "lucide-react";
 
 interface SidebarSectionProps {
@@ -20,6 +25,22 @@ export function SidebarSection({
     children,
     accent,
 }: SidebarSectionProps) {
+    const contentRef = useRef<HTMLDivElement>(null);
+
+    const [maxHeight, setMaxHeight] = useState(0);
+
+    useLayoutEffect(() => {
+        if (contentRef.current) {
+            setMaxHeight(contentRef.current.scrollHeight);
+        }
+    }, [open, children]);
+
+    useLayoutEffect(() => {
+        if (open && contentRef.current) {
+            setMaxHeight(contentRef.current.scrollHeight);
+        }
+    }, [open]);
+
     return (
         <div
             style={{
@@ -33,20 +54,13 @@ export function SidebarSection({
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
-
                     background: open ? "#1A1F27" : "transparent",
                     border: "none",
-
                     color: "#FFFFFF",
-
                     padding: "8px 10px",
-
                     borderRadius: 10,
-
                     cursor: "pointer",
-
                     position: "relative",
-
                     transition: "all .18s ease",
                 }}
                 onMouseEnter={(e) => {
@@ -58,7 +72,6 @@ export function SidebarSection({
                         : "transparent";
                 }}
             >
-                {/* Left accent indicator */}
                 <div
                     style={{
                         position: "absolute",
@@ -68,9 +81,7 @@ export function SidebarSection({
                         width: 3,
                         borderRadius: 999,
                         background: accent,
-
                         opacity: open ? 1 : 0,
-
                         transition: "opacity .18s ease",
                     }}
                 />
@@ -119,21 +130,15 @@ export function SidebarSection({
                     style={{
                         minWidth: 22,
                         height: 22,
-
                         borderRadius: 999,
-
                         background: `${accent}22`,
                         border: `1px solid ${accent}55`,
-
                         color: accent,
-
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-
                         fontSize: 11,
                         fontWeight: 700,
-
                         transition: "all .18s ease",
                     }}
                 >
@@ -142,16 +147,13 @@ export function SidebarSection({
             </button>
 
             <div
+                ref={contentRef}
                 style={{
                     overflow: "hidden",
-
-                    maxHeight: open ? 900 : 0,
-
+                    maxHeight: open ? maxHeight : 0,
                     opacity: open ? 1 : 0,
-
                     transition:
                         "max-height .22s ease, opacity .18s ease",
-
                     paddingTop: open ? 10 : 0,
                 }}
             >

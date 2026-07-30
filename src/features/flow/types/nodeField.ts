@@ -23,7 +23,9 @@ import type {
   GetDisplayedNodeData,
   GetEnabledNodeData,
   GetSelectedNodeData,
-  GetLocationNodeData
+  GetLocationNodeData,
+  GetSizeNodeData,
+  GetRectNodeData
   
 } from "./flowNode";
 
@@ -53,6 +55,8 @@ export type NodeFieldKey =
   | keyof GetEnabledNodeData
   | keyof GetSelectedNodeData
   | keyof GetLocationNodeData
+  | keyof GetSizeNodeData
+  | keyof GetRectNodeData
 
 export interface NodeField {
   key: NodeFieldKey;

@@ -84,6 +84,8 @@ export function validateNode(
     case "getDeviceName":
     case "getDeviceTime":
     case "getLocation":
+    case "getSize":
+    case "getRect":
       validateDeviceGetter(data, errors);
       break;
 

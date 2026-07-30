@@ -95,7 +95,9 @@ export const sidebarSections: SidebarSectionConfig[] = [
             "getDisplayed",
             "getSelected",
             "getEnabled",
-            "getLocation"
+            "getLocation",
+            "getSize",
+            "getRect",
         ],
     },
 

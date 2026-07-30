@@ -1,31 +1,26 @@
-import { MapPin } from "lucide-react";
+import { Ruler } from "lucide-react";
 
+import type { FlowNodeData } from "../../types/flowNode";
 import type { NodePlugin } from "../../types/NodePlugin";
+
 import { createElementGetterPreview } from "../shared/createElementGetterPreview";
 
-export const getLocationPlugin: NodePlugin = {
-    type: "getLocation",
+export const getSizePlugin: NodePlugin = {
+    type: "getSize",
 
-    title: "Get Location",
+    title: "Get Size",
 
-    subtitle: "Read element location",
+    subtitle: "Read element size",
 
-    color: "#0EA5E9",
+    color: "#06B6D4",
 
-    icon: MapPin,
+    icon: Ruler,
 
     defaults: {
-        action: "getLocation",
-
+        action: "getSize",
         locatorStrategy: "id",
-
         locator: "",
-
         variableName: "",
-    },
-
-    handles: {
-        outputs: ["next"],
     },
 
     fields: [
@@ -35,33 +30,33 @@ export const getLocationPlugin: NodePlugin = {
             type: "select",
             options: [
                 "id",
-                "accessibilityId",
                 "xpath",
-                "className",
-                "androidUiAutomator",
-                "iosPredicateString",
+                "accessibilityId",
             ],
         },
         {
             key: "locator",
             label: "Locator",
             type: "text",
-            placeholder: "com.demo:id/login_button",
         },
         {
             key: "variableName",
             label: "Variable Name",
             type: "text",
-            placeholder: "location",
         },
     ],
-    preview(data) {
-        if (data.action !== "getLocation") {
+
+    handles: {
+        outputs: ["next"],
+    },
+
+    preview(data: FlowNodeData) {
+        if (data.action !== "getSize") {
             return null;
         }
 
         return createElementGetterPreview({
-            title: "Get Location",
+            title: "Get Size",
             locatorStrategy: data.locatorStrategy,
             locator: data.locator,
             variableName: data.variableName,

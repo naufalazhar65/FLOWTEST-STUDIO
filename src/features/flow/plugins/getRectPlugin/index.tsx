@@ -1,26 +1,25 @@
-import { MapPin } from "lucide-react";
+import { Scan } from "lucide-react";
 
+import type { FlowNodeData } from "../../types/flowNode";
 import type { NodePlugin } from "../../types/NodePlugin";
+
 import { createElementGetterPreview } from "../shared/createElementGetterPreview";
 
-export const getLocationPlugin: NodePlugin = {
-    type: "getLocation",
+export const getRectPlugin: NodePlugin = {
+    type: "getRect",
 
-    title: "Get Location",
+    title: "Get Rect",
 
-    subtitle: "Read element location",
+    subtitle: "Read element bounds",
 
-    color: "#0EA5E9",
+    color: "#14B8A6",
 
-    icon: MapPin,
+    icon: Scan,
 
     defaults: {
-        action: "getLocation",
-
+        action: "getRect",
         locatorStrategy: "id",
-
         locator: "",
-
         variableName: "",
     },
 
@@ -35,33 +34,29 @@ export const getLocationPlugin: NodePlugin = {
             type: "select",
             options: [
                 "id",
-                "accessibilityId",
                 "xpath",
-                "className",
-                "androidUiAutomator",
-                "iosPredicateString",
+                "accessibilityId",
             ],
         },
         {
             key: "locator",
             label: "Locator",
             type: "text",
-            placeholder: "com.demo:id/login_button",
         },
         {
             key: "variableName",
             label: "Variable Name",
             type: "text",
-            placeholder: "location",
         },
     ],
-    preview(data) {
-        if (data.action !== "getLocation") {
+
+    preview(data: FlowNodeData) {
+        if (data.action !== "getRect") {
             return null;
         }
 
         return createElementGetterPreview({
-            title: "Get Location",
+            title: "Get Rect",
             locatorStrategy: data.locatorStrategy,
             locator: data.locator,
             variableName: data.variableName,

@@ -336,6 +336,54 @@ export class AppiumClient {
     };
   }
 
+  async getSize(
+    locatorStrategy: string,
+    locator: string,
+  ): Promise<{
+    width: number;
+    height: number;
+  }> {
+    useExecutionLogStore
+      .getState()
+      .addLog(
+        "info",
+        `Get Size ${locatorStrategy}=${locator}`,
+      );
+
+    await this.delay(300);
+
+    return {
+      width: 180,
+      height: 52,
+    };
+  }
+
+  async getRect(
+    locatorStrategy: string,
+    locator: string,
+  ): Promise<{
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }> {
+    useExecutionLogStore
+      .getState()
+      .addLog(
+        "info",
+        `Get Rect ${locatorStrategy}=${locator}`,
+      );
+
+    await this.delay(300);
+
+    return {
+      x: 120,
+      y: 300,
+      width: 180,
+      height: 52,
+    };
+  }
+
 
 
   private delay(ms: number) {
