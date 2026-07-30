@@ -101,20 +101,36 @@ export async function executeFlow(
         let currentNode =
             graph.getStartNode();
 
+
+        const incomingEdgeMap = new Map<string, string>();
+
+        for (const edge of context.edges) {
+            incomingEdgeMap.set(
+                edge.target,
+                edge.id
+            );
+        }
+
         while (currentNode) {
+            const node = currentNode;
+
+            const incomingEdgeId =
+                incomingEdgeMap.get(node.id);
+
+            if (incomingEdgeId) {
+                execution.setEdgeStatus(
+                    incomingEdgeId,
+                    "passed"
+                );
+            }
 
             await waitWhilePaused();
 
-            execution.setCurrentNode(
-                currentNode.id
-            );
+            execution.setCurrentNode(node.id);
 
-            if (
-                currentNode.data.debug.breakpoint
-            ) {
-
+            if (node.data.debug.breakpoint) {
                 executionLogger.info(
-                    `🛑 Breakpoint reached: ${currentNode.data.title}`
+                    `🛑 Breakpoint reached: ${node.data.title}`
                 );
 
                 execution.pauseExecution();
@@ -122,22 +138,38 @@ export async function executeFlow(
                 await waitWhilePaused();
             }
 
-            const result =
-                await executeNode(
-                    currentNode,
-                    context
-                );
+            const result = await executeNode(
+                node,
+                context
+            );
 
             const output =
                 result.outputs[0] ?? "next";
 
-            currentNode =
-                graph.getNextNode(
-                    currentNode.id,
-                    output
-                );
-        }
+            const nextNode = graph.getNextNode(
+                node.id,
+                output
+            );
 
+            if (nextNode) {
+                const edge = context.edges.find(
+                    (edge) =>
+                        edge.source === node.id &&
+                        edge.target === nextNode.id &&
+                        (edge.sourceHandle ?? "next") === output
+                );
+
+                if (edge) {
+                    execution.setEdgeStatus(
+                        edge.id,
+                        "running"
+                    );
+
+                }
+            }
+
+            currentNode = nextNode;
+        }
         // ---------------------------------------
         // Finish
         // ---------------------------------------
