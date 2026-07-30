@@ -73,20 +73,8 @@ export async function executeFlow(
             console.groupEnd();
         });
 
-        console.groupEnd();
 
-        validation.errors.forEach((nodeError, index) => {
-            console.group(
-                `${index + 1}. ${nodeError.nodeTitle} (${nodeError.nodeId})`
-            );
 
-            nodeError.errors.forEach((error) => {
-                console.error(error);
-            });
-
-            console.groupEnd();
-        });
-        console.groupEnd();
 
         throw new Error(
             "Flow contains validation errors."

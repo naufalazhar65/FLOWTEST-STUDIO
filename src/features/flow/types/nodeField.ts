@@ -19,7 +19,11 @@ import type {
   GetOrientationNodeData,
   GetPlatformVersionNodeData,
   GetDeviceNameNodeData,
-  GetDeviceTimeNodeData
+  GetDeviceTimeNodeData,
+  GetDisplayedNodeData,
+  GetEnabledNodeData,
+  GetSelectedNodeData,
+  GetLocationNodeData
   
 } from "./flowNode";
 
@@ -45,6 +49,10 @@ export type NodeFieldKey =
   | keyof GetPlatformVersionNodeData
   | keyof GetDeviceNameNodeData
   | keyof GetDeviceTimeNodeData
+  | keyof GetDisplayedNodeData
+  | keyof GetEnabledNodeData
+  | keyof GetSelectedNodeData
+  | keyof GetLocationNodeData
 
 export interface NodeField {
   key: NodeFieldKey;

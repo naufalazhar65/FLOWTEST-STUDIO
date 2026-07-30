@@ -92,6 +92,10 @@ export const sidebarSections: SidebarSectionConfig[] = [
             "getPlatformVersion",
             "getDeviceName",
             "getDeviceTime",
+            "getDisplayed",
+            "getSelected",
+            "getEnabled",
+            "getLocation"
         ],
     },
 

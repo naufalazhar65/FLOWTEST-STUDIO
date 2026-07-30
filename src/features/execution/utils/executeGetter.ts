@@ -2,19 +2,24 @@ import type { RunnerResult } from "../types/RunnerResult";
 import { useExecutionLogStore } from "../store/useExecutionLogStore";
 import { storeResult } from "./storeResult";
 
-export async function executeDeviceGetter<T>(
+export async function executeGetter<T>(
     getter: () => Promise<T>,
-    variableName: string,
-    label: string,
+    options: {
+        variableName: string;
+        label: string;
+    },
 ): Promise<RunnerResult> {
     const value = await getter();
 
     useExecutionLogStore.getState().addLog(
         "success",
-        `${label} = ${String(value)}`,
+        `${options.label} = ${String(value)}`,
     );
 
-    storeResult(variableName, value);
+    storeResult(
+        options.variableName,
+        value,
+    );
 
     return {
         outputs: ["next"],

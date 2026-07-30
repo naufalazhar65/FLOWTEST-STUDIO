@@ -1,6 +1,6 @@
 import { appiumClient } from "../services/AppiumClient";
 import type { NodeRunner } from "../types/NodeRunner";
-import { executeDeviceGetter } from "../utils/executeDeviceGetter";
+import { executeGetter } from "../utils/executeGetter";
 
 export const getDeviceTimeRunner: NodeRunner = {
     async run(node) {
@@ -8,10 +8,12 @@ export const getDeviceTimeRunner: NodeRunner = {
             return;
         }
 
-        return executeDeviceGetter(
+        return executeGetter(
             () => appiumClient.getDeviceTime(),
-            node.data.variableName,
-            "Device Time",
+            {
+                variableName: node.data.variableName,
+                label: "Device Time",
+            },
         );
     },
 };

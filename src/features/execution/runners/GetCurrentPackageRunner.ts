@@ -1,6 +1,6 @@
 import { appiumClient } from "../services/AppiumClient";
 import type { NodeRunner } from "../types/NodeRunner";
-import { executeDeviceGetter } from "../utils/executeDeviceGetter";
+import { executeGetter } from "../utils/executeGetter";
 
 export const getCurrentPackageRunner: NodeRunner = {
     async run(node) {
@@ -8,10 +8,12 @@ export const getCurrentPackageRunner: NodeRunner = {
             return;
         }
 
-        return executeDeviceGetter(
-    () => appiumClient.getCurrentPackage(),
-    node.data.variableName,
-    "Current Package",
-);
+        return executeGetter(
+            () => appiumClient.getCurrentPackage(),
+            {
+                variableName: node.data.variableName,
+                label: "Current Package",
+            },
+        );
     },
 };

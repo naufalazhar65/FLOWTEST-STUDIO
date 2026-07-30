@@ -15,6 +15,8 @@ export async function executeNode(
 
   const startedAt = performance.now();
 
+  execution.setCurrentNode(node.id);
+
   execution.setNodeStatus(
     node.id,
     "running"
@@ -77,5 +79,7 @@ export async function executeNode(
     );
 
     throw error;
+  } finally {
+    execution.setCurrentNode(null);
   }
 }

@@ -5,13 +5,25 @@ import { validateNode } from "./validateNode";
 import type {
     AssertNodeData,
     DelayNodeData,
+    ElementExistsNodeData,
+    GetAttributeNodeData,
+    GetCurrentActivityNodeData,
+    GetCurrentPackageNodeData,
+    GetDeviceNameNodeData,
+    GetDeviceTimeNodeData,
+    GetDisplayedNodeData,
+    GetEnabledNodeData,
+    GetOrientationNodeData,
+    GetPlatformVersionNodeData,
+    GetSelectedNodeData,
+    GetTextNodeData,
     InputNodeData,
     SetVariableNodeData,
     TapNodeData,
 } from "../types/flowNode";
 
 function createTapNode(
-    overrides: Partial<TapNodeData> = {}
+    overrides: Partial<TapNodeData> = {},
 ): TapNodeData {
     return {
         action: "tap",
@@ -20,14 +32,14 @@ function createTapNode(
         debug: {
             breakpoint: false,
         },
-        locator: "id=username",
         locatorStrategy: "id",
+        locator: "id=username",
         ...overrides,
     };
 }
 
 function createInputNode(
-    overrides: Partial<InputNodeData> = {}
+    overrides: Partial<InputNodeData> = {},
 ): InputNodeData {
     return {
         action: "input",
@@ -36,15 +48,15 @@ function createInputNode(
         debug: {
             breakpoint: false,
         },
-        locator: "id=username",
         locatorStrategy: "id",
+        locator: "id=username",
         text: "admin",
         ...overrides,
     };
 }
 
 function createAssertNode(
-    overrides: Partial<AssertNodeData> = {}
+    overrides: Partial<AssertNodeData> = {},
 ): AssertNodeData {
     return {
         action: "assert",
@@ -53,15 +65,15 @@ function createAssertNode(
         debug: {
             breakpoint: false,
         },
-        locator: "id=status",
         locatorStrategy: "id",
+        locator: "id=status",
         expected: "success",
         ...overrides,
     };
 }
 
 function createSetVariableNode(
-    overrides: Partial<SetVariableNodeData> = {}
+    overrides: Partial<SetVariableNodeData> = {},
 ): SetVariableNodeData {
     return {
         action: "setVariable",
@@ -77,7 +89,7 @@ function createSetVariableNode(
 }
 
 function createDelayNode(
-    overrides: Partial<DelayNodeData> = {}
+    overrides: Partial<DelayNodeData> = {},
 ): DelayNodeData {
     return {
         action: "delay",
@@ -87,6 +99,207 @@ function createDelayNode(
             breakpoint: false,
         },
         duration: 1000,
+        ...overrides,
+    };
+}
+
+/* -------------------------------------------------------------------------- */
+/*                               Element Getters                              */
+/* -------------------------------------------------------------------------- */
+
+function createGetTextNode(
+    overrides: Partial<GetTextNodeData> = {},
+): GetTextNodeData {
+    return {
+        action: "getText",
+        title: "Get Text",
+        subtitle: "",
+        debug: {
+            breakpoint: false,
+        },
+        locatorStrategy: "id",
+        locator: "login_button",
+        variableName: "result",
+        ...overrides,
+    };
+}
+
+function createGetAttributeNode(
+    overrides: Partial<GetAttributeNodeData> = {},
+): GetAttributeNodeData {
+    return {
+        action: "getAttribute",
+        title: "Get Attribute",
+        subtitle: "",
+        debug: {
+            breakpoint: false,
+        },
+        locatorStrategy: "id",
+        locator: "login_button",
+        variableName: "result",
+        attribute: "text",
+        ...overrides,
+    };
+}
+
+function createElementExistsNode(
+    overrides: Partial<ElementExistsNodeData> = {},
+): ElementExistsNodeData {
+    return {
+        action: "elementExists",
+        title: "Element Exists",
+        subtitle: "",
+        debug: {
+            breakpoint: false,
+        },
+        locatorStrategy: "id",
+        locator: "login_button",
+        variableName: "result",
+        ...overrides,
+    };
+}
+
+function createGetDisplayedNode(
+    overrides: Partial<GetDisplayedNodeData> = {},
+): GetDisplayedNodeData {
+    return {
+        action: "getDisplayed",
+        title: "Get Displayed",
+        subtitle: "",
+        debug: {
+            breakpoint: false,
+        },
+        locatorStrategy: "id",
+        locator: "login_button",
+        variableName: "result",
+        ...overrides,
+    };
+}
+
+function createGetEnabledNode(
+    overrides: Partial<GetEnabledNodeData> = {},
+): GetEnabledNodeData {
+    return {
+        action: "getEnabled",
+        title: "Get Enabled",
+        subtitle: "",
+        debug: {
+            breakpoint: false,
+        },
+        locatorStrategy: "id",
+        locator: "login_button",
+        variableName: "result",
+        ...overrides,
+    };
+}
+
+function createGetSelectedNode(
+    overrides: Partial<GetSelectedNodeData> = {},
+): GetSelectedNodeData {
+    return {
+        action: "getSelected",
+        title: "Get Selected",
+        subtitle: "",
+        debug: {
+            breakpoint: false,
+        },
+        locatorStrategy: "id",
+        locator: "login_button",
+        variableName: "result",
+        ...overrides,
+    };
+}
+
+/* -------------------------------------------------------------------------- */
+/*                               Device Getters                               */
+/* -------------------------------------------------------------------------- */
+
+function createGetCurrentActivityNode(
+    overrides: Partial<GetCurrentActivityNodeData> = {},
+): GetCurrentActivityNodeData {
+    return {
+        action: "getCurrentActivity",
+        title: "Get Current Activity",
+        subtitle: "",
+        debug: {
+            breakpoint: false,
+        },
+        variableName: "result",
+        ...overrides,
+    };
+}
+
+function createGetCurrentPackageNode(
+    overrides: Partial<GetCurrentPackageNodeData> = {},
+): GetCurrentPackageNodeData {
+    return {
+        action: "getCurrentPackage",
+        title: "Get Current Package",
+        subtitle: "",
+        debug: {
+            breakpoint: false,
+        },
+        variableName: "result",
+        ...overrides,
+    };
+}
+
+function createGetOrientationNode(
+    overrides: Partial<GetOrientationNodeData> = {},
+): GetOrientationNodeData {
+    return {
+        action: "getOrientation",
+        title: "Get Orientation",
+        subtitle: "",
+        debug: {
+            breakpoint: false,
+        },
+        variableName: "result",
+        ...overrides,
+    };
+}
+
+function createGetPlatformVersionNode(
+    overrides: Partial<GetPlatformVersionNodeData> = {},
+): GetPlatformVersionNodeData {
+    return {
+        action: "getPlatformVersion",
+        title: "Get Platform Version",
+        subtitle: "",
+        debug: {
+            breakpoint: false,
+        },
+        variableName: "result",
+        ...overrides,
+    };
+}
+
+function createGetDeviceNameNode(
+    overrides: Partial<GetDeviceNameNodeData> = {},
+): GetDeviceNameNodeData {
+    return {
+        action: "getDeviceName",
+        title: "Get Device Name",
+        subtitle: "",
+        debug: {
+            breakpoint: false,
+        },
+        variableName: "result",
+        ...overrides,
+    };
+}
+
+function createGetDeviceTimeNode(
+    overrides: Partial<GetDeviceTimeNodeData> = {},
+): GetDeviceTimeNodeData {
+    return {
+        action: "getDeviceTime",
+        title: "Get Device Time",
+        subtitle: "",
+        debug: {
+            breakpoint: false,
+        },
+        variableName: "result",
         ...overrides,
     };
 }
@@ -103,12 +316,12 @@ describe("validateNode", () => {
         const result = validateNode(
             createTapNode({
                 locator: "",
-            })
+            }),
         );
 
         expect(result.valid).toBe(false);
         expect(result.errors).toContain(
-            "Locator is required."
+            "Locator is required.",
         );
     });
 
@@ -116,38 +329,52 @@ describe("validateNode", () => {
         const result = validateNode(
             createTapNode({
                 locatorStrategy: "",
-            })
+            }),
         );
 
         expect(result.valid).toBe(false);
         expect(result.errors).toContain(
-            "Locator strategy is required."
+            "Locator strategy is required.",
         );
+    });
+
+    it("accepts valid input node", () => {
+        const result = validateNode(createInputNode());
+
+        expect(result.valid).toBe(true);
+        expect(result.errors).toEqual([]);
     });
 
     it("requires input text", () => {
         const result = validateNode(
             createInputNode({
                 text: "",
-            })
+            }),
         );
 
         expect(result.valid).toBe(false);
         expect(result.errors).toContain(
-            "Text is required."
+            "Text is required.",
         );
+    });
+
+    it("accepts valid assert node", () => {
+        const result = validateNode(createAssertNode());
+
+        expect(result.valid).toBe(true);
+        expect(result.errors).toEqual([]);
     });
 
     it("requires expected value", () => {
         const result = validateNode(
             createAssertNode({
                 expected: "",
-            })
+            }),
         );
 
         expect(result.valid).toBe(false);
         expect(result.errors).toContain(
-            "Expected value is required."
+            "Expected value is required.",
         );
     });
 
@@ -155,12 +382,12 @@ describe("validateNode", () => {
         const result = validateNode(
             createSetVariableNode({
                 variableName: "",
-            })
+            }),
         );
 
         expect(result.valid).toBe(false);
         expect(result.errors).toContain(
-            "Variable name is required."
+            "Variable name is required.",
         );
     });
 
@@ -168,38 +395,12 @@ describe("validateNode", () => {
         const result = validateNode(
             createSetVariableNode({
                 value: "",
-            })
+            }),
         );
 
         expect(result.valid).toBe(false);
         expect(result.errors).toContain(
-            "Value is required."
-        );
-    });
-
-    it("rejects zero duration", () => {
-        const result = validateNode(
-            createDelayNode({
-                duration: 0,
-            })
-        );
-
-        expect(result.valid).toBe(false);
-        expect(result.errors).toContain(
-            "Duration must be greater than 0."
-        );
-    });
-
-    it("rejects negative duration", () => {
-        const result = validateNode(
-            createDelayNode({
-                duration: -1,
-            })
-        );
-
-        expect(result.valid).toBe(false);
-        expect(result.errors).toContain(
-            "Duration must be greater than 0."
+            "Value is required.",
         );
     });
 
@@ -210,17 +411,171 @@ describe("validateNode", () => {
         expect(result.errors).toEqual([]);
     });
 
-    it("accepts valid input node", () => {
-        const result = validateNode(createInputNode());
+    it("rejects zero duration", () => {
+        const result = validateNode(
+            createDelayNode({
+                duration: 0,
+            }),
+        );
 
-        expect(result.valid).toBe(true);
-        expect(result.errors).toEqual([]);
+        expect(result.valid).toBe(false);
+        expect(result.errors).toContain(
+            "Duration must be greater than 0.",
+        );
     });
 
-    it("accepts valid assert node", () => {
-        const result = validateNode(createAssertNode());
+    it("rejects negative duration", () => {
+        const result = validateNode(
+            createDelayNode({
+                duration: -1,
+            }),
+        );
 
-        expect(result.valid).toBe(true);
-        expect(result.errors).toEqual([]);
+        expect(result.valid).toBe(false);
+        expect(result.errors).toContain(
+            "Duration must be greater than 0.",
+        );
     });
+});
+
+describe("Element Getter nodes", () => {
+    const factories = [
+        {
+            name: "getText",
+            create: createGetTextNode,
+        },
+        {
+            name: "getAttribute",
+            create: createGetAttributeNode,
+        },
+        {
+            name: "elementExists",
+            create: createElementExistsNode,
+        },
+        {
+            name: "getDisplayed",
+            create: createGetDisplayedNode,
+        },
+        {
+            name: "getEnabled",
+            create: createGetEnabledNode,
+        },
+        {
+            name: "getSelected",
+            create: createGetSelectedNode,
+        },
+    ] as const;
+
+    it.each(factories)(
+        "accepts valid $name node",
+        ({ create }) => {
+            const result = validateNode(create());
+
+            expect(result.valid).toBe(true);
+            expect(result.errors).toEqual([]);
+        },
+    );
+
+    it.each(factories)(
+        "requires locator for $name",
+        ({ create }) => {
+            const result = validateNode(
+                create({
+                    locator: "",
+                }),
+            );
+
+            expect(result.valid).toBe(false);
+            expect(result.errors).toContain(
+                "Locator is required.",
+            );
+        },
+    );
+
+    it.each(factories)(
+        "requires locator strategy for $name",
+        ({ create }) => {
+            const result = validateNode(
+                create({
+                    locatorStrategy: "",
+                }),
+            );
+
+            expect(result.valid).toBe(false);
+            expect(result.errors).toContain(
+                "Locator strategy is required.",
+            );
+        },
+    );
+
+    it.each(factories)(
+        "requires variable name for $name",
+        ({ create }) => {
+            const result = validateNode(
+                create({
+                    variableName: "",
+                }),
+            );
+
+            expect(result.valid).toBe(false);
+            expect(result.errors).toContain(
+                "Variable name is required.",
+            );
+        },
+    );
+});
+
+describe("Device Getter nodes", () => {
+    const factories = [
+        {
+            name: "getCurrentActivity",
+            create: createGetCurrentActivityNode,
+        },
+        {
+            name: "getCurrentPackage",
+            create: createGetCurrentPackageNode,
+        },
+        {
+            name: "getOrientation",
+            create: createGetOrientationNode,
+        },
+        {
+            name: "getPlatformVersion",
+            create: createGetPlatformVersionNode,
+        },
+        {
+            name: "getDeviceName",
+            create: createGetDeviceNameNode,
+        },
+        {
+            name: "getDeviceTime",
+            create: createGetDeviceTimeNode,
+        },
+    ] as const;
+
+    it.each(factories)(
+        "accepts valid $name node",
+        ({ create }) => {
+            const result = validateNode(create());
+
+            expect(result.valid).toBe(true);
+            expect(result.errors).toEqual([]);
+        },
+    );
+
+    it.each(factories)(
+        "requires variable name for $name",
+        ({ create }) => {
+            const result = validateNode(
+                create({
+                    variableName: "",
+                }),
+            );
+
+            expect(result.valid).toBe(false);
+            expect(result.errors).toContain(
+                "Variable name is required.",
+            );
+        },
+    );
 });

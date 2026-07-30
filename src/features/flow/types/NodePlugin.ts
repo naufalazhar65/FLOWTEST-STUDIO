@@ -10,6 +10,16 @@ import type { NodeField } from "./nodeField";
 
 export type NodeType = NodeAction;
 
+type ElementGetterDefaults = {
+  locatorStrategy: string;
+  locator: string;
+  variableName: string;
+};
+
+type DeviceGetterDefaults = {
+  variableName: string;
+};
+
 export type NodeDefaults =
   | {
     action: "tap";
@@ -99,57 +109,57 @@ export type NodeDefaults =
 
     condition: string;
   }
-  | {
+  | ({
     action: "getText";
+  } & ElementGetterDefaults)
 
-    locatorStrategy: string;
-
-    locator: string;
-
-    variableName: string;
-  }
-  | {
+  | ({
     action: "elementExists";
-    locatorStrategy: string;
-    locator: string;
-    variableName: string;
-  }
-  | {
+  } & ElementGetterDefaults)
+
+  | ({
+    action: "getDisplayed";
+  } & ElementGetterDefaults)
+
+  | ({
+    action: "getEnabled";
+  } & ElementGetterDefaults)
+
+  | ({
+    action: "getSelected";
+  } & ElementGetterDefaults)
+
+  | ({
     action: "getAttribute";
-
-    locatorStrategy: string;
-
-    locator: string;
-
     attribute: string;
+  } & ElementGetterDefaults)
 
-    variableName: string;
-  }
-  | {
+  | ({
     action: "getCurrentActivity";
+  } & DeviceGetterDefaults)
 
-    variableName: string;
-  }
-  | {
+  | ({
     action: "getCurrentPackage";
-    variableName: string;
-  }
-  | {
+  } & DeviceGetterDefaults)
+
+  | ({
     action: "getOrientation";
-    variableName: string;
-  }
-  | {
+  } & DeviceGetterDefaults)
+
+  | ({
     action: "getPlatformVersion";
-    variableName: string;
-  }
-  | {
+  } & DeviceGetterDefaults)
+
+  | ({
     action: "getDeviceName";
-    variableName: string;
-  }
-  | {
+  } & DeviceGetterDefaults)
+
+  | ({
     action: "getDeviceTime";
-    variableName: string;
-  }
+  } & DeviceGetterDefaults)
+  | ({
+    action: "getLocation";
+  } & ElementGetterDefaults)
 
 
 export interface NodeHandles {

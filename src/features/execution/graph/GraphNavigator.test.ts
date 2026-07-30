@@ -91,4 +91,53 @@ describe("GraphNavigator", () => {
             graph.getStartNode()
         ).toBeNull();
     });
+
+    it("returns transition for default output", () => {
+        const transition = graph.getTransition("A");
+
+        expect(transition).not.toBeNull();
+
+        expect(transition?.edge.id).toBe("1");
+        expect(transition?.nextNode.id).toBe("B");
+    });
+
+    it("returns transition for specific output handle", () => {
+        const transition = graph.getTransition(
+            "B",
+            "true",
+        );
+
+        expect(transition).not.toBeNull();
+
+        expect(transition?.edge.id).toBe("2");
+        expect(transition?.nextNode.id).toBe("C");
+    });
+
+    it("returns null when transition edge does not exist", () => {
+        expect(
+            graph.getTransition(
+                "B",
+                "false",
+            ),
+        ).toBeNull();
+    });
+
+    it("returns null when transition target node is missing", () => {
+        const graph = new GraphNavigator(
+            [
+                { id: "A" } as FlowNode,
+            ],
+            [
+                {
+                    id: "1",
+                    source: "A",
+                    target: "UNKNOWN",
+                },
+            ],
+        );
+
+        expect(
+            graph.getTransition("A"),
+        ).toBeNull();
+    });
 });

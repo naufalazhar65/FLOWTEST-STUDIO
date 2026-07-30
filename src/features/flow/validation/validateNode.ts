@@ -1,4 +1,6 @@
 import type {
+  DeviceGetterNodeData,
+  ElementGetterNodeData,
   FlowNodeData,
   LocatorNodeData,
 } from "../types/flowNode";
@@ -9,12 +11,32 @@ function validateLocator(
   data: LocatorNodeData,
   errors: string[]
 ) {
+  if (!data.locatorStrategy.trim()) {
+    errors.push("Locator strategy is required.");
+  }
+
   if (!data.locator.trim()) {
     errors.push("Locator is required.");
   }
+}
 
-  if (!data.locatorStrategy.trim()) {
-    errors.push("Locator strategy is required.");
+function validateElementGetter(
+  data: ElementGetterNodeData,
+  errors: string[]
+) {
+  validateLocator(data, errors);
+
+  if (!data.variableName.trim()) {
+    errors.push("Variable name is required.");
+  }
+}
+
+function validateDeviceGetter(
+  data: DeviceGetterNodeData,
+  errors: string[]
+) {
+  if (!data.variableName.trim()) {
+    errors.push("Variable name is required.");
   }
 }
 
@@ -44,6 +66,25 @@ export function validateNode(
         errors.push("Expected value is required.");
       }
 
+      break;
+
+    case "getText":
+    case "getAttribute":
+    case "elementExists":
+    case "getDisplayed":
+    case "getEnabled":
+    case "getSelected":
+      validateElementGetter(data, errors);
+      break;
+
+    case "getCurrentActivity":
+    case "getCurrentPackage":
+    case "getOrientation":
+    case "getPlatformVersion":
+    case "getDeviceName":
+    case "getDeviceTime":
+    case "getLocation":
+      validateDeviceGetter(data, errors);
       break;
 
     case "setVariable":

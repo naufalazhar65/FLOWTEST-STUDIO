@@ -21,6 +21,10 @@ import { getOrientationPlugin } from "./getOrientationPlugin/plugin";
 import { getPlatformVersionPlugin } from "./getPlatformVersionPlugin";
 import { getDeviceNamePlugin } from "./getDeviceNamePlugin";
 import { getDeviceTimePlugin } from "./getDeviceTimePlugin";
+import { getDisplayedPlugin } from "./getDisplayedPlugin";
+import { getEnabledPlugin } from "./getEnabledPlugin";
+import { getSelectedPlugin } from "./getSelectedPlugin";
+import { getLocationPlugin } from "./getLocationPlugin";
 
 
 
@@ -43,14 +47,21 @@ export const plugins: NodePlugin[] = [
   homePlugin,
   screenshotPlugin,
   ifPlugin,
+
+  // Element Getter
   getTextNode,
   elementExistsNode,
   getAttributeNode,
+  getDisplayedPlugin,
+  getEnabledPlugin,
+  getSelectedPlugin,
+
+  // Device Getter
   getCurrentActivityPlugin,
   getCurrentPackagePlugin,
   getOrientationPlugin,
   getPlatformVersionPlugin,
   getDeviceNamePlugin,
-  getDeviceTimePlugin
-
+  getDeviceTimePlugin,
+  getLocationPlugin
 ];

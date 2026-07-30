@@ -1,6 +1,6 @@
 import { appiumClient } from "../services/AppiumClient";
 import type { NodeRunner } from "../types/NodeRunner";
-import { executeDeviceGetter } from "../utils/executeDeviceGetter";
+import { executeGetter } from "../utils/executeGetter";
 
 export const getPlatformVersionRunner: NodeRunner = {
     async run(node) {
@@ -8,10 +8,12 @@ export const getPlatformVersionRunner: NodeRunner = {
             return;
         }
 
-        return executeDeviceGetter(
+        return executeGetter(
             () => appiumClient.getPlatformVersion(),
-            node.data.variableName,
-            "Platform Version",
+            {
+                variableName: node.data.variableName,
+                label: "Platform Version",
+            },
         );
     },
 };

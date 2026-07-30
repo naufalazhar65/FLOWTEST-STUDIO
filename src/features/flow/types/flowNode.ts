@@ -1,5 +1,4 @@
 import type { Node } from "reactflow";
-import type { DeviceGetterNodeData } from "./deviceNode";
 
 export type NodeAction =
   | "tap"
@@ -25,6 +24,10 @@ export type NodeAction =
   | "getPlatformVersion"
   | "getDeviceName"
   | "getDeviceTime"
+  | "getDisplayed"
+  | "getEnabled"
+  | "getSelected"
+  | "getLocation"
 
 
 export interface NodeDebug {
@@ -44,6 +47,18 @@ export interface LocatorNodeData extends BaseNodeData {
   locatorStrategy: string;
 
   locator: string;
+}
+
+export interface ElementGetterNodeData
+  extends LocatorNodeData {
+
+  variableName: string;
+}
+
+export interface DeviceGetterNodeData
+  extends BaseNodeData {
+
+  variableName: string;
 }
 
 export interface TapNodeData extends LocatorNodeData {
@@ -152,64 +167,83 @@ export interface IfNodeData
   condition: string;
 }
 
-export interface GetTextNodeData extends LocatorNodeData {
-  action: "getText";
+export interface GetTextNodeData
+  extends ElementGetterNodeData {
 
-  variableName: string;
+  action: "getText";
 }
 
 export interface ElementExistsNodeData
-  extends LocatorNodeData {
+  extends ElementGetterNodeData {
 
   action: "elementExists";
-
-  variableName: string;
 }
 
-export interface GetAttributeNodeData extends BaseNodeData {
+export interface GetAttributeNodeData
+  extends ElementGetterNodeData {
+
   action: "getAttribute";
 
-  locatorStrategy: string;
-
-  locator: string;
-
   attribute: string;
+}
 
-  variableName: string;
+export interface GetDisplayedNodeData
+  extends ElementGetterNodeData {
+
+  action: "getDisplayed";
+}
+
+export interface GetEnabledNodeData
+  extends ElementGetterNodeData {
+
+  action: "getEnabled";
+}
+
+export interface GetSelectedNodeData
+  extends ElementGetterNodeData {
+
+  action: "getSelected";
 }
 
 export interface GetCurrentActivityNodeData
   extends DeviceGetterNodeData {
+
   action: "getCurrentActivity";
 }
 
 export interface GetCurrentPackageNodeData
-  extends BaseNodeData {
+  extends DeviceGetterNodeData {
+
   action: "getCurrentPackage";
-  variableName: string;
 }
 
 export interface GetOrientationNodeData
-  extends BaseNodeData {
+  extends DeviceGetterNodeData {
+
   action: "getOrientation";
-  variableName: string;
 }
 
 export interface GetPlatformVersionNodeData
-  extends BaseNodeData {
+  extends DeviceGetterNodeData {
+
   action: "getPlatformVersion";
-  variableName: string;
 }
 
 export interface GetDeviceNameNodeData
-  extends BaseNodeData {
+  extends DeviceGetterNodeData {
+
   action: "getDeviceName";
-  variableName: string;
 }
 
-export interface GetDeviceTimeNodeData extends BaseNodeData {
-    action: "getDeviceTime";
-    variableName: string;
+export interface GetDeviceTimeNodeData
+  extends DeviceGetterNodeData {
+
+  action: "getDeviceTime";
+}
+
+export interface GetLocationNodeData
+    extends ElementGetterNodeData {
+    action: "getLocation";
 }
 
 
@@ -230,14 +264,18 @@ export type FlowNodeData =
   | ScreenshotNodeData
   | IfNodeData
   | GetTextNodeData
-  | ElementExistsNodeData
   | GetAttributeNodeData
+  | ElementExistsNodeData
+  | GetDisplayedNodeData
+  | GetEnabledNodeData
+  | GetSelectedNodeData
   | GetCurrentActivityNodeData
   | GetCurrentPackageNodeData
   | GetOrientationNodeData
   | GetPlatformVersionNodeData
   | GetDeviceNameNodeData
   | GetDeviceTimeNodeData
+  | GetLocationNodeData
 
 
 export type FlowNode = Node<FlowNodeData>;

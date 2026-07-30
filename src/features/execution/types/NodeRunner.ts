@@ -1,10 +1,18 @@
-import type { FlowNode } from "../../flow/types/flowNode";
-import type { ExecutionContext } from "../types/ExecutionContext";
-import type { RunnerResult } from "../types/RunnerResult";
+import type {
+  FlowNode,
+  FlowNodeData,
+} from "../../flow/types/flowNode";
 
-export interface NodeRunner {
+import type { ExecutionContext } from "./ExecutionContext";
+import type { RunnerResult } from "./RunnerResult";
+
+export interface NodeRunner<
+  T extends FlowNodeData = FlowNodeData,
+> {
   run(
-    node: FlowNode,
-    context: ExecutionContext
+    node: FlowNode & {
+      data: T;
+    },
+    context: ExecutionContext,
   ): Promise<void | RunnerResult>;
 }

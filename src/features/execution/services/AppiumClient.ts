@@ -266,6 +266,76 @@ export class AppiumClient {
     return "2026-07-29T22:30:00+07:00";
   }
 
+  async isDisplayed(
+    locatorStrategy: string,
+    locator: string,
+  ): Promise<boolean> {
+    useExecutionLogStore
+      .getState()
+      .addLog(
+        "info",
+        `Get Displayed ${locatorStrategy}=${locator}`,
+      );
+
+    await this.delay(300);
+
+    return true;
+  }
+
+  async isEnabled(
+    locatorStrategy: string,
+    locator: string,
+  ): Promise<boolean> {
+    useExecutionLogStore
+      .getState()
+      .addLog(
+        "info",
+        `Get Enabled ${locatorStrategy}=${locator}`,
+      );
+
+    await this.delay(300);
+
+    return true;
+  }
+
+  async isSelected(
+    locatorStrategy: string,
+    locator: string,
+  ): Promise<boolean> {
+    useExecutionLogStore
+      .getState()
+      .addLog(
+        "info",
+        `Get Selected ${locatorStrategy}=${locator}`,
+      );
+
+    await this.delay(300);
+
+    return false;
+  }
+
+  async getLocation(
+    locatorStrategy: string,
+    locator: string,
+  ): Promise<{
+    x: number;
+    y: number;
+  }> {
+    useExecutionLogStore
+      .getState()
+      .addLog(
+        "info",
+        `Get Location ${locatorStrategy}=${locator}`,
+      );
+
+    await this.delay(300);
+
+    return {
+      x: 120,
+      y: 300,
+    };
+  }
+
 
 
   private delay(ms: number) {

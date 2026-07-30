@@ -1,6 +1,6 @@
 import { appiumClient } from "../services/AppiumClient";
 import type { NodeRunner } from "../types/NodeRunner";
-import { executeDeviceGetter } from "../utils/executeDeviceGetter";
+import { executeGetter } from "../utils/executeGetter";
 
 export const getCurrentActivityRunner: NodeRunner = {
     async run(node) {
@@ -8,10 +8,12 @@ export const getCurrentActivityRunner: NodeRunner = {
             return;
         }
 
-        return executeDeviceGetter(
+        return executeGetter(
             () => appiumClient.getCurrentActivity(),
-            node.data.variableName,
-            "Current Activity",
+            {
+                variableName: node.data.variableName,
+                label: "Current Activity",
+            },
         );
     },
 };

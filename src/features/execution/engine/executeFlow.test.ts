@@ -56,6 +56,7 @@ const executionStore = {
     setStatus: vi.fn(),
     setCurrentNode: vi.fn(),
     pauseExecution: vi.fn(),
+    setEdgeStatus: vi.fn(),
 
     isPaused: false,
     isStopped: false,
@@ -229,5 +230,109 @@ describe("executeFlow", () => {
 
         expect(executionStore.setStatus)
             .toHaveBeenCalledWith("passed");
+    });
+
+    it("updates edge status while moving between nodes", async () => {
+        validateFlowMock.mockReturnValue({
+            valid: true,
+            errors: [],
+        });
+
+        const nodeA = {
+            ...node,
+            id: "A",
+        };
+
+        const nodeB = {
+            ...node,
+            id: "B",
+        };
+
+        executeNodeMock
+            .mockResolvedValueOnce({
+                outputs: ["next"],
+            })
+            .mockResolvedValueOnce({
+                outputs: ["next"],
+            });
+
+        await executeFlow(
+            [nodeA, nodeB] as FlowNode[],
+            {
+                device: "Android",
+                edges: [
+                    {
+                        id: "edge-1",
+                        source: "A",
+                        target: "B",
+                    },
+                ],
+            },
+        );
+
+        expect(
+            executionStore.setEdgeStatus,
+        ).toHaveBeenNthCalledWith(
+            1,
+            "edge-1",
+            "running",
+        );
+
+        expect(
+            executionStore.setEdgeStatus,
+        ).toHaveBeenNthCalledWith(
+            2,
+            "edge-1",
+            "passed",
+        );
+    });
+
+    it("marks execution as failed after an edge is already running", async () => {
+        validateFlowMock.mockReturnValue({
+            valid: true,
+            errors: [],
+        });
+
+        const nodeA = {
+            ...node,
+            id: "A",
+        };
+
+        const nodeB = {
+            ...node,
+            id: "B",
+        };
+
+        executeNodeMock
+            .mockResolvedValueOnce({
+                outputs: ["next"],
+            })
+            .mockRejectedValueOnce(
+                new Error("Runner failed"),
+            );
+
+        await expect(
+            executeFlow(
+                [nodeA, nodeB] as FlowNode[],
+                {
+                    device: "Android",
+                    edges: [
+                        {
+                            id: "edge-1",
+                            source: "A",
+                            target: "B",
+                        },
+                    ],
+                },
+            ),
+        ).rejects.toThrow(
+            "Runner failed",
+        );
+
+        expect(
+            executionStore.setStatus,
+        ).toHaveBeenCalledWith(
+            "failed",
+        );
     });
 });

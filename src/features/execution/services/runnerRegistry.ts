@@ -24,6 +24,10 @@ import { getOrientationRunner } from "../runners/GetOrientationRunner";
 import { getPlatformVersionRunner } from "../runners/GetPlatformVersionRunner";
 import { getDeviceNameRunner } from "../runners/GetDeviceNameRunner";
 import { getDeviceTimeRunner } from "../runners/GetDeviceTimeRunner";
+import { getDisplayedRunner } from "../runners/GetDisplayedRunner";
+import { getEnabledRunner } from "../runners/GetEnabledRunner";
+import { getSelectedRunner } from "../runners/GetSelectedRunner";
+import { getLocationRunner } from "../runners/GetLocationRunner";
 
 const registry = new Map<NodeAction, NodeRunner>([
   ["tap", tapRunner],
@@ -49,7 +53,13 @@ const registry = new Map<NodeAction, NodeRunner>([
   ["getOrientation", getOrientationRunner],
   ["getPlatformVersion", getPlatformVersionRunner],
   ["getDeviceName", getDeviceNameRunner],
-  ["getDeviceTime", getDeviceTimeRunner]
+  ["getDeviceTime", getDeviceTimeRunner],
+  ["getDisplayed", getDisplayedRunner],
+  ["getSelected", getSelectedRunner],
+  ["getEnabled", getEnabledRunner],
+  ["getLocation", getLocationRunner]
+  
+
 ]);
 
 export function getRunner(
