@@ -110,19 +110,10 @@ export async function executeFlow(
                 edge.id
             );
         }
+        let activeEdgeId: string | null = null;
 
         while (currentNode) {
             const node = currentNode;
-
-            const incomingEdgeId =
-                incomingEdgeMap.get(node.id);
-
-            if (incomingEdgeId) {
-                execution.setEdgeStatus(
-                    incomingEdgeId,
-                    "passed"
-                );
-            }
 
             await waitWhilePaused();
 
@@ -143,32 +134,41 @@ export async function executeFlow(
                 context
             );
 
+            // Node ini baru selesai dieksekusi,
+            // maka edge yang menuju node ini juga selesai.
+
+            if (activeEdgeId) {
+                execution.setEdgeStatus(
+                    activeEdgeId,
+                    "passed"
+                );
+
+                activeEdgeId = null;
+            }
+
             const output =
                 result.outputs[0] ?? "next";
 
-            const nextNode = graph.getNextNode(
-                node.id,
-                output
-            );
-
-            if (nextNode) {
-                const edge = context.edges.find(
-                    (edge) =>
-                        edge.source === node.id &&
-                        edge.target === nextNode.id &&
-                        (edge.sourceHandle ?? "next") === output
+            const transition =
+                graph.getTransition(
+                    node.id,
+                    output
                 );
 
-                if (edge) {
-                    execution.setEdgeStatus(
-                        edge.id,
-                        "running"
-                    );
+            if (transition) {
+                execution.setEdgeStatus(
+                    transition.edge.id,
+                    "running"
+                );
 
-                }
+                // Simpan edge yang sedang aktif
+                activeEdgeId = transition.edge.id;
+
+                // Pindah ke node berikutnya
+                currentNode = transition.nextNode;
+            } else {
+                currentNode = null;
             }
-
-            currentNode = nextNode;
         }
         // ---------------------------------------
         // Finish

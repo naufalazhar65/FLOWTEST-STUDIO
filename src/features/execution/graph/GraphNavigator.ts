@@ -5,6 +5,7 @@ import { findIncomingEdges } from "./findIncomingEdges";
 import { findOutgoingEdges } from "./findOutgoingEdges";
 import { findNextNode } from "./findNextNode";
 import { findStartNode } from "./findStartNode";
+import type { GraphTransition } from "../types/GraphTransition";
 
 export class GraphNavigator {
     private readonly nodes: FlowNode[];
@@ -53,5 +54,36 @@ export class GraphNavigator {
             this.nodes,
             this.edges
         );
+    }
+
+    getTransition(
+        nodeId: string,
+        output: string = "next"
+    ): GraphTransition | null {
+
+        const edge = this.edges.find(
+            (edge) =>
+                edge.source === nodeId &&
+                (edge.sourceHandle ?? "next") === output
+        );
+
+        if (!edge) {
+            return null;
+        }
+
+        const nextNode =
+            this.nodes.find(
+                (node) =>
+                    node.id === edge.target
+            );
+
+        if (!nextNode) {
+            return null;
+        }
+
+        return {
+            edge,
+            nextNode,
+        };
     }
 }

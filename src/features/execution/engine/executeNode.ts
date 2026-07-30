@@ -15,8 +15,6 @@ export async function executeNode(
 
   const startedAt = performance.now();
 
-  execution.setCurrentNode(node.id);
-
   execution.setNodeStatus(
     node.id,
     "running"
@@ -50,8 +48,6 @@ export async function executeNode(
 
     execution.completeNode(true);
 
-    execution.setCurrentNode(null);
-
     executionLogger.success(
       `${node.data.title} completed`,
       node.id,
@@ -72,8 +68,6 @@ export async function executeNode(
     );
 
     execution.completeNode(false);
-
-    execution.setCurrentNode(null);
 
     executionLogger.error(
       `${node.data.title} failed`,

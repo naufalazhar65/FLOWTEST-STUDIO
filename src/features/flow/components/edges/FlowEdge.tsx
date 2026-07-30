@@ -48,9 +48,10 @@ export const FlowEdge = memo(function FlowEdge({
         (state) => state.insertNode
     );
 
-    const edgeStatus = useExecutionStore(
-        (state) => state.edgeStatus[id] ?? "idle"
-    );
+    const edgeStatus = useExecutionStore((state) => {
+
+        return state.edgeStatus[id] ?? "idle";
+    });
 
     const [path, labelX, labelY] =
         getBezierPath({
