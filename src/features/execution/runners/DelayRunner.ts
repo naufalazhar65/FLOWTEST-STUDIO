@@ -1,21 +1,54 @@
+import { executionLogger } from "../services/executionLogger";
 import type { NodeRunner } from "../types/NodeRunner";
 
 export const delayRunner: NodeRunner = {
     async run(node) {
-        console.log("🔥 DelayRunner started");
-
         if (node.data.action !== "delay") {
-            throw new Error("Invalid node for DelayRunner");
+            return;
         }
+
+        const startedAt = performance.now();
 
         const duration = Number(node.data.duration);
 
-        console.log(`⏱ Waiting ${duration} ms...`);
+        try {
+            await new Promise<void>((resolve) =>
+                setTimeout(resolve, duration),
+            );
 
-        await new Promise<void>((resolve) =>
-            setTimeout(resolve, duration)
-        );
+            const elapsed =
+                performance.now() - startedAt;
 
-        console.log("✅ Wait finished");
+            executionLogger.success({
+                message: "Delay completed",
+                nodeId: node.id,
+                nodeType: node.data.action,
+                nodeTitle: node.data.title,
+                duration: elapsed,
+                details: {
+                    duration,
+                },
+            });
+        } catch (error) {
+            const elapsed =
+                performance.now() - startedAt;
+
+            executionLogger.error({
+                message: "Delay failed",
+                nodeId: node.id,
+                nodeType: node.data.action,
+                nodeTitle: node.data.title,
+                duration: elapsed,
+                details: {
+                    duration,
+                    reason:
+                        error instanceof Error
+                            ? error.message
+                            : String(error),
+                },
+            });
+
+            throw error;
+        }
     },
 };

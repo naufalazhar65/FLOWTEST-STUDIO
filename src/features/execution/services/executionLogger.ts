@@ -1,80 +1,45 @@
-import { useExecutionLogStore } from "../store/useExecutionLogStore";
+import {
+  useExecutionLogStore,
+  type ExecutionLog,
+} from "../store/useExecutionLogStore";
+
+type ExecutionLogInput = Omit<
+  ExecutionLog,
+  "id" | "timestamp" | "level"
+>;
 
 class ExecutionLogger {
-  info(
-    message: string,
-    nodeId?: string,
-    nodeType?: string,
-    duration?: number
-  ) {
-    useExecutionLogStore
-      .getState()
-      .addLog(
-        "info",
-        message,
-        nodeId,
-        nodeType,
-        duration
-      );
+  info(log: ExecutionLogInput) {
+    useExecutionLogStore.getState().addLog({
+      ...log,
+      level: "info",
+    });
   }
 
-  success(
-    message: string,
-    nodeId?: string,
-    nodeType?: string,
-    duration?: number
-  ) {
-    useExecutionLogStore
-      .getState()
-      .addLog(
-        "success",
-        message,
-        nodeId,
-        nodeType,
-        duration
-      );
+  success(log: ExecutionLogInput) {
+    useExecutionLogStore.getState().addLog({
+      ...log,
+      level: "success",
+    });
   }
 
-  warning(
-    message: string,
-    nodeId?: string,
-    nodeType?: string,
-    duration?: number
-  ) {
-    useExecutionLogStore
-      .getState()
-      .addLog(
-        "warning",
-        message,
-        nodeId,
-        nodeType,
-        duration
-      );
+  warning(log: ExecutionLogInput) {
+    useExecutionLogStore.getState().addLog({
+      ...log,
+      level: "warning",
+    });
   }
 
-  error(
-    message: string,
-    nodeId?: string,
-    nodeType?: string,
-    duration?: number
-  ) {
-    useExecutionLogStore
-      .getState()
-      .addLog(
-        "error",
-        message,
-        nodeId,
-        nodeType,
-        duration
-      );
+  error(log: ExecutionLogInput) {
+    useExecutionLogStore.getState().addLog({
+      ...log,
+      level: "error",
+    });
   }
 
   clear() {
-    useExecutionLogStore
-      .getState()
-      .clear();
+    useExecutionLogStore.getState().clear();
   }
 }
 
-export const executionLogger =
-  new ExecutionLogger();
+export const executionLogger = new ExecutionLogger();

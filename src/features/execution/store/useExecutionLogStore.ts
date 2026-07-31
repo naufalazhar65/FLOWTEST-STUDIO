@@ -11,6 +11,7 @@ export type ExecutionLogFilter =
   | ExecutionLogLevel;
 
 export interface ExecutionLog {
+
   id: string;
 
   level: ExecutionLogLevel;
@@ -24,6 +25,10 @@ export interface ExecutionLog {
   nodeId?: string;
 
   nodeType?: string;
+
+  nodeTitle?: string;
+
+  details?: Record<string, unknown>;
 }
 
 interface ExecutionLogStore {
@@ -32,11 +37,7 @@ interface ExecutionLogStore {
   filter: ExecutionLogFilter;
 
   addLog: (
-    level: ExecutionLogLevel,
-    message: string,
-    nodeId?: string,
-    nodeType?: string,
-    duration?: number
+    log: Omit<ExecutionLog, "id" | "timestamp">
   ) => void;
 
   clear: () => void;
@@ -52,27 +53,14 @@ export const useExecutionLogStore =
 
     filter: "all",
 
-    addLog(
-      level,
-      message,
-      nodeId,
-      nodeType,
-      duration
-    ) {
+    addLog(log: Omit<ExecutionLog, "id" | "timestamp">) {
       set((state) => ({
         logs: [
           ...state.logs,
           {
             id: crypto.randomUUID(),
-            level,
-            message,
-
             timestamp: Date.now(),
-
-            duration,
-
-            nodeId,
-            nodeType,
+            ...log,
           },
         ],
       }));

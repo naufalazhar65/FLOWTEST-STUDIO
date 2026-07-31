@@ -8,9 +8,10 @@ import type { RunnerResult } from "../types/RunnerResult";
 
 export async function executeNode(
   node: FlowNode,
-  context: ExecutionContext
+  context: ExecutionContext,
 ): Promise<RunnerResult> {
   const execution = useExecutionStore.getState();
+
   const runner = getRunner(node.data.action);
 
   const startedAt = performance.now();
@@ -19,43 +20,28 @@ export async function executeNode(
 
   execution.setNodeStatus(
     node.id,
-    "running"
+    "running",
   );
 
+  executionLogger.info({
+    message: "Executing node",
+    nodeId: node.id,
+    nodeType: node.type,
+    nodeTitle: node.data.title,
+  });
+
   try {
-    let message = `Executing ${node.data.title}`;
-
-    if (node.data.action === "delay") {
-      message = `Waiting ${node.data.duration} ms`;
-    }
-
-    executionLogger.info(
-      message,
-      node.id,
-      node.data.action
-    );
-
     const result = await runner.run(
       node,
-      context
+      context,
     );
-
-    const duration =
-      performance.now() - startedAt;
 
     execution.setNodeStatus(
       node.id,
-      "passed"
+      "passed",
     );
 
     execution.completeNode(true);
-
-    executionLogger.success(
-      `${node.data.title} completed`,
-      node.id,
-      node.data.action,
-      duration
-    );
 
     return result ?? {
       outputs: ["next"],
@@ -66,17 +52,24 @@ export async function executeNode(
 
     execution.setNodeStatus(
       node.id,
-      "failed"
+      "failed",
     );
 
     execution.completeNode(false);
 
-    executionLogger.error(
-      `${node.data.title} failed`,
-      node.id,
-      node.data.action,
-      duration
-    );
+    executionLogger.error({
+      message: "Node execution failed",
+      nodeId: node.id,
+      nodeType: node.type,
+      nodeTitle: node.data.title,
+      duration,
+      details: {
+        reason:
+          error instanceof Error
+            ? error.message
+            : String(error),
+      },
+    });
 
     throw error;
   } finally {

@@ -15,7 +15,7 @@ import { waitWhilePaused } from "../utils/waitWhilePaused";
 
 export async function executeFlow(
     nodes: FlowNode[],
-    context: ExecutionContext
+    context: ExecutionContext,
 ) {
     const execution = useExecutionStore.getState();
 
@@ -28,20 +28,18 @@ export async function executeFlow(
 
     const graph = new GraphNavigator(
         nodes,
-        context.edges
+        context.edges,
     );
 
     clearVariables();
 
     execution.startExecution(
-        nodes.length
+        nodes.length,
     );
 
-
-
-    executionLogger.info(
-        "Starting execution..."
-    );
+    executionLogger.info({
+        message: "Starting execution...",
+    });
 
     const startedAt = performance.now();
 
@@ -55,29 +53,33 @@ export async function executeFlow(
         execution.setStatus("failed");
         execution.setCurrentNode(null);
 
-        executionLogger.error(
-            "Flow validation failed."
-        );
+        executionLogger.error({
+            message: "Flow validation failed.",
+            details: {
+                errors: validation.errors.length,
+            },
+        });
 
         console.group("Flow validation failed");
 
-        validation.errors.forEach((nodeError, index) => {
-            console.group(
-                `${index + 1}. ${nodeError.nodeTitle} (${nodeError.nodeId})`
-            );
+        validation.errors.forEach(
+            (nodeError, index) => {
+                console.group(
+                    `${index + 1}. ${nodeError.nodeTitle} (${nodeError.nodeId})`,
+                );
 
-            nodeError.errors.forEach((error) => {
-                console.error(error);
-            });
+                nodeError.errors.forEach((error) => {
+                    console.error(error);
+                });
 
-            console.groupEnd();
-        });
+                console.groupEnd();
+            },
+        );
 
-
-
+        console.groupEnd();
 
         throw new Error(
-            "Flow contains validation errors."
+            "Flow contains validation errors.",
         );
     }
 
@@ -89,7 +91,8 @@ export async function executeFlow(
         let currentNode =
             graph.getStartNode();
 
-        let activeEdgeId: string | null = null;
+        let activeEdgeId: string | null =
+            null;
 
         while (currentNode) {
             const node = currentNode;
@@ -98,57 +101,66 @@ export async function executeFlow(
 
             execution.setCurrentNode(node.id);
 
-            if (node.data.debug.breakpoint) {
-                executionLogger.info(
-                    `🛑 Breakpoint reached: ${node.data.title}`
-                );
+            if (
+                node.data.debug.breakpoint
+            ) {
+                executionLogger.info({
+                    message:
+                        "Breakpoint reached",
+                    nodeId: node.id,
+                    nodeType: node.type,
+                    nodeTitle: node.data.title,
+                });
 
                 execution.pauseExecution();
 
                 await waitWhilePaused();
             }
 
-            const result = await executeNode(
-                node,
-                context
-            );
+            const result =
+                await executeNode(
+                    node,
+                    context,
+                );
 
-            // Node ini baru selesai dieksekusi,
+            // Node selesai dieksekusi,
             // maka edge yang menuju node ini juga selesai.
 
             if (activeEdgeId) {
                 execution.setEdgeStatus(
                     activeEdgeId,
-                    "passed"
+                    "passed",
                 );
 
                 activeEdgeId = null;
             }
 
             const output =
-                result.outputs[0] ?? "next";
+                result.outputs[0] ??
+                "next";
 
             const transition =
                 graph.getTransition(
                     node.id,
-                    output
+                    output,
                 );
 
             if (transition) {
                 execution.setEdgeStatus(
                     transition.edge.id,
-                    "running"
+                    "running",
                 );
 
-                // Simpan edge yang sedang aktif
-                activeEdgeId = transition.edge.id;
+                activeEdgeId =
+                    transition.edge.id;
 
-                // Pindah ke node berikutnya
-                currentNode = transition.nextNode;
+                currentNode =
+                    transition.nextNode;
             } else {
                 currentNode = null;
             }
         }
+
         // ---------------------------------------
         // Finish
         // ---------------------------------------
@@ -157,23 +169,45 @@ export async function executeFlow(
         execution.setStatus("passed");
 
         const duration =
-            performance.now() - startedAt;
+            performance.now() -
+            startedAt;
 
-        executionLogger.success(
-            `Execution finished in ${formatDuration(duration)}`
-        );
+        executionLogger.success({
+            message:
+                "Execution finished",
+            duration,
+            details: {
+                formattedDuration:
+                    formatDuration(duration),
+                totalNodes:
+                    nodes.length,
+            },
+        });
     } catch (error) {
         execution.setStatus("failed");
 
         const duration =
-            performance.now() - startedAt;
+            performance.now() -
+            startedAt;
 
-        executionLogger.error(
-            `Execution failed after ${formatDuration(duration)}`
-        );
+        executionLogger.error({
+            message:
+                "Execution failed",
+            duration,
+            details: {
+                formattedDuration:
+                    formatDuration(duration),
+                reason:
+                    error instanceof Error
+                        ? error.message
+                        : String(error),
+            },
+        });
 
         throw error;
     } finally {
-        execution.setCurrentNode(null);
+        execution.setCurrentNode(
+            null,
+        );
     }
 }
