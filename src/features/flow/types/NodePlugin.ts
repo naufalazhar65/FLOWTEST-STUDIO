@@ -83,6 +83,10 @@ export type NodeDefaults =
   | {
     action: "launchApp";
 
+    platform:
+    | "Android"
+    | "iOS";
+
     // Android
     appPackage: string;
 

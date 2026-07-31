@@ -1,26 +1,19 @@
 import type {
+  CloseAppNodeData,
   DeviceGetterNodeData,
   ElementGetterNodeData,
   FlowNodeData,
+  LaunchAppNodeData,
   LocatorNodeData,
 } from "../types/flowNode";
 
 import type { ValidationResult } from "./ValidationResult";
-import { useAppiumConfigStore } from "../../execution/store/useAppiumConfigStore";
 
 function validateLaunchApp(
-  data: {
-    appPackage: string;
-    appActivity: string;
-    bundleId: string;
-    app: string;
-  },
+  data: LaunchAppNodeData,
   errors: string[],
 ) {
-  const platform =
-    useAppiumConfigStore.getState().config.platformName;
-
-  if (platform === "Android") {
+  if (data.platform === "Android") {
     if (!data.appPackage.trim()) {
       errors.push("App Package is required.");
     }
@@ -30,7 +23,7 @@ function validateLaunchApp(
     }
   }
 
-  if (platform === "iOS") {
+  if (data.platform === "iOS") {
     if (
       !data.bundleId.trim() &&
       !data.app.trim()
@@ -43,22 +36,16 @@ function validateLaunchApp(
 }
 
 function validateCloseApp(
-  data: {
-    appPackage: string;
-    bundleId: string;
-  },
+  data: CloseAppNodeData,
   errors: string[],
 ) {
-  const platform =
-    useAppiumConfigStore.getState().config.platformName;
-
-  if (platform === "Android") {
+  if (data.platform === "Android") {
     if (!data.appPackage.trim()) {
       errors.push("App Package is required.");
     }
   }
 
-  if (platform === "iOS") {
+  if (data.platform === "iOS") {
     if (!data.bundleId.trim()) {
       errors.push("Bundle ID is required.");
     }
@@ -67,10 +54,12 @@ function validateCloseApp(
 
 function validateLocator(
   data: LocatorNodeData,
-  errors: string[]
+  errors: string[],
 ) {
   if (!data.locatorStrategy.trim()) {
-    errors.push("Locator strategy is required.");
+    errors.push(
+      "Locator strategy is required.",
+    );
   }
 
   if (!data.locator.trim()) {
@@ -80,21 +69,25 @@ function validateLocator(
 
 function validateElementGetter(
   data: ElementGetterNodeData,
-  errors: string[]
+  errors: string[],
 ) {
   validateLocator(data, errors);
 
   if (!data.variableName.trim()) {
-    errors.push("Variable name is required.");
+    errors.push(
+      "Variable name is required.",
+    );
   }
 }
 
 function validateDeviceGetter(
   data: DeviceGetterNodeData,
-  errors: string[]
+  errors: string[],
 ) {
   if (!data.variableName.trim()) {
-    errors.push("Variable name is required.");
+    errors.push(
+      "Variable name is required.",
+    );
   }
 }
 
@@ -106,16 +99,20 @@ function validateComparison(
   errors: string[],
 ) {
   if (!(data.actual ?? "").trim()) {
-    errors.push("Actual value is required.");
+    errors.push(
+      "Actual value is required.",
+    );
   }
 
   if (!(data.expected ?? "").trim()) {
-    errors.push("Expected value is required.");
+    errors.push(
+      "Expected value is required.",
+    );
   }
 }
 
 export function validateNode(
-  data: FlowNodeData
+  data: FlowNodeData,
 ): ValidationResult {
   const errors: string[] = [];
 
@@ -127,6 +124,7 @@ export function validateNode(
     case "closeApp":
       validateCloseApp(data, errors);
       break;
+
     case "tap":
       validateLocator(data, errors);
       break;
@@ -154,7 +152,10 @@ export function validateNode(
     case "getDisplayed":
     case "getEnabled":
     case "getSelected":
-      validateElementGetter(data, errors);
+      validateElementGetter(
+        data,
+        errors,
+      );
       break;
 
     case "getCurrentActivity":
@@ -166,12 +167,17 @@ export function validateNode(
     case "getLocation":
     case "getSize":
     case "getRect":
-      validateDeviceGetter(data, errors);
+      validateDeviceGetter(
+        data,
+        errors,
+      );
       break;
 
     case "setVariable":
       if (!data.variableName.trim()) {
-        errors.push("Variable name is required.");
+        errors.push(
+          "Variable name is required.",
+        );
       }
 
       if (!data.value.trim()) {
@@ -182,11 +188,13 @@ export function validateNode(
 
     case "delay":
       if (
-        Number.isNaN(Number(data.duration)) ||
+        Number.isNaN(
+          Number(data.duration),
+        ) ||
         Number(data.duration) <= 0
       ) {
         errors.push(
-          "Duration must be greater than 0."
+          "Duration must be greater than 0.",
         );
       }
 

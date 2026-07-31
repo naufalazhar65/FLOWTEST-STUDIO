@@ -17,9 +17,8 @@ export function MainLayout() {
       style={{
         height: "100vh",
         display: "grid",
-        gridTemplateRows: `auto 1fr ${
-          consoleExpanded ? "220px" : "48px"
-        } 32px`,
+        gridTemplateRows: `auto 1fr ${consoleExpanded ? "220px" : "48px"
+          } 32px`,
         background: "#0D1117",
         transition: "grid-template-rows .25s ease",
       }}

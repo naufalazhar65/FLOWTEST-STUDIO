@@ -1,6 +1,8 @@
 import { webDriverClient } from "./WebDriverClient";
-import { buildCapabilities } from "./buildCapabilities";
 import {
+  buildCapabilities,
+  type LaunchCapabilities,
+} from "./buildCapabilities"; import {
   elementService,
   type Rect,
 } from "./ElementService";
@@ -10,10 +12,21 @@ import {
   appiumSession,
   type AppiumCapabilities,
 } from "./AppiumSession";
+import { createDriver } from "./driver/DriverFactory";
 
 
 
 export class AppiumClient {
+
+  private getDriver(
+    platform: "Android" | "iOS",
+  ) {
+    return createDriver(
+      platform,
+      this.ensureSession.bind(this),
+      this.sessionPost.bind(this),
+    );
+  }
 
 
   private getSessionPath(
@@ -235,74 +248,47 @@ export class AppiumClient {
   }
 
   async launchApp(
-    launch: {
-      appPackage?: string;
-      appActivity?: string;
-
-      bundleId?: string;
-      app?: string;
-
-      noReset: boolean;
-    },
+    launch: LaunchCapabilities,
   ): Promise<void> {
+    const driver =
+      this.getDriver(
+        launch.platform,
+      );
+
     const capabilities =
       buildCapabilities(launch);
 
-    await this.ensureSession(
+    await driver.launchApp(
       capabilities,
     );
   }
 
   async closeApp(
     options: {
+      platform: "Android" | "iOS";
+
       appPackage?: string;
       bundleId?: string;
     },
   ): Promise<void> {
-    const bundleId =
-      options.bundleId?.trim();
+    const driver =
+      this.getDriver(options.platform);
 
-    const appPackage =
-      options.appPackage?.trim();
-
-    const appId =
-      bundleId || appPackage;
-
-    if (!appId) {
-      throw new Error(
-        "Either appPackage or bundleId is required."
-      );
-    }
-
-    const terminated =
-      await this.sessionPost<boolean>(
-        "/appium/device/terminate_app",
-        {
-          appId,
-        },
-      );
-
-    if (!terminated) {
-      throw new Error(
-        `Failed to terminate app: ${appId}`,
-      );
-    }
+    await driver.closeApp(options);
   }
 
   async back(): Promise<void> {
-    await this.sessionPost(
-      "/back",
-      {},
-    );
+    const driver =
+      this.getDriver("Android");
+
+    await driver.back();
   }
 
   async home(): Promise<void> {
-    await this.sessionPost<void>(
-      "/appium/device/press_keycode",
-      {
-        keycode: 3,
-      },
-    );
+    const driver =
+      this.getDriver("Android");
+
+    await driver.home();
   }
 
   async screenshot(

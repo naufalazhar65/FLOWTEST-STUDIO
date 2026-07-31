@@ -149,8 +149,14 @@ export interface WaitNodeData
   pollingInterval: number;
 }
 
-export interface LaunchAppNodeData extends BaseNodeData {
+export interface LaunchAppNodeData
+  extends BaseNodeData {
+
   action: "launchApp";
+
+  platform:
+  | "Android"
+  | "iOS";
 
   // Android
   appPackage: string;
@@ -164,15 +170,13 @@ export interface LaunchAppNodeData extends BaseNodeData {
   noReset: boolean;
 }
 
-export interface CloseAppNodeData
-  extends BaseNodeData {
-
+export interface CloseAppNodeData {
   action: "closeApp";
 
-  // Android
+  platform: "Android" | "iOS";
+
   appPackage: string;
 
-  // iOS
   bundleId: string;
 }
 

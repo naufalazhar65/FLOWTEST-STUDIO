@@ -1,29 +1,17 @@
 import { create } from "zustand";
 
+export interface DeviceConfig {
+  deviceName: string;
+  platformVersion: string;
+  udid: string;
+}
+
 export interface AppiumConfig {
   serverUrl: string;
 
-  platformName: "Android" | "iOS";
+  android: DeviceConfig;
 
-  automationName: string;
-
-  deviceName: string;
-
-  platformVersion: string;
-
-  udid: string;
-
-  noReset: boolean;
-
-  // Android
-  appPackage: string;
-
-  appActivity: string;
-
-  // iOS
-  bundleId: string;
-
-  app: string;
+  ios: DeviceConfig;
 }
 
 interface AppiumConfigState {
@@ -39,27 +27,17 @@ export const useAppiumConfigStore =
     config: {
       serverUrl: "http://127.0.0.1:4723",
 
-      platformName: "Android",
+      android: {
+        deviceName: "Android Emulator",
+        platformVersion: "",
+        udid: "",
+      },
 
-      automationName: "UiAutomator2",
-
-      deviceName: "Android Emulator",
-
-      platformVersion: "",
-
-      udid: "",
-
-      noReset: true,
-
-      // Android
-      appPackage: "",
-
-      appActivity: "",
-
-      // iOS
-      bundleId: "",
-
-      app: "",
+      ios: {
+        deviceName: "iPhone 17 Pro",
+        platformVersion: "",
+        udid: "",
+      },
     },
 
     updateConfig(config) {

@@ -1,69 +1,85 @@
 import { useAppiumConfigStore } from "../../store/useAppiumConfigStore";
 
 export interface LaunchCapabilities {
-    // Android
-    appPackage?: string;
-    appActivity?: string;
+  platform: "Android" | "iOS";
 
-    // iOS
-    bundleId?: string;
-    app?: string;
+  // Android
+  appPackage?: string;
+  appActivity?: string;
 
-    // Shared
-    noReset: boolean;
+  // iOS
+  bundleId?: string;
+  app?: string;
+
+  // Shared
+  noReset: boolean;
 }
 
 export function buildCapabilities(
-    launch: LaunchCapabilities,
+  launch: LaunchCapabilities,
 ) {
-    const config =
-        useAppiumConfigStore.getState().config;
+  const config =
+    useAppiumConfigStore.getState().config;
 
-    const capabilities: Record<string, unknown> = {
-        platformName: config.platformName,
+  const device =
+    launch.platform === "Android"
+      ? config.android
+      : config.ios;
 
-        "appium:automationName":
-            config.automationName,
+  const capabilities: Record<string, unknown> = {
+    platformName: launch.platform,
 
-        "appium:deviceName":
-            config.deviceName,
+    "appium:automationName":
+      launch.platform === "Android"
+        ? "UiAutomator2"
+        : "XCUITest",
 
-        "appium:noReset":
-            launch.noReset,
-    };
+    "appium:deviceName":
+      device.deviceName,
 
-    if (config.platformVersion) {
-        capabilities[
-            "appium:platformVersion"
-        ] = config.platformVersion;
+    "appium:noReset":
+      launch.noReset,
+  };
+
+  if (device.platformVersion) {
+    capabilities[
+      "appium:platformVersion"
+    ] = device.platformVersion;
+  }
+
+  if (device.udid) {
+    capabilities["appium:udid"] =
+      device.udid;
+  }
+
+  if (launch.platform === "Android") {
+    if (launch.appPackage) {
+      capabilities["appium:appPackage"] =
+        launch.appPackage;
     }
 
-    if (config.udid) {
-        capabilities["appium:udid"] =
-            config.udid;
+    if (launch.appActivity) {
+      capabilities["appium:appActivity"] =
+        launch.appActivity;
+    }
+  }
+
+  if (launch.platform === "iOS") {
+    if (launch.bundleId) {
+      capabilities["appium:bundleId"] =
+        launch.bundleId;
     }
 
-    if (config.platformName === "Android") {
-        if (launch.appPackage) {
-            capabilities["appium:appPackage"] =
-                launch.appPackage;
-        }
-
-        if (launch.appActivity) {
-            capabilities["appium:appActivity"] =
-                launch.appActivity;
-        }
+    if (launch.app) {
+      capabilities["appium:app"] =
+        launch.app;
     }
+  }
 
-    if (config.platformName === "iOS") {
-        if (launch.app) {
-            capabilities["appium:app"] =
-                launch.app;
-        } else if (launch.bundleId) {
-            capabilities["appium:bundleId"] =
-                launch.bundleId;
-        }
-    }
+  console.log(
+    "Capabilities:",
+    capabilities,
+  );
 
-    return capabilities;
+  return capabilities;
 }

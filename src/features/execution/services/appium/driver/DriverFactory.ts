@@ -1,5 +1,3 @@
-import { useAppiumConfigStore } from "../../../store/useAppiumConfigStore";
-
 import { AndroidDriver } from "./AndroidDriver";
 import { IOSDriver } from "./IOSDriver";
 
@@ -10,15 +8,10 @@ import type {
 } from "./Driver";
 
 export function createDriver(
+  platform: "Android" | "iOS",
   ensureSession: EnsureSession,
   sessionPost: SessionPost,
 ): Driver {
-  const platform =
-    useAppiumConfigStore
-      .getState()
-      .config
-      .platformName;
-
   return platform === "Android"
     ? new AndroidDriver(
         ensureSession,

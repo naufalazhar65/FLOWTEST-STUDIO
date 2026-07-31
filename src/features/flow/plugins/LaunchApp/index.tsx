@@ -17,6 +17,8 @@ export const launchAppPlugin: NodePlugin = {
   defaults: {
     action: "launchApp",
 
+    platform: "Android",
+
     // Android
     appPackage: "",
     appActivity: "",
@@ -30,6 +32,16 @@ export const launchAppPlugin: NodePlugin = {
   },
 
   fields: [
+    {
+      key: "platform",
+      label: "Platform",
+      type: "select",
+      options: [
+        "Android",
+        "iOS",
+      ],
+    },
+
     {
       key: "appPackage",
       label: "App Package",
@@ -64,7 +76,7 @@ export const launchAppPlugin: NodePlugin = {
       key: "app",
       label: "App (.app / .ipa)",
       type: "text",
-      placeholder: "/Users/username/MyApp.app",
+      placeholder: "/Users/username/MyDemo.app",
       visibleWhen: {
         platform: "iOS",
       },
@@ -82,7 +94,8 @@ export const launchAppPlugin: NodePlugin = {
   },
 
   preview(data) {
-    const launch = data as LaunchAppNodeData;
+    const launch =
+      data as LaunchAppNodeData;
 
     return (
       <div
@@ -94,40 +107,50 @@ export const launchAppPlugin: NodePlugin = {
       >
         <strong>📱 Launch App</strong>
 
-        {launch.appPackage && (
-          <span>
-            Package:
-            <br />
-            {launch.appPackage}
-          </span>
-        )}
+        <span>
+          Platform:{" "}
+          <strong>{launch.platform}</strong>
+        </span>
 
-        {launch.appActivity && (
-          <span>
-            Activity:
-            <br />
-            {launch.appActivity}
-          </span>
-        )}
+        {launch.platform ===
+          "Android" && (
+            <>
+              <span>
+                Package:
+                <br />
+                {launch.appPackage || "-"}
+              </span>
 
-        {launch.bundleId && (
-          <span>
-            Bundle ID:
-            <br />
-            {launch.bundleId}
-          </span>
-        )}
+              <span>
+                Activity:
+                <br />
+                {launch.appActivity || "-"}
+              </span>
+            </>
+          )}
 
-        {launch.app && (
-          <span>
-            App:
-            <br />
-            {launch.app}
-          </span>
-        )}
+        {launch.platform ===
+          "iOS" && (
+            <>
+              <span>
+                Bundle ID:
+                <br />
+                {launch.bundleId || "-"}
+              </span>
+
+              <span>
+                App:
+                <br />
+                {launch.app || "-"}
+              </span>
+            </>
+          )}
 
         <span>
-          No Reset: {launch.noReset ? "Yes" : "No"}
+          No Reset:{" "}
+          {launch.noReset
+            ? "Yes"
+            : "No"}
         </span>
       </div>
     );

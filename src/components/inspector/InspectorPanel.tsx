@@ -11,15 +11,18 @@ import { Badge } from "../ui/Badge";
 import { Divider } from "../ui/Divider";
 
 export function InspectorPanel() {
+
+
   const {
     nodes,
     selectedNodeId,
     updateNodeData,
   } = useFlowStore();
 
-  const platform = useAppiumConfigStore(
-    (state) => state.config.platformName
-  );
+  const globalPlatform =
+    useAppiumConfigStore(
+      (state) => state.config.platformName,
+    );
 
   const node = nodes.find(
     (node) => node.id === selectedNodeId
@@ -94,8 +97,22 @@ export function InspectorPanel() {
   const validation = validateNode(node.data);
 
   const nodeData =
-    node.data as unknown as Record<string, unknown>;
+    node.data as unknown as Record<
+      string,
+      unknown
+    >;
 
+  const platform =
+    typeof nodeData.platform === "string"
+      ? (nodeData.platform as
+        | "Android"
+        | "iOS")
+      : globalPlatform;
+
+  console.log(
+    "Current platform:",
+    platform,
+  );
   const visibleFields = plugin.fields.filter(
     (field) => {
       if (!field.visibleWhen) {

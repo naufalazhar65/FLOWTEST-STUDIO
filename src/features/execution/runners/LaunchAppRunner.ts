@@ -4,6 +4,7 @@ import { appiumClient } from "../services/appium/AppiumClient";
 import { executionLogger } from "../services/executionLogger";
 import type { NodeRunner } from "../types/NodeRunner";
 
+
 export const launchAppRunner: NodeRunner<LaunchAppNodeData> = {
   async run(node) {
     if (node.data.action !== "launchApp") {
@@ -16,6 +17,7 @@ export const launchAppRunner: NodeRunner<LaunchAppNodeData> = {
 
     try {
       await appiumClient.launchApp({
+        platform: data.platform,
         appPackage: data.appPackage,
         appActivity: data.appActivity,
 
