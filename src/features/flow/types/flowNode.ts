@@ -170,7 +170,9 @@ export interface LaunchAppNodeData
   noReset: boolean;
 }
 
-export interface CloseAppNodeData {
+export interface CloseAppNodeData
+  extends BaseNodeData {
+
   action: "closeApp";
 
   platform: "Android" | "iOS";

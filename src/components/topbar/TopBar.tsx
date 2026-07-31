@@ -17,11 +17,13 @@ import { useExecutionStore } from "../../features/execution/store/useExecutionSt
 import { exportProject } from "../../features/flow/services/exportService";
 import { openJsonFile } from "../../features/flow/services/filePicker";
 import { importProject } from "../../features/flow/services/importService";
+import { getFlowPlatform } from "../../features/flow/services/getFlowPlatform";
 
 export function TopBar() {
   const { nodes, edges, saveProject,
     loadProject, } = useFlowStore();
 
+  const platform = getFlowPlatform(nodes);
 
   const status = useExecutionStore(
     (state) => state.status
@@ -44,7 +46,6 @@ export function TopBar() {
   const handleRun = useCallback(async () => {
     try {
       await ExecutionController.run(nodes, {
-        device: "Android",
         edges,
       });
     } catch (error) {
@@ -128,7 +129,12 @@ export function TopBar() {
           }}
         >
           <Smartphone size={16} />
-          Android
+
+          {platform === "Android"
+            ? "Android"
+            : platform === "iOS"
+              ? "iOS"
+              : "No Platform"}
         </div>
 
         <div
