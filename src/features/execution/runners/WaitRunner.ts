@@ -1,11 +1,11 @@
 import type { WaitNodeData } from "../../flow/types/flowNode";
 
-import { executionLogger } from "../services/executionLogger";
 import { appiumClient } from "../services/appium/AppiumClient";
+import { executionLogger } from "../services/executionLogger";
 import type { NodeRunner } from "../types/NodeRunner";
 import { resolveNodeVariables } from "../variables/resolveNodeVariables";
 
-export const waitRunner: NodeRunner = {
+export const waitRunner: NodeRunner<WaitNodeData> = {
   async run(node, context) {
     void context;
 
@@ -15,11 +15,11 @@ export const waitRunner: NodeRunner = {
 
     const startedAt = performance.now();
 
-    const data = resolveNodeVariables({
-      locator: (node.data as WaitNodeData).locator,
-    });
+    const waitNode = node.data;
 
-    const waitNode = node.data as WaitNodeData;
+    const data = resolveNodeVariables({
+      locator: waitNode.locator,
+    });
 
     try {
       await appiumClient.waitUntilElement(
@@ -29,14 +29,14 @@ export const waitRunner: NodeRunner = {
         waitNode.pollingInterval,
       );
 
-      const elapsed = performance.now() - startedAt;
+      const duration = performance.now() - startedAt;
 
       executionLogger.success({
         message: "Wait completed",
         nodeId: node.id,
-        nodeType: node.data.action,
-        nodeTitle: node.data.title,
-        duration: elapsed,
+        nodeType: waitNode.action,
+        nodeTitle: waitNode.title,
+        duration,
         details: {
           locator: data.locator,
           locatorStrategy: waitNode.locatorStrategy,
@@ -44,15 +44,19 @@ export const waitRunner: NodeRunner = {
           pollingInterval: waitNode.pollingInterval,
         },
       });
+
+      return {
+        outputs: ["next"],
+      };
     } catch (error) {
-      const elapsed = performance.now() - startedAt;
+      const duration = performance.now() - startedAt;
 
       executionLogger.error({
         message: "Wait failed",
         nodeId: node.id,
-        nodeType: node.data.action,
-        nodeTitle: node.data.title,
-        duration: elapsed,
+        nodeType: waitNode.action,
+        nodeTitle: waitNode.title,
+        duration,
         details: {
           locator: data.locator,
           locatorStrategy: waitNode.locatorStrategy,

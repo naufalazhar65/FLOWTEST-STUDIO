@@ -3,10 +3,10 @@ import type { GetEnabledNodeData } from "../../flow/types/flowNode";
 import { appiumClient } from "../services/appium/AppiumClient";
 import { executionLogger } from "../services/executionLogger";
 import type { NodeRunner } from "../types/NodeRunner";
-    import { executeGetter } from "../utils/executeGetter";
+import { storeResult } from "../utils/storeResult";
 import { resolveVariables } from "../variables/resolveVariable";
 
-export const getEnabledRunner: NodeRunner = {
+export const getEnabledRunner: NodeRunner<GetEnabledNodeData> = {
     async run(node) {
         if (node.data.action !== "getEnabled") {
             return;
@@ -14,31 +14,29 @@ export const getEnabledRunner: NodeRunner = {
 
         const startedAt = performance.now();
 
-        const data = node.data as GetEnabledNodeData;
+        const data = node.data;
 
         const locator = resolveVariables(data.locator);
 
         try {
-            const value = await executeGetter(
-                () =>
-                    appiumClient.isEnabled(
-                        data.locatorStrategy,
-                        locator,
-                    ),
-                {
-                    variableName: data.variableName,
-                    label: "Element Enabled",
-                },
+            const value = await appiumClient.isEnabled(
+                data.locatorStrategy,
+                locator,
             );
 
-            const elapsed = performance.now() - startedAt;
+            storeResult(
+                data.variableName,
+                value,
+            );
+
+            const duration = performance.now() - startedAt;
 
             executionLogger.success({
                 message: "Get Enabled completed",
                 nodeId: node.id,
-                nodeType: node.data.action,
-                nodeTitle: node.data.title,
-                duration: elapsed,
+                nodeType: data.action,
+                nodeTitle: data.title,
+                duration,
                 details: {
                     locator,
                     locatorStrategy: data.locatorStrategy,
@@ -47,16 +45,18 @@ export const getEnabledRunner: NodeRunner = {
                 },
             });
 
-            return value;
+            return {
+                outputs: ["next"],
+            };
         } catch (error) {
-            const elapsed = performance.now() - startedAt;
+            const duration = performance.now() - startedAt;
 
             executionLogger.error({
                 message: "Get Enabled failed",
                 nodeId: node.id,
-                nodeType: node.data.action,
-                nodeTitle: node.data.title,
-                duration: elapsed,
+                nodeType: data.action,
+                nodeTitle: data.title,
+                duration,
                 details: {
                     locator,
                     locatorStrategy: data.locatorStrategy,

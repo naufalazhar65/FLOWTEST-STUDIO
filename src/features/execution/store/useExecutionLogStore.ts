@@ -54,6 +54,9 @@ export const useExecutionLogStore =
     filter: "all",
 
     addLog(log: Omit<ExecutionLog, "id" | "timestamp">) {
+      console.log("ADD LOG >>>", log, typeof log);
+      console.trace("ADD LOG TRACE");
+
       set((state) => ({
         logs: [
           ...state.logs,

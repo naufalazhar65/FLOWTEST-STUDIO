@@ -105,10 +105,9 @@ export async function executeFlow(
                 node.data.debug.breakpoint
             ) {
                 executionLogger.info({
-                    message:
-                        "Breakpoint reached",
+                    message: "Breakpoint reached",
                     nodeId: node.id,
-                    nodeType: node.type,
+                    nodeType: node.data.action,
                     nodeTitle: node.data.title,
                 });
 

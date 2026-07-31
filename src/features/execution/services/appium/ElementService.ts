@@ -7,8 +7,18 @@ const ELEMENT_KEY =
 
 const STRATEGY_MAP: Record<LocatorStrategy, string> = {
     id: "id",
+
     xpath: "xpath",
+
     accessibilityId: "accessibility id",
+
+    className: "class name",
+
+    androidUiAutomator: "-android uiautomator",
+
+    iOSPredicateString: "-ios predicate string",
+
+    iOSClassChain: "-ios class chain",
 };
 
 interface WebDriverValueResponse<T> {

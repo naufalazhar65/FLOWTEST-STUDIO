@@ -17,6 +17,8 @@ class ExecutionLogger {
   }
 
   success(log: ExecutionLogInput) {
+    console.log("LOGGER SUCCESS:", log, typeof log);
+
     useExecutionLogStore.getState().addLog({
       ...log,
       level: "success",

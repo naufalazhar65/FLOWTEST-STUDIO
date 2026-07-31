@@ -16,16 +16,45 @@ export const ifPlugin: NodePlugin = {
 
     defaults: {
         action: "if",
-
-        condition: "",
+        actual: "",
+        operator: "equals",
+        expected: "",
     },
 
     fields: [
         {
-            key: "condition",
-            label: "Condition",
+            key: "actual",
+            label: "Actual",
             type: "text",
-            placeholder: '${status} == "success"',
+            placeholder: "${status}",
+        },
+        {
+            key: "operator",
+            label: "Operator",
+            type: "select",
+            options: [
+                "equals",
+                "notEquals",
+                "contains",
+                "notContains",
+                "startsWith",
+                "endsWith",
+                "greaterThan",
+                "greaterThanOrEqual",
+                "lessThan",
+                "lessThanOrEqual",
+                "isTrue",
+                "isFalse",
+                "isEmpty",
+                "isNotEmpty",
+                "matches",
+            ],
+        },
+        {
+            key: "expected",
+            label: "Expected",
+            type: "text",
+            placeholder: "success",
         },
     ],
 
@@ -34,22 +63,67 @@ export const ifPlugin: NodePlugin = {
     },
 
     preview(data) {
-        const condition =
-            data as IfNodeData;
+        const condition = data as IfNodeData;
+
+        const actual = condition.actual || "(actual)";
+        const expected = condition.expected || "(expected)";
 
         return (
             <div
                 style={{
                     display: "flex",
                     flexDirection: "column",
-                    gap: 6,
+                    gap: 10,
                 }}
             >
-                <strong>🔀 IF</strong>
+                <div
+                    style={{
+                        fontWeight: 700,
+                        fontSize: 14,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
+                    }}
+                >
+                    🔀 IF
+                </div>
 
-                <span>
-                    {condition.condition || "-"}
-                </span>
+                <div
+                    style={{
+                        fontSize: 12,
+                        color: "#CBD5E1",
+                        lineHeight: 1.5,
+                        wordBreak: "break-word",
+                    }}
+                >
+                    <div>{actual}</div>
+
+                    <div
+                        style={{
+                            color: "#F59E0B",
+                            fontWeight: 600,
+                        }}
+                    >
+                        {condition.operator}
+                    </div>
+
+                    <div>{expected}</div>
+                </div>
+
+                <div
+                    style={{
+                        borderTop: "1px solid rgba(255,255,255,0.08)",
+                        paddingTop: 8,
+                        display: "flex",
+                        justifyContent: "space-between",
+                        fontSize: 11,
+                        color: "#94A3B8",
+                    }}
+                >
+                    <span>✅ True</span>
+
+                    <span>❌ False</span>
+                </div>
             </div>
         );
     },

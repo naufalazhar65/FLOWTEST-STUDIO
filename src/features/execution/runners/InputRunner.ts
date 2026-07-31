@@ -1,5 +1,5 @@
-import { executionLogger } from "../services/executionLogger";
 import { appiumClient } from "../services/appium/AppiumClient";
+import { executionLogger } from "../services/executionLogger";
 import type { NodeRunner } from "../types/NodeRunner";
 import { resolveNodeVariables } from "../variables/resolveNodeVariables";
 
@@ -9,7 +9,7 @@ export const inputRunner: NodeRunner = {
       return;
     }
 
-    const start = performance.now();
+    const startedAt = performance.now();
 
     const data = resolveNodeVariables({
       locator: node.data.locator,
@@ -23,12 +23,12 @@ export const inputRunner: NodeRunner = {
         data.text,
       );
 
-      const duration = performance.now() - start;
+      const duration = performance.now() - startedAt;
 
       executionLogger.success({
         message: "Input completed",
         nodeId: node.id,
-        nodeType: node.type,
+        nodeType: node.data.action,
         nodeTitle: node.data.title,
         duration,
         details: {
@@ -37,13 +37,17 @@ export const inputRunner: NodeRunner = {
           value: data.text,
         },
       });
+
+      return {
+        outputs: ["next"],
+      };
     } catch (error) {
-      const duration = performance.now() - start;
+      const duration = performance.now() - startedAt;
 
       executionLogger.error({
         message: "Input failed",
         nodeId: node.id,
-        nodeType: node.type,
+        nodeType: node.data.action,
         nodeTitle: node.data.title,
         duration,
         details: {

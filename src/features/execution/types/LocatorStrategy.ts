@@ -1,4 +1,8 @@
-export type LocatorStrategy =
-  | "id"
-  | "xpath"
-  | "accessibilityId";
+  export type LocatorStrategy =
+    | "accessibilityId"
+    | "id"
+    | "xpath"
+    | "className"
+    | "androidUiAutomator"
+    | "iOSPredicateString"
+    | "iOSClassChain";

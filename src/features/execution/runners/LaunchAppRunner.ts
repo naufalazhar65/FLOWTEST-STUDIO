@@ -1,10 +1,10 @@
 import type { LaunchAppNodeData } from "../../flow/types/flowNode";
 
-import { executionLogger } from "../services/executionLogger";
 import { appiumClient } from "../services/appium/AppiumClient";
+import { executionLogger } from "../services/executionLogger";
 import type { NodeRunner } from "../types/NodeRunner";
 
-export const launchAppRunner: NodeRunner = {
+export const launchAppRunner: NodeRunner<LaunchAppNodeData> = {
   async run(node) {
     if (node.data.action !== "launchApp") {
       return;
@@ -12,7 +12,7 @@ export const launchAppRunner: NodeRunner = {
 
     const startedAt = performance.now();
 
-    const data = node.data as LaunchAppNodeData;
+    const data = node.data;
 
     try {
       await appiumClient.launchApp(
@@ -21,29 +21,33 @@ export const launchAppRunner: NodeRunner = {
         data.noReset,
       );
 
-      const elapsed = performance.now() - startedAt;
+      const duration = performance.now() - startedAt;
 
       executionLogger.success({
         message: "Launch App completed",
         nodeId: node.id,
-        nodeType: node.data.action,
-        nodeTitle: node.data.title,
-        duration: elapsed,
+        nodeType: data.action,
+        nodeTitle: data.title,
+        duration,
         details: {
           appPackage: data.appPackage,
           appActivity: data.appActivity,
           noReset: data.noReset,
         },
       });
+
+      return {
+        outputs: ["next"],
+      };
     } catch (error) {
-      const elapsed = performance.now() - startedAt;
+      const duration = performance.now() - startedAt;
 
       executionLogger.error({
         message: "Launch App failed",
         nodeId: node.id,
-        nodeType: node.data.action,
-        nodeTitle: node.data.title,
-        duration: elapsed,
+        nodeType: data.action,
+        nodeTitle: data.title,
+        duration,
         details: {
           appPackage: data.appPackage,
           appActivity: data.appActivity,

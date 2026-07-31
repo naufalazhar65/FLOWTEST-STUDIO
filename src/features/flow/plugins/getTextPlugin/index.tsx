@@ -15,11 +15,11 @@ export const getTextPlugin: NodePlugin = {
     icon: Type,
 
     defaults: {
-        action: "getText",
-        locatorStrategy: "accessibility id",
-        locator: "",
-        variableName: "",
-    },
+    action: "getText",
+    locatorStrategy: "accessibilityId",
+    locator: "",
+    variableName: "",
+},
 
     fields: [
         {

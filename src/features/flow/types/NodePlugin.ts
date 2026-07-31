@@ -109,7 +109,11 @@ export type NodeDefaults =
   | {
     action: "if";
 
-    condition: string;
+    actual: string;
+
+    expected: string;
+
+    operator: AssertOperator;
   }
   | ({
     action: "getText";

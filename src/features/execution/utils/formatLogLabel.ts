@@ -1,4 +1,20 @@
 const LABELS: Record<string, string> = {
+    direction: "Direction",
+    amount: "Amount",
+    distance: "Distance",
+
+    swipeDuration: "Swipe Duration",
+
+    x: "X",
+    y: "Y",
+
+    result: "Result",
+    output: "Output",
+
+    enabled: "Enabled",
+    displayed: "Displayed",
+    selected: "Selected",
+
     appPackage: "App Package",
     appActivity: "App Activity",
     noReset: "No Reset",

@@ -10,8 +10,9 @@ export const assertRunner: NodeRunner = {
       return;
     }
 
-    const actual = resolveVariables(node.data.actual);
+    const startedAt = performance.now();
 
+    const actual = resolveVariables(node.data.actual);
     const expected = resolveVariables(node.data.expected);
 
     const passed = compare(
@@ -19,6 +20,8 @@ export const assertRunner: NodeRunner = {
       expected,
       node.data.operator,
     );
+
+    const elapsed = performance.now() - startedAt;
 
     const details = {
       actual,
@@ -30,8 +33,9 @@ export const assertRunner: NodeRunner = {
       executionLogger.error({
         message: "Assertion failed",
         nodeId: node.id,
-        nodeType: node.type,
+        nodeType: node.data.action,
         nodeTitle: node.data.title,
+        duration: elapsed,
         details,
       });
 
@@ -41,9 +45,14 @@ export const assertRunner: NodeRunner = {
     executionLogger.success({
       message: "Assertion passed",
       nodeId: node.id,
-      nodeType: node.type,
+      nodeType: node.data.action,
       nodeTitle: node.data.title,
+      duration: elapsed,
       details,
     });
+
+    return {
+      outputs: ["next"],
+    };
   },
 };

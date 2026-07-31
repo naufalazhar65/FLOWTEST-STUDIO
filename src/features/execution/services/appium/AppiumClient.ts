@@ -1,4 +1,3 @@
-import { useExecutionLogStore } from "../../store/useExecutionLogStore";
 import { webDriverClient } from "./WebDriverClient";
 import { buildCapabilities } from "./buildCapabilities";
 import {
@@ -16,33 +15,6 @@ import {
 
 export class AppiumClient {
 
-
-  private logSuccess(
-    message: string,
-  ): void {
-    useExecutionLogStore
-      .getState()
-      .addLog(
-        "success",
-        message,
-      );
-  }
-
-  private logError(
-    error: unknown,
-    fallback: string,
-  ): never {
-    useExecutionLogStore
-      .getState()
-      .addLog(
-        "error",
-        error instanceof Error
-          ? error.message
-          : fallback,
-      );
-
-    throw error;
-  }
 
   private getSessionPath(
     path: string,
@@ -139,52 +111,24 @@ export class AppiumClient {
       await webDriverClient.delete(
         this.getSessionPath(""),
       );
-
-      this.logSuccess(
-        "Appium session closed",
-      );
-    } catch (error) {
-      this.logError(
-        error,
-        "Failed to close Appium session",
-      );
     } finally {
       appiumSession.clear();
     }
   }
+
   async tap(
     locatorStrategy: LocatorStrategy,
     locator: string,
   ): Promise<void> {
-    try {
-      const elementId =
-        await elementService.findElement(
-          locatorStrategy,
-          locator,
-        );
-
-      await elementService.click(
-        elementId,
+    const elementId =
+      await elementService.findElement(
+        locatorStrategy,
+        locator,
       );
 
-      useExecutionLogStore
-        .getState()
-        .addLog(
-          "success",
-          `Tapped ${locatorStrategy}=${locator}`,
-        );
-    } catch (error) {
-      useExecutionLogStore
-        .getState()
-        .addLog(
-          "error",
-          error instanceof Error
-            ? error.message
-            : "Failed to tap element",
-        );
-
-      throw error;
-    }
+    await elementService.click(
+      elementId,
+    );
   }
 
   async input(
@@ -192,54 +136,30 @@ export class AppiumClient {
     locator: string,
     text: string,
   ): Promise<void> {
-    try {
-      const elementId =
-        await elementService.findElement(
-          locatorStrategy,
-          locator,
-        );
-
-      await elementService.clear(
-        elementId,
+    const elementId =
+      await elementService.findElement(
+        locatorStrategy,
+        locator,
       );
 
-      await elementService.sendKeys(
-        elementId,
-        text,
-      );
+    await elementService.clear(
+      elementId,
+    );
 
-      useExecutionLogStore
-        .getState()
-        .addLog(
-          "success",
-          `Input "${text}"`,
-        );
-    } catch (error) {
-      useExecutionLogStore
-        .getState()
-        .addLog(
-          "error",
-          error instanceof Error
-            ? error.message
-            : "Failed to input text",
-        );
-
-      throw error;
-    }
+    await elementService.sendKeys(
+      elementId,
+      text,
+    );
   }
 
   async assert(
     locatorStrategy: LocatorStrategy,
     locator: string,
-    expected: string
-  ) {
-    useExecutionLogStore
-      .getState()
-      .addLog(
-        "success",
-        `Assert ${locatorStrategy}=${locator} == ${expected}`
-      );
-
+    expected: string,
+  ): Promise<void> {
+    void locatorStrategy;
+    void locator;
+    void expected;
   }
 
   async swipe(
@@ -247,78 +167,38 @@ export class AppiumClient {
     distance: number,
     duration: number,
   ): Promise<void> {
-    try {
+    const rect =
+      await this.getWindowRect();
 
-      const rect = await this.getWindowRect();
-
-      await this.executeMobileCommand(
-        "swipeGesture",
-        {
-          left: 0,
-          top: 0,
-          width: rect.width,
-          height: rect.height,
-          direction,
-          percent: distance / 100,
-          speed: duration,
-        },
-      );
-
-      useExecutionLogStore
-        .getState()
-        .addLog(
-          "success",
-          `Swipe ${direction}`,
-        );
-    } catch (error) {
-      useExecutionLogStore
-        .getState()
-        .addLog(
-          "error",
-          error instanceof Error
-            ? error.message
-            : "Failed to swipe",
-        );
-
-      throw error;
-    }
+    await this.executeMobileCommand(
+      "swipeGesture",
+      {
+        left: 0,
+        top: 0,
+        width: rect.width,
+        height: rect.height,
+        direction,
+        percent: distance / 100,
+        speed: duration,
+      },
+    );
   }
 
   async scroll(
     direction: "up" | "down",
     amount: number,
   ): Promise<void> {
-    try {
-      await this.executeMobileCommand(
-        "scrollGesture",
-        {
-          left: 0,
-          top: 0,
-          width: 1080,
-          height: 2400,
-          direction,
-          percent: amount / 100,
-        },
-      );
-
-      useExecutionLogStore
-        .getState()
-        .addLog(
-          "success",
-          `Scroll ${direction}`,
-        );
-    } catch (error) {
-      useExecutionLogStore
-        .getState()
-        .addLog(
-          "error",
-          error instanceof Error
-            ? error.message
-            : "Failed to scroll",
-        );
-
-      throw error;
-    }
+    await this.executeMobileCommand(
+      "scrollGesture",
+      {
+        left: 0,
+        top: 0,
+        width: 1080,
+        height: 2400,
+        direction,
+        percent: amount / 100,
+      },
+    );
   }
 
   async waitUntilElement(
@@ -338,13 +218,6 @@ export class AppiumClient {
           );
 
         if (exists) {
-          useExecutionLogStore
-            .getState()
-            .addLog(
-              "success",
-              `Element found: ${locatorStrategy}=${locator}`,
-            );
-
           return;
         }
       } catch {
@@ -356,154 +229,63 @@ export class AppiumClient {
       );
     }
 
-    const message =
-      `Timeout waiting for ${locatorStrategy}=${locator}`;
-
-    useExecutionLogStore
-      .getState()
-      .addLog(
-        "error",
-        message,
-      );
-
-    throw new Error(message);
+    throw new Error(
+      `Timeout waiting for ${locatorStrategy}=${locator}`,
+    );
   }
 
   async launchApp(
     appPackage: string,
     appActivity: string,
     noReset: boolean,
-  ) {
-    try {
-      const capabilities =
-        buildCapabilities({
-          appPackage,
-          appActivity,
-          noReset,
-        });
+  ): Promise<void> {
+    const capabilities =
+      buildCapabilities({
+        appPackage,
+        appActivity,
+        noReset,
+      });
 
-      await this.ensureSession(
-        capabilities,
-      );
-
-      useExecutionLogStore
-        .getState()
-        .addLog(
-          "success",
-          "Appium session started",
-        );
-    } catch (error) {
-      useExecutionLogStore
-        .getState()
-        .addLog(
-          "error",
-          error instanceof Error
-            ? error.message
-            : "Failed to create Appium session",
-        );
-
-      throw error;
-    }
+    await this.ensureSession(
+      capabilities,
+    );
   }
 
   async closeApp(
     appPackage: string,
   ): Promise<void> {
-    try {
-      await this.sessionPost<void>(
-        "/appium/device/terminate_app",
-        {
-          appId: appPackage,
-        },
-      );
-
-      useExecutionLogStore
-        .getState()
-        .addLog(
-          "success",
-          `Closed app: ${appPackage}`,
-        );
-    } catch (error) {
-      useExecutionLogStore
-        .getState()
-        .addLog(
-          "error",
-          error instanceof Error
-            ? error.message
-            : "Failed to close app",
-        );
-
-      throw error;
-    }
+    await this.sessionPost<void>(
+      "/appium/device/terminate_app",
+      {
+        appId: appPackage,
+      },
+    );
   }
 
   async back(): Promise<void> {
-    try {
-      await this.sessionPost(
-        "/back",
-        {},
-      );
-
-      this.logSuccess(
-        "Pressed Back",
-      );
-    } catch (error) {
-      this.logError(
-        error,
-        "Failed to press Back",
-      );
-    }
+    await this.sessionPost(
+      "/back",
+      {},
+    );
   }
 
   async home(): Promise<void> {
-    try {
-      await this.sessionPost<void>(
-        "/appium/device/press_keycode",
-        {
-          keycode: 3,
-        },
-      );
-
-      useExecutionLogStore
-        .getState()
-        .addLog(
-          "success",
-          "Pressed Home",
-        );
-    } catch (error) {
-      useExecutionLogStore
-        .getState()
-        .addLog(
-          "error",
-          error instanceof Error
-            ? error.message
-            : "Failed to press Home",
-        );
-
-      throw error;
-    }
+    await this.sessionPost<void>(
+      "/appium/device/press_keycode",
+      {
+        keycode: 3,
+      },
+    );
   }
 
   async screenshot(
     fileName: string,
   ): Promise<string> {
-    try {
-      const base64 =
-        await this.sessionGet<string>(
-          "/screenshot",
-        );
+    void fileName;
 
-      this.logSuccess(
-        `Screenshot captured: ${fileName}`,
-      );
-
-      return base64;
-    } catch (error) {
-      this.logError(
-        error,
-        "Failed to capture screenshot",
-      );
-    }
+    return this.sessionGet<string>(
+      "/screenshot",
+    );
   }
 
 
@@ -511,38 +293,15 @@ export class AppiumClient {
     locatorStrategy: LocatorStrategy,
     locator: string,
   ): Promise<string> {
-    try {
-      const elementId =
-        await elementService.findElement(
-          locatorStrategy,
-          locator,
-        );
+    const elementId =
+      await elementService.findElement(
+        locatorStrategy,
+        locator,
+      );
 
-      const text =
-        await elementService.getText(
-          elementId,
-        );
-
-      useExecutionLogStore
-        .getState()
-        .addLog(
-          "success",
-          `Text: ${text}`,
-        );
-
-      return text;
-    } catch (error) {
-      useExecutionLogStore
-        .getState()
-        .addLog(
-          "error",
-          error instanceof Error
-            ? error.message
-            : "Failed to get text",
-        );
-
-      throw error;
-    }
+    return elementService.getText(
+      elementId,
+    );
   }
 
   async elementExists(
@@ -555,22 +314,8 @@ export class AppiumClient {
         locator,
       );
 
-      useExecutionLogStore
-        .getState()
-        .addLog(
-          "success",
-          "Element found",
-        );
-
       return true;
     } catch {
-      useExecutionLogStore
-        .getState()
-        .addLog(
-          "info",
-          "Element not found",
-        );
-
       return false;
     }
   }
@@ -580,324 +325,135 @@ export class AppiumClient {
     locator: string,
     attribute: string,
   ): Promise<string> {
-    try {
-      const elementId =
-        await elementService.findElement(
-          locatorStrategy,
-          locator,
-        );
+    const elementId =
+      await elementService.findElement(
+        locatorStrategy,
+        locator,
+      );
 
-      const value =
-        await elementService.getAttribute(
-          elementId,
-          attribute,
-        );
-
-      useExecutionLogStore
-        .getState()
-        .addLog(
-          "success",
-          `${attribute}: ${value}`,
-        );
-
-      return value;
-    } catch (error) {
-      useExecutionLogStore
-        .getState()
-        .addLog(
-          "error",
-          error instanceof Error
-            ? error.message
-            : "Failed to get attribute",
-        );
-
-      throw error;
-    }
+    return elementService.getAttribute(
+      elementId,
+      attribute,
+    );
   }
 
   async getCurrentActivity(): Promise<string> {
-    try {
-      const sessionId = appiumSession.getSessionId();
+    const sessionId =
+      appiumSession.getSessionId();
 
-      const response =
-        await webDriverClient.get<{
-          value: string;
-        }>(
-          `/session/${sessionId}/appium/device/current_activity`,
-        );
+    const response =
+      await webDriverClient.get<{
+        value: string;
+      }>(
+        `/session/${sessionId}/appium/device/current_activity`,
+      );
 
-      useExecutionLogStore
-        .getState()
-        .addLog(
-          "success",
-          `Current Activity: ${response.value}`,
-        );
-
-      return response.value;
-    } catch (error) {
-      useExecutionLogStore
-        .getState()
-        .addLog(
-          "error",
-          error instanceof Error
-            ? error.message
-            : "Failed to get current activity",
-        );
-
-      throw error;
-    }
+    return response.value;
   }
 
   async getCurrentPackage(): Promise<string> {
-    try {
-      const sessionId = appiumSession.getSessionId();
+    const sessionId =
+      appiumSession.getSessionId();
 
-      const response =
-        await webDriverClient.get<{
-          value: string;
-        }>(
-          `/session/${sessionId}/appium/device/current_package`,
-        );
+    const response =
+      await webDriverClient.get<{
+        value: string;
+      }>(
+        `/session/${sessionId}/appium/device/current_package`,
+      );
 
-      useExecutionLogStore
-        .getState()
-        .addLog(
-          "success",
-          `Current Package: ${response.value}`,
-        );
-
-      return response.value;
-    } catch (error) {
-      useExecutionLogStore
-        .getState()
-        .addLog(
-          "error",
-          error instanceof Error
-            ? error.message
-            : "Failed to get current package",
-        );
-
-      throw error;
-    }
+    return response.value;
   }
 
   async getOrientation(): Promise<string> {
-    try {
-      const sessionId = appiumSession.getSessionId();
+    const sessionId =
+      appiumSession.getSessionId();
 
-      const response =
-        await webDriverClient.get<{
-          value: string;
-        }>(
-          `/session/${sessionId}/orientation`,
-        );
+    const response =
+      await webDriverClient.get<{
+        value: string;
+      }>(
+        `/session/${sessionId}/orientation`,
+      );
 
-      useExecutionLogStore
-        .getState()
-        .addLog(
-          "success",
-          `Orientation: ${response.value}`,
-        );
-
-      return response.value;
-    } catch (error) {
-      useExecutionLogStore
-        .getState()
-        .addLog(
-          "error",
-          error instanceof Error
-            ? error.message
-            : "Failed to get orientation",
-        );
-
-      throw error;
-    }
+    return response.value;
   }
 
   async getPlatformVersion(): Promise<string> {
     const capabilities =
       appiumSession.getCapabilities();
 
-    const version =
-      String(
-        capabilities.platformVersion ?? "",
-      );
-
-    useExecutionLogStore
-      .getState()
-      .addLog(
-        "success",
-        `Platform Version: ${version}`,
-      );
-
-    return version;
+    return String(
+      capabilities.platformVersion ?? "",
+    );
   }
 
   async getDeviceName(): Promise<string> {
     const capabilities =
       appiumSession.getCapabilities();
 
-    const deviceName =
-      String(
-        capabilities.deviceName ?? "",
-      );
-
-    useExecutionLogStore
-      .getState()
-      .addLog(
-        "success",
-        `Device Name: ${deviceName}`,
-      );
-
-    return deviceName;
+    return String(
+      capabilities.deviceName ?? "",
+    );
   }
 
   async getDeviceTime(): Promise<string> {
-    try {
-      const sessionId =
-        appiumSession.getSessionId();
+    const sessionId =
+      appiumSession.getSessionId();
 
-      const response =
-        await webDriverClient.get<{
-          value: string;
-        }>(
-          `/session/${sessionId}/appium/device/system_time`,
-        );
+    const response =
+      await webDriverClient.get<{
+        value: string;
+      }>(
+        `/session/${sessionId}/appium/device/system_time`,
+      );
 
-      useExecutionLogStore
-        .getState()
-        .addLog(
-          "success",
-          `Device Time: ${response.value}`,
-        );
-
-      return response.value;
-    } catch (error) {
-      useExecutionLogStore
-        .getState()
-        .addLog(
-          "error",
-          error instanceof Error
-            ? error.message
-            : "Failed to get device time",
-        );
-
-      throw error;
-    }
+    return response.value;
   }
 
   async isDisplayed(
     locatorStrategy: LocatorStrategy,
     locator: string,
   ): Promise<boolean> {
-    try {
-      const elementId =
-        await elementService.findElement(
-          locatorStrategy,
-          locator,
-        );
+    const elementId =
+      await elementService.findElement(
+        locatorStrategy,
+        locator,
+      );
 
-      const displayed =
-        await elementService.isDisplayed(
-          elementId,
-        );
-
-      useExecutionLogStore
-        .getState()
-        .addLog(
-          "success",
-          `Displayed: ${displayed}`,
-        );
-
-      return displayed;
-    } catch (error) {
-      useExecutionLogStore
-        .getState()
-        .addLog(
-          "error",
-          error instanceof Error
-            ? error.message
-            : "Failed to check displayed",
-        );
-
-      throw error;
-    }
+    return elementService.isDisplayed(
+      elementId,
+    );
   }
 
   async isEnabled(
     locatorStrategy: LocatorStrategy,
     locator: string,
   ): Promise<boolean> {
-    try {
-      const elementId =
-        await elementService.findElement(
-          locatorStrategy,
-          locator,
-        );
+    const elementId =
+      await elementService.findElement(
+        locatorStrategy,
+        locator,
+      );
 
-      const enabled =
-        await elementService.isEnabled(
-          elementId,
-        );
-
-      useExecutionLogStore
-        .getState()
-        .addLog(
-          "success",
-          `Enabled: ${enabled}`,
-        );
-
-      return enabled;
-    } catch (error) {
-      useExecutionLogStore
-        .getState()
-        .addLog(
-          "error",
-          error instanceof Error
-            ? error.message
-            : "Failed to check enabled",
-        );
-
-      throw error;
-    }
+    return elementService.isEnabled(
+      elementId,
+    );
   }
 
   async isSelected(
     locatorStrategy: LocatorStrategy,
     locator: string,
   ): Promise<boolean> {
-    try {
-      const elementId =
-        await elementService.findElement(
-          locatorStrategy,
-          locator,
-        );
+    const elementId =
+      await elementService.findElement(
+        locatorStrategy,
+        locator,
+      );
 
-      const selected =
-        await elementService.isSelected(
-          elementId,
-        );
-
-      useExecutionLogStore
-        .getState()
-        .addLog(
-          "success",
-          `Selected: ${selected}`,
-        );
-
-      return selected;
-    } catch (error) {
-      useExecutionLogStore
-        .getState()
-        .addLog(
-          "error",
-          error instanceof Error
-            ? error.message
-            : "Failed to check selected",
-        );
-
-      throw error;
-    }
+    return elementService.isSelected(
+      elementId,
+    );
   }
 
   async getLocation(
@@ -907,43 +463,21 @@ export class AppiumClient {
     x: number;
     y: number;
   }> {
-    try {
-      const elementId =
-        await elementService.findElement(
-          locatorStrategy,
-          locator,
-        );
+    const elementId =
+      await elementService.findElement(
+        locatorStrategy,
+        locator,
+      );
 
-      const rect =
-        await elementService.getRect(
-          elementId,
-        );
+    const rect =
+      await elementService.getRect(
+        elementId,
+      );
 
-      const location = {
-        x: rect.x,
-        y: rect.y,
-      };
-
-      useExecutionLogStore
-        .getState()
-        .addLog(
-          "success",
-          `Location: (${location.x}, ${location.y})`,
-        );
-
-      return location;
-    } catch (error) {
-      useExecutionLogStore
-        .getState()
-        .addLog(
-          "error",
-          error instanceof Error
-            ? error.message
-            : "Failed to get location",
-        );
-
-      throw error;
-    }
+    return {
+      x: rect.x,
+      y: rect.y,
+    };
   }
 
   async getSize(
@@ -953,81 +487,36 @@ export class AppiumClient {
     width: number;
     height: number;
   }> {
-    try {
-      const elementId =
-        await elementService.findElement(
-          locatorStrategy,
-          locator,
-        );
+    const elementId =
+      await elementService.findElement(
+        locatorStrategy,
+        locator,
+      );
 
-      const rect =
-        await elementService.getRect(
-          elementId,
-        );
+    const rect =
+      await elementService.getRect(
+        elementId,
+      );
 
-      const size = {
-        width: rect.width,
-        height: rect.height,
-      };
-
-      useExecutionLogStore
-        .getState()
-        .addLog(
-          "success",
-          `Size: ${size.width}x${size.height}`,
-        );
-
-      return size;
-    } catch (error) {
-      useExecutionLogStore
-        .getState()
-        .addLog(
-          "error",
-          error instanceof Error
-            ? error.message
-            : "Failed to get size",
-        );
-
-      throw error;
-    }
+    return {
+      width: rect.width,
+      height: rect.height,
+    };
   }
 
   async getRect(
     locatorStrategy: LocatorStrategy,
     locator: string,
   ): Promise<Rect> {
-    try {
-      const elementId =
-        await elementService.findElement(
-          locatorStrategy,
-          locator,
-        );
+    const elementId =
+      await elementService.findElement(
+        locatorStrategy,
+        locator,
+      );
 
-      const rect =
-        await elementService.getRect(
-          elementId,
-        );
-
-      useExecutionLogStore
-        .getState()
-        .addLog(
-          "success",
-          `Rect: (${rect.x}, ${rect.y}) ${rect.width}x${rect.height}`,
-        );
-
-      return rect;
-    } catch (error) {
-      useExecutionLogStore
-        .getState()
-        .addLog(
-          "error",
-          error instanceof Error
-            ? error.message
-            : "Failed to get rect",
-        );
-
-      throw error;
-    }
+    return elementService.getRect(
+      elementId,
+    );
   }
 }
 
