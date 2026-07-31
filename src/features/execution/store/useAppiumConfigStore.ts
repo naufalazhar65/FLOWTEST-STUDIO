@@ -10,6 +10,20 @@ export interface AppiumConfig {
   deviceName: string;
 
   platformVersion: string;
+
+  udid: string;
+
+  noReset: boolean;
+
+  // Android
+  appPackage: string;
+
+  appActivity: string;
+
+  // iOS
+  bundleId: string;
+
+  app: string;
 }
 
 interface AppiumConfigState {
@@ -32,6 +46,20 @@ export const useAppiumConfigStore =
       deviceName: "Android Emulator",
 
       platformVersion: "",
+
+      udid: "",
+
+      noReset: true,
+
+      // Android
+      appPackage: "",
+
+      appActivity: "",
+
+      // iOS
+      bundleId: "",
+
+      app: "",
     },
 
     updateConfig(config) {

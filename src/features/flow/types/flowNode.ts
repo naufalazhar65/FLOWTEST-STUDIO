@@ -152,16 +152,28 @@ export interface WaitNodeData
 export interface LaunchAppNodeData extends BaseNodeData {
   action: "launchApp";
 
+  // Android
   appPackage: string;
   appActivity: string;
+
+  // iOS
+  bundleId: string;
+  app: string;
+
+  // Shared
   noReset: boolean;
 }
 
 export interface CloseAppNodeData
   extends BaseNodeData {
+
   action: "closeApp";
 
+  // Android
   appPackage: string;
+
+  // iOS
+  bundleId: string;
 }
 
 export interface BackNodeData

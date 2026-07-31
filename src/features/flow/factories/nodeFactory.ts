@@ -26,7 +26,7 @@ export function createNode(
     );
   }
 
-  const data = {
+  const data: FlowNodeData = {
     ...plugin.defaults,
 
     title: plugin.title,
@@ -35,7 +35,7 @@ export function createNode(
     debug: {
       breakpoint: false,
     },
-  } as FlowNodeData;
+  };
 
   const node: FlowNode = {
     id: crypto.randomUUID(),

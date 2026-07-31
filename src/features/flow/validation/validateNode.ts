@@ -6,10 +6,68 @@ import type {
 } from "../types/flowNode";
 
 import type { ValidationResult } from "./ValidationResult";
+import { useAppiumConfigStore } from "../../execution/store/useAppiumConfigStore";
+
+function validateLaunchApp(
+  data: {
+    appPackage: string;
+    appActivity: string;
+    bundleId: string;
+    app: string;
+  },
+  errors: string[],
+) {
+  const platform =
+    useAppiumConfigStore.getState().config.platformName;
+
+  if (platform === "Android") {
+    if (!data.appPackage.trim()) {
+      errors.push("App Package is required.");
+    }
+
+    if (!data.appActivity.trim()) {
+      errors.push("App Activity is required.");
+    }
+  }
+
+  if (platform === "iOS") {
+    if (
+      !data.bundleId.trim() &&
+      !data.app.trim()
+    ) {
+      errors.push(
+        "Bundle ID or App path is required.",
+      );
+    }
+  }
+}
+
+function validateCloseApp(
+  data: {
+    appPackage: string;
+    bundleId: string;
+  },
+  errors: string[],
+) {
+  const platform =
+    useAppiumConfigStore.getState().config.platformName;
+
+  if (platform === "Android") {
+    if (!data.appPackage.trim()) {
+      errors.push("App Package is required.");
+    }
+  }
+
+  if (platform === "iOS") {
+    if (!data.bundleId.trim()) {
+      errors.push("Bundle ID is required.");
+    }
+  }
+}
 
 function validateLocator(
   data: LocatorNodeData,
-  errors: string[]  
+  errors: string[]
 ) {
   if (!data.locatorStrategy.trim()) {
     errors.push("Locator strategy is required.");
@@ -40,10 +98,6 @@ function validateDeviceGetter(
   }
 }
 
-
-
-
-
 function validateComparison(
   data: {
     actual?: string;
@@ -66,6 +120,13 @@ export function validateNode(
   const errors: string[] = [];
 
   switch (data.action) {
+    case "launchApp":
+      validateLaunchApp(data, errors);
+      break;
+
+    case "closeApp":
+      validateCloseApp(data, errors);
+      break;
     case "tap":
       validateLocator(data, errors);
       break;
@@ -80,12 +141,12 @@ export function validateNode(
       break;
 
     case "assert":
-  validateComparison(data, errors);
-  break;
+      validateComparison(data, errors);
+      break;
 
-case "if":
-  validateComparison(data, errors);
-  break;
+    case "if":
+      validateComparison(data, errors);
+      break;
 
     case "getText":
     case "getAttribute":

@@ -235,16 +235,18 @@ export class AppiumClient {
   }
 
   async launchApp(
-    appPackage: string,
-    appActivity: string,
-    noReset: boolean,
+    launch: {
+      appPackage?: string;
+      appActivity?: string;
+
+      bundleId?: string;
+      app?: string;
+
+      noReset: boolean;
+    },
   ): Promise<void> {
     const capabilities =
-      buildCapabilities({
-        appPackage,
-        appActivity,
-        noReset,
-      });
+      buildCapabilities(launch);
 
     await this.ensureSession(
       capabilities,
@@ -252,12 +254,25 @@ export class AppiumClient {
   }
 
   async closeApp(
-    appPackage: string,
+    options: {
+      appPackage?: string;
+      bundleId?: string;
+    },
   ): Promise<void> {
+    const appId =
+      options.bundleId ??
+      options.appPackage;
+
+    if (!appId) {
+      throw new Error(
+        "Either appPackage or bundleId is required.",
+      );
+    }
+
     await this.sessionPost<void>(
       "/appium/device/terminate_app",
       {
-        appId: appPackage,
+        appId,
       },
     );
   }

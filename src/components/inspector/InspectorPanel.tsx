@@ -1,6 +1,8 @@
 import { Settings2 } from "lucide-react";
 
 import { useFlowStore } from "../../features/flow/store/useFlowStore";
+import { useAppiumConfigStore } from "../../features/execution/store/useAppiumConfigStore";
+
 import { InspectorField } from "../../features/flow/components/inspector/InspectorField";
 import { getNodePlugin } from "../../features/flow/services/pluginRegistry";
 import { validateNode } from "../../features/flow/validation/validateNode";
@@ -14,6 +16,10 @@ export function InspectorPanel() {
     selectedNodeId,
     updateNodeData,
   } = useFlowStore();
+
+  const platform = useAppiumConfigStore(
+    (state) => state.config.platformName
+  );
 
   const node = nodes.find(
     (node) => node.id === selectedNodeId
@@ -73,8 +79,8 @@ export function InspectorPanel() {
               fontSize: 14,
             }}
           >
-            Select a node on the canvas to edit
-            its properties.
+            Select a node on the canvas to edit its
+            properties.
           </p>
         </div>
       </div>
@@ -88,10 +94,24 @@ export function InspectorPanel() {
   const validation = validateNode(node.data);
 
   const nodeData =
-    node.data as unknown as Record<
-      string,
-      unknown
-    >;
+    node.data as unknown as Record<string, unknown>;
+
+  const visibleFields = plugin.fields.filter(
+    (field) => {
+      if (!field.visibleWhen) {
+        return true;
+      }
+
+      if (
+        field.visibleWhen.platform &&
+        field.visibleWhen.platform !== platform
+      ) {
+        return false;
+      }
+
+      return true;
+    }
+  );
 
   return (
     <div
@@ -131,7 +151,7 @@ export function InspectorPanel() {
       </p>
 
       <Section title="General">
-        {plugin.fields.map((field) => (
+        {visibleFields.map((field) => (
           <InspectorField
             key={field.key}
             field={field}

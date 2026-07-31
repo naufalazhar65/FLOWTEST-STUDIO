@@ -83,17 +83,28 @@ export type NodeDefaults =
   | {
     action: "launchApp";
 
+    // Android
     appPackage: string;
 
     appActivity: string;
 
+    // iOS
+    bundleId: string;
+
+    app: string;
+
+    // Shared
     noReset: boolean;
   }
 
   | {
     action: "closeApp";
 
+    // Android
     appPackage: string;
+
+    // iOS
+    bundleId: string;
   }
   | {
     action: "back";

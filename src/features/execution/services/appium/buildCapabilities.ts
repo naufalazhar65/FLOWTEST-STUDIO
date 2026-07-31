@@ -1,10 +1,15 @@
 import { useAppiumConfigStore } from "../../store/useAppiumConfigStore";
 
 export interface LaunchCapabilities {
-    appPackage: string;
+    // Android
+    appPackage?: string;
+    appActivity?: string;
 
-    appActivity: string;
+    // iOS
+    bundleId?: string;
+    app?: string;
 
+    // Shared
     noReset: boolean;
 }
 
@@ -14,9 +19,8 @@ export function buildCapabilities(
     const config =
         useAppiumConfigStore.getState().config;
 
-    return {
-        platformName:
-            config.platformName,
+    const capabilities: Record<string, unknown> = {
+        platformName: config.platformName,
 
         "appium:automationName":
             config.automationName,
@@ -24,18 +28,42 @@ export function buildCapabilities(
         "appium:deviceName":
             config.deviceName,
 
-        ...(config.platformVersion && {
-            "appium:platformVersion":
-                config.platformVersion,
-        }),
-
-        "appium:appPackage":
-            launch.appPackage,
-
-        "appium:appActivity":
-            launch.appActivity,
-
         "appium:noReset":
             launch.noReset,
     };
+
+    if (config.platformVersion) {
+        capabilities[
+            "appium:platformVersion"
+        ] = config.platformVersion;
+    }
+
+    if (config.udid) {
+        capabilities["appium:udid"] =
+            config.udid;
+    }
+
+    if (config.platformName === "Android") {
+        if (launch.appPackage) {
+            capabilities["appium:appPackage"] =
+                launch.appPackage;
+        }
+
+        if (launch.appActivity) {
+            capabilities["appium:appActivity"] =
+                launch.appActivity;
+        }
+    }
+
+    if (config.platformName === "iOS") {
+        if (launch.app) {
+            capabilities["appium:app"] =
+                launch.app;
+        } else if (launch.bundleId) {
+            capabilities["appium:bundleId"] =
+                launch.bundleId;
+        }
+    }
+
+    return capabilities;
 }

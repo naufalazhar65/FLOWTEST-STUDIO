@@ -15,11 +15,15 @@ export const launchAppRunner: NodeRunner<LaunchAppNodeData> = {
     const data = node.data;
 
     try {
-      await appiumClient.launchApp(
-        data.appPackage,
-        data.appActivity,
-        data.noReset,
-      );
+      await appiumClient.launchApp({
+        appPackage: data.appPackage,
+        appActivity: data.appActivity,
+
+        bundleId: data.bundleId,
+        app: data.app,
+
+        noReset: data.noReset,
+      });
 
       const duration = performance.now() - startedAt;
 
@@ -30,9 +34,23 @@ export const launchAppRunner: NodeRunner<LaunchAppNodeData> = {
         nodeTitle: data.title,
         duration,
         details: {
-          appPackage: data.appPackage,
-          appActivity: data.appActivity,
           noReset: data.noReset,
+
+          ...(data.appPackage && {
+            appPackage: data.appPackage,
+          }),
+
+          ...(data.appActivity && {
+            appActivity: data.appActivity,
+          }),
+
+          ...(data.bundleId && {
+            bundleId: data.bundleId,
+          }),
+
+          ...(data.app && {
+            app: data.app,
+          }),
         },
       });
 
@@ -49,9 +67,24 @@ export const launchAppRunner: NodeRunner<LaunchAppNodeData> = {
         nodeTitle: data.title,
         duration,
         details: {
-          appPackage: data.appPackage,
-          appActivity: data.appActivity,
           noReset: data.noReset,
+
+          ...(data.appPackage && {
+            appPackage: data.appPackage,
+          }),
+
+          ...(data.appActivity && {
+            appActivity: data.appActivity,
+          }),
+
+          ...(data.bundleId && {
+            bundleId: data.bundleId,
+          }),
+
+          ...(data.app && {
+            app: data.app,
+          }),
+
           reason:
             error instanceof Error
               ? error.message

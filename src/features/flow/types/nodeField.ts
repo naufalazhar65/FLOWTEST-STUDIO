@@ -1,32 +1,31 @@
 import type {
-  TapNodeData,
-  InputNodeData,
   AssertNodeData,
-  SetVariableNodeData,
-  DelayNodeData,
-  SwipeNodeData,
-  ScrollNodeData,
-  WaitNodeData,
-  LaunchAppNodeData,
   CloseAppNodeData,
-  ScreenshotNodeData,
-  IfNodeData,
-  GetTextNodeData,
+  DelayNodeData,
   ElementExistsNodeData,
   GetAttributeNodeData,
   GetCurrentActivityNodeData,
   GetCurrentPackageNodeData,
-  GetOrientationNodeData,
-  GetPlatformVersionNodeData,
   GetDeviceNameNodeData,
   GetDeviceTimeNodeData,
   GetDisplayedNodeData,
   GetEnabledNodeData,
-  GetSelectedNodeData,
   GetLocationNodeData,
+  GetOrientationNodeData,
+  GetPlatformVersionNodeData,
+  GetRectNodeData,
+  GetSelectedNodeData,
   GetSizeNodeData,
-  GetRectNodeData
-  
+  GetTextNodeData,
+  IfNodeData,
+  InputNodeData,
+  LaunchAppNodeData,
+  ScrollNodeData,
+  ScreenshotNodeData,
+  SetVariableNodeData,
+  SwipeNodeData,
+  TapNodeData,
+  WaitNodeData,
 } from "./flowNode";
 
 export type NodeFieldKey =
@@ -56,7 +55,7 @@ export type NodeFieldKey =
   | keyof GetSelectedNodeData
   | keyof GetLocationNodeData
   | keyof GetSizeNodeData
-  | keyof GetRectNodeData
+  | keyof GetRectNodeData;
 
 export interface NodeField {
   key: NodeFieldKey;
@@ -64,12 +63,12 @@ export interface NodeField {
   label: string;
 
   type:
-  | "text"
-  | "number"
-  | "select"
-  | "checkbox"
-  | "textarea"
-  | "fileName";
+    | "text"
+    | "number"
+    | "select"
+    | "checkbox"
+    | "textarea"
+    | "fileName";
 
   placeholder?: string;
 
@@ -80,4 +79,8 @@ export interface NodeField {
   max?: number;
 
   step?: number;
+
+  visibleWhen?: {
+    platform?: "Android" | "iOS";
+  };
 }

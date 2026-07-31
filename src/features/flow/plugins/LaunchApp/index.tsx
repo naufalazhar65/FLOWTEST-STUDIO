@@ -17,10 +17,15 @@ export const launchAppPlugin: NodePlugin = {
   defaults: {
     action: "launchApp",
 
+    // Android
     appPackage: "",
-
     appActivity: "",
 
+    // iOS
+    bundleId: "",
+    app: "",
+
+    // Shared
     noReset: true,
   },
 
@@ -30,6 +35,9 @@ export const launchAppPlugin: NodePlugin = {
       label: "App Package",
       type: "text",
       placeholder: "com.demo.app",
+      visibleWhen: {
+        platform: "Android",
+      },
     },
 
     {
@@ -37,6 +45,29 @@ export const launchAppPlugin: NodePlugin = {
       label: "App Activity",
       type: "text",
       placeholder: ".MainActivity",
+      visibleWhen: {
+        platform: "Android",
+      },
+    },
+
+    {
+      key: "bundleId",
+      label: "Bundle ID",
+      type: "text",
+      placeholder: "com.demo.app",
+      visibleWhen: {
+        platform: "iOS",
+      },
+    },
+
+    {
+      key: "app",
+      label: "App (.app / .ipa)",
+      type: "text",
+      placeholder: "/Users/username/MyApp.app",
+      visibleWhen: {
+        platform: "iOS",
+      },
     },
 
     {
@@ -51,8 +82,7 @@ export const launchAppPlugin: NodePlugin = {
   },
 
   preview(data) {
-    const launch =
-      data as LaunchAppNodeData;
+    const launch = data as LaunchAppNodeData;
 
     return (
       <div
@@ -64,23 +94,40 @@ export const launchAppPlugin: NodePlugin = {
       >
         <strong>📱 Launch App</strong>
 
-        <span>
-          Package:
-          <br />
-          {launch.appPackage || "-"}
-        </span>
+        {launch.appPackage && (
+          <span>
+            Package:
+            <br />
+            {launch.appPackage}
+          </span>
+        )}
+
+        {launch.appActivity && (
+          <span>
+            Activity:
+            <br />
+            {launch.appActivity}
+          </span>
+        )}
+
+        {launch.bundleId && (
+          <span>
+            Bundle ID:
+            <br />
+            {launch.bundleId}
+          </span>
+        )}
+
+        {launch.app && (
+          <span>
+            App:
+            <br />
+            {launch.app}
+          </span>
+        )}
 
         <span>
-          Activity:
-          <br />
-          {launch.appActivity || "-"}
-        </span>
-
-        <span>
-          No Reset:{" "}
-          {launch.noReset
-            ? "Yes"
-            : "No"}
+          No Reset: {launch.noReset ? "Yes" : "No"}
         </span>
       </div>
     );
