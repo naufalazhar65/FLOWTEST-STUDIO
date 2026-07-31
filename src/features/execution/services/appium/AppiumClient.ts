@@ -259,22 +259,34 @@ export class AppiumClient {
       bundleId?: string;
     },
   ): Promise<void> {
+    const bundleId =
+      options.bundleId?.trim();
+
+    const appPackage =
+      options.appPackage?.trim();
+
     const appId =
-      options.bundleId ??
-      options.appPackage;
+      bundleId || appPackage;
 
     if (!appId) {
       throw new Error(
-        "Either appPackage or bundleId is required.",
+        "Either appPackage or bundleId is required."
       );
     }
 
-    await this.sessionPost<void>(
-      "/appium/device/terminate_app",
-      {
-        appId,
-      },
-    );
+    const terminated =
+      await this.sessionPost<boolean>(
+        "/appium/device/terminate_app",
+        {
+          appId,
+        },
+      );
+
+    if (!terminated) {
+      throw new Error(
+        `Failed to terminate app: ${appId}`,
+      );
+    }
   }
 
   async back(): Promise<void> {
