@@ -7,8 +7,18 @@ import { Toolbar } from "../../features/flow/components/toolbar/Toolbar";
 import { ConsolePanel } from "../console/ConsolePanel";
 import { StatusBar } from "../statusbar/StatusBar";
 import { InspectorPanel } from "../inspector/InspectorPanel";
+import { useEffect } from "react";
+
+import { appiumConnectionService } from "../../features/execution/services/appium/AppiumConnectionService";
 
 export function MainLayout() {
+
+  useEffect(() => {
+    appiumConnectionService.start();
+
+    return () =>
+      appiumConnectionService.stop();
+  }, []);
   const [consoleExpanded, setConsoleExpanded] =
     useState(false);
 

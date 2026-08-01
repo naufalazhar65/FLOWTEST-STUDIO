@@ -3,6 +3,13 @@ import { create } from "zustand";
 import type { FlowExecutionStatus } from "../types/FlowExecutionStatus";
 import type { NodeExecutionStatus } from "../types/NodeExecutionStatus";
 
+export type AppiumConnectionStatus =
+  | "checking"
+  | "connected"
+  | "offline";
+
+
+
 interface ExecutionStore {
   // =====================================
   // Global Status
@@ -10,6 +17,7 @@ interface ExecutionStore {
 
   status: FlowExecutionStatus;
 
+  appiumConnection: AppiumConnectionStatus;
 
   isPaused: boolean;
 
@@ -46,7 +54,9 @@ interface ExecutionStore {
   // =====================================
 
   setStatus(status: FlowExecutionStatus): void;
-
+  setAppiumConnection(
+    status: AppiumConnectionStatus,
+  ): void;
 
   setCurrentNode(id: string | null): void;
 
@@ -87,6 +97,9 @@ export const useExecutionStore =
 
     status: "idle",
 
+    appiumConnection: "checking",
+
+
     isPaused: false,
 
     isStopped: false,
@@ -120,6 +133,12 @@ export const useExecutionStore =
     setStatus(status) {
       set({
         status,
+      });
+    },
+
+    setAppiumConnection(status) {
+      set({
+        appiumConnection: status,
       });
     },
 
@@ -252,6 +271,8 @@ export const useExecutionStore =
 
     reset() {
       set({
+        appiumConnection: "checking",
+
         status: "idle",
 
         isPaused: false,
