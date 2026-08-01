@@ -1,25 +1,24 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { TopBar } from "../topbar/TopBar";
 import { Sidebar } from "../sidebar/Sidebar";
-import { FlowCanvas } from "../../features/flow/components/canvas/FlowCanvas";
-import { Toolbar } from "../../features/flow/components/toolbar/Toolbar";
 import { ConsolePanel } from "../console/ConsolePanel";
 import { StatusBar } from "../statusbar/StatusBar";
 import { InspectorPanel } from "../inspector/InspectorPanel";
-import { useEffect } from "react";
-import { ExecutionBar } from "../../features/execution/components/ExecutionBar"
+
+import { Toolbar } from "../../features/flow/components/toolbar/Toolbar";
+import { FlowCanvas } from "../../features/flow/components/canvas/FlowCanvas";
+import { ExecutionBar } from "../../features/execution/components/ExecutionBar";
 
 import { appiumConnectionService } from "../../features/execution/services/appium/AppiumConnectionService";
 
 export function MainLayout() {
-
   useEffect(() => {
     appiumConnectionService.start();
 
-    return () =>
-      appiumConnectionService.stop();
+    return () => appiumConnectionService.stop();
   }, []);
+
   const [consoleExpanded, setConsoleExpanded] =
     useState(false);
 
@@ -27,34 +26,59 @@ export function MainLayout() {
     <div
       style={{
         height: "100vh",
+
         display: "grid",
-        gridTemplateRows: `auto 1fr ${consoleExpanded ? "220px" : "48px"
+
+        gridTemplateRows: `auto 1fr ${consoleExpanded
+            ? "220px"
+            : "48px"
           } 32px`,
+
         background: "#0D1117",
-        transition: "grid-template-rows .25s ease",
+
+        overflow: "hidden",
       }}
     >
       <TopBar />
 
+      {/* Main Area */}
       <div
         style={{
           display: "grid",
+
           gridTemplateColumns:
-            "300px 1fr 420px",
-          overflow: "hidden",
+            "300px minmax(0,1fr) 420px",
+
           minHeight: 0,
+
+          overflow: "hidden",
         }}
       >
+        {/* Sidebar */}
+        <div
+          style={{
+            minHeight: 0,
 
+            display: "flex",
 
-        <Sidebar />
+            flexDirection: "column",
 
+            overflow: "hidden",
+          }}
+        >
+          <Sidebar />
+        </div>
+
+        {/* Canvas */}
         <div
           style={{
             display: "flex",
+
             flexDirection: "column",
-            overflow: "hidden",
+
             minHeight: 0,
+
+            overflow: "hidden",
           }}
         >
           <ExecutionBar />
@@ -64,6 +88,9 @@ export function MainLayout() {
           <div
             style={{
               flex: 1,
+
+              minHeight: 0,
+
               overflow: "hidden",
             }}
           >
@@ -71,12 +98,20 @@ export function MainLayout() {
           </div>
         </div>
 
+        {/* Inspector */}
         <div
           style={{
-            overflow: "hidden",
+            display: "flex",
+
+            flexDirection: "column",
+
             minHeight: 0,
+
+            overflow: "hidden",
+
             borderLeft:
               "1px solid #30363D",
+
             background: "#0D1117",
           }}
         >
@@ -87,7 +122,9 @@ export function MainLayout() {
       <ConsolePanel
         expanded={consoleExpanded}
         onToggle={() =>
-          setConsoleExpanded((v) => !v)
+          setConsoleExpanded(
+            (v) => !v,
+          )
         }
       />
 

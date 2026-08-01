@@ -16,6 +16,13 @@ export const getSizePlugin: NodePlugin = {
 
     icon: Ruler,
 
+    // Sidebar metadata
+    supportedPlatforms: [
+        "cross-platform",
+    ],
+
+    category: "element",
+
     defaults: {
         action: "getSize",
         locatorStrategy: "id",

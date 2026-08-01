@@ -13,6 +13,12 @@ export const backPlugin: NodePlugin = {
 
   icon: ArrowLeft,
 
+  supportedPlatforms: [
+    "android",
+  ],
+
+  category: "device",
+
   defaults: {
     action: "back",
   },

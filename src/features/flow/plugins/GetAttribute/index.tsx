@@ -14,6 +14,13 @@ export const getAttributeNode: NodePlugin = {
 
     icon: Tags,
 
+    // Sidebar metadata
+    supportedPlatforms: [
+        "cross-platform",
+    ],
+
+    category: "element",
+
     defaults: {
         action: "getAttribute",
         locatorStrategy: "id",

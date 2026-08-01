@@ -14,6 +14,12 @@ export const getTextNode: NodePlugin = {
 
     icon: FileText,
 
+    // Sidebar metadata
+    supportedPlatforms: [
+        "cross-platform",
+    ],
+
+    category: "element",
     defaults: {
         action: "getText",
         locatorStrategy: "id",

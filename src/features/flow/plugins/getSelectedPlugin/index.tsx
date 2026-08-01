@@ -14,6 +14,13 @@ export const getSelectedPlugin: NodePlugin = {
 
     icon: CheckSquare,
 
+    // Sidebar metadata
+    supportedPlatforms: [
+        "cross-platform",
+    ],
+
+    category: "element",
+
     defaults: {
         action: "getSelected",
         locatorStrategy: "id",

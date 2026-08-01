@@ -1,4 +1,5 @@
 import { MousePointerClick } from "lucide-react";
+
 import type { NodePlugin } from "../../types/NodePlugin";
 import type { FlowNodeData } from "../../types/flowNode";
 
@@ -13,6 +14,13 @@ export const tapNode: NodePlugin = {
 
   icon: MousePointerClick,
 
+  // Sidebar metadata
+  supportedPlatforms: [
+    "cross-platform",
+  ],
+
+  category: "interaction",
+
   defaults: {
     action: "tap",
     locatorStrategy: "id",
@@ -24,8 +32,13 @@ export const tapNode: NodePlugin = {
       key: "locatorStrategy",
       label: "Locator Strategy",
       type: "select",
-      options: ["id", "xpath", "accessibilityId"],
+      options: [
+        "id",
+        "xpath",
+        "accessibilityId",
+      ],
     },
+
     {
       key: "locator",
       label: "Locator",
@@ -60,7 +73,9 @@ export const tapNode: NodePlugin = {
             fontSize: 13,
           }}
         >
-          {data.locatorStrategy}={data.locator || "-"}
+          {data.locatorStrategy}
+          =
+          {data.locator || "-"}
         </div>
       </>
     );

@@ -14,6 +14,13 @@ export const getEnabledPlugin: NodePlugin = {
 
     icon: Unlock,
 
+    // Sidebar metadata
+    supportedPlatforms: [
+        "cross-platform",
+    ],
+
+    category: "element",
+
     defaults: {
         action: "getEnabled",
         locatorStrategy: "id",

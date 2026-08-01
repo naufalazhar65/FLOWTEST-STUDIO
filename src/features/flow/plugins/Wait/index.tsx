@@ -14,6 +14,13 @@ export const waitPlugin: NodePlugin = {
 
     icon: Hourglass,
 
+
+    // Sidebar metadata
+    supportedPlatforms: [
+        "cross-platform",
+    ],
+
+    category: "interaction",
     defaults: {
         action: "wait",
 

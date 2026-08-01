@@ -14,6 +14,13 @@ export const launchAppPlugin: NodePlugin = {
 
   icon: Smartphone,
 
+  // ⭐ Tambahan baru
+  supportedPlatforms: [
+        "cross-platform",
+    ],
+
+  category: "device",
+
   defaults: {
     action: "launchApp",
 

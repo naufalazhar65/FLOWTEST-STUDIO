@@ -14,6 +14,13 @@ export const getDisplayedPlugin: NodePlugin = {
 
     icon: Eye,
 
+    // Sidebar metadata
+    supportedPlatforms: [
+        "cross-platform",
+    ],
+
+    category: "element",
+
     defaults: {
         action: "getDisplayed",
         locatorStrategy: "id",
@@ -45,15 +52,15 @@ export const getDisplayedPlugin: NodePlugin = {
     },
 
     preview(data) {
-    if (data.action !== "getDisplayed") {
-        return null;
-    }
+        if (data.action !== "getDisplayed") {
+            return null;
+        }
 
-    return createElementGetterPreview({
-        title: "Get Displayed",
-        locatorStrategy: data.locatorStrategy,
-        locator: data.locator,
-        variableName: data.variableName,
-    });
-},
+        return createElementGetterPreview({
+            title: "Get Displayed",
+            locatorStrategy: data.locatorStrategy,
+            locator: data.locator,
+            variableName: data.variableName,
+        });
+    },
 };

@@ -14,6 +14,12 @@ export const closeAppPlugin: NodePlugin = {
 
   icon: PowerOff,
 
+  supportedPlatforms: [
+    "cross-platform",
+  ],
+
+  category: "device",
+
   defaults: {
     action: "closeApp",
 

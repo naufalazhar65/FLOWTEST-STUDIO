@@ -14,6 +14,12 @@ export const getPlatformVersionPlugin: NodePlugin = {
 
     icon: Smartphone,
 
+    supportedPlatforms: [
+        "cross-platform",
+    ],
+
+    category: "device",
+
     defaults: {
         action: "getPlatformVersion",
         variableName: "",

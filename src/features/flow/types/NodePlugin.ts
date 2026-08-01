@@ -12,6 +12,19 @@ import type { LocatorStrategy } from "../../execution/types/LocatorStrategy";
 
 export type NodeType = NodeAction;
 
+export type NodePlatform =
+  | "cross-platform"
+  | "android"
+  | "ios";
+
+export type NodeCategory =
+  | "interaction"
+  | "element"
+  | "device"
+  | "variables"
+  | "logic"
+  | "validation";
+
 type ElementGetterDefaults = {
   locatorStrategy: LocatorStrategy;
   locator: string;
@@ -49,7 +62,6 @@ export type NodeDefaults =
     action: "delay";
     duration: number;
   }
-
   | {
     action: "swipe";
     direction:
@@ -67,40 +79,30 @@ export type NodeDefaults =
     | "down";
     amount: number;
   }
-
   | {
     action: "wait";
-
     locatorStrategy: LocatorStrategy;
-
     locator: string;
-
     timeout: number;
-
     pollingInterval: number;
   }
-
   | {
     action: "launchApp";
-
     platform:
     | "Android"
     | "iOS";
 
     // Android
     appPackage: string;
-
     appActivity: string;
 
     // iOS
     bundleId: string;
-
     app: string;
 
     // Shared
     noReset: boolean;
   }
-
   | {
     action: "closeApp";
 
@@ -118,63 +120,48 @@ export type NodeDefaults =
   }
   | {
     action: "screenshot";
-
     fileName: string;
   }
   | {
     action: "if";
-
     actual: string;
-
     expected: string;
-
     operator: AssertOperator;
   }
   | ({
     action: "getText";
   } & ElementGetterDefaults)
-
   | ({
     action: "elementExists";
   } & ElementGetterDefaults)
-
   | ({
     action: "getDisplayed";
   } & ElementGetterDefaults)
-
   | ({
     action: "getEnabled";
   } & ElementGetterDefaults)
-
   | ({
     action: "getSelected";
   } & ElementGetterDefaults)
-
   | ({
     action: "getAttribute";
     attribute: string;
   } & ElementGetterDefaults)
-
   | ({
     action: "getCurrentActivity";
   } & DeviceGetterDefaults)
-
   | ({
     action: "getCurrentPackage";
   } & DeviceGetterDefaults)
-
   | ({
     action: "getOrientation";
   } & DeviceGetterDefaults)
-
   | ({
     action: "getPlatformVersion";
   } & DeviceGetterDefaults)
-
   | ({
     action: "getDeviceName";
   } & DeviceGetterDefaults)
-
   | ({
     action: "getDeviceTime";
   } & DeviceGetterDefaults)
@@ -186,8 +173,7 @@ export type NodeDefaults =
   } & ElementGetterDefaults)
   | ({
     action: "getRect";
-  } & ElementGetterDefaults)
-
+  } & ElementGetterDefaults);
 
 export interface NodeHandles {
   outputs: string[];
@@ -204,6 +190,16 @@ export interface NodePlugin {
 
   icon: LucideIcon;
 
+  /**
+   * Platform yang didukung plugin ini.
+   */
+  supportedPlatforms: NodePlatform[];
+
+  /**
+   * Digunakan untuk grouping pada Sidebar.
+   */
+  category: NodeCategory;
+
   handles?: NodeHandles;
 
   defaults: NodeDefaults;
@@ -211,7 +207,6 @@ export interface NodePlugin {
   fields: NodeField[];
 
   preview?: (
-    data: FlowNodeData
+    data: FlowNodeData,
   ) => ReactNode;
 }
-

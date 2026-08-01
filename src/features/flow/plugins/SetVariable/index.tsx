@@ -14,6 +14,13 @@ export const setVariableNode: NodePlugin = {
 
   icon: Variable,
 
+  // Sidebar metadata
+  supportedPlatforms: [
+    "cross-platform",
+  ],
+
+  category: "interaction",
+
   defaults: {
     action: "setVariable",
     variableName: "",

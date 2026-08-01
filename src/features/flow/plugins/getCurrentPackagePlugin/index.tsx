@@ -13,6 +13,12 @@ export const getCurrentPackagePlugin: NodePlugin = {
 
     icon: Package,
 
+    supportedPlatforms: [
+        "android",
+    ],
+
+    category: "device",
+
     defaults: {
         action: "getCurrentPackage",
         variableName: "",

@@ -14,6 +14,12 @@ export const screenshotPlugin: NodePlugin = {
 
   icon: Camera,
 
+  supportedPlatforms: [
+        "cross-platform",
+    ],
+
+  category: "device",
+
   defaults: {
     action: "screenshot",
 

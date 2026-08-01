@@ -16,6 +16,13 @@ export const getRectPlugin: NodePlugin = {
 
     icon: Scan,
 
+    // Sidebar metadata
+    supportedPlatforms: [
+        "cross-platform",
+    ],
+
+    category: "element",
+
     defaults: {
         action: "getRect",
         locatorStrategy: "id",

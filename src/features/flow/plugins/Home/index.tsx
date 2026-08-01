@@ -13,6 +13,12 @@ export const homePlugin: NodePlugin = {
 
   icon: House,
 
+  supportedPlatforms: [
+    "android",
+  ],
+
+  category: "device",
+
   defaults: {
     action: "home",
   },

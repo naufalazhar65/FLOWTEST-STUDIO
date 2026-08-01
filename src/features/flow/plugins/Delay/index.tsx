@@ -14,6 +14,13 @@ export const delayNode: NodePlugin = {
 
     icon: Timer,
 
+    // Sidebar metadata
+    supportedPlatforms: [
+        "cross-platform",
+    ],
+
+    category: "interaction",
+
     defaults: {
         action: "delay",
         duration: 1000,
@@ -29,7 +36,7 @@ export const delayNode: NodePlugin = {
             step: 100,
         },
     ],
-    
+
     handles: {
         outputs: ["next"],
     },

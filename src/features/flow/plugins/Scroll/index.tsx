@@ -14,6 +14,13 @@ export const scrollPlugin: NodePlugin = {
 
     icon: ArrowDownUp,
 
+    // Sidebar metadata
+    supportedPlatforms: [
+        "cross-platform",
+    ],
+
+    category: "interaction",
+
     defaults: {
         action: "scroll",
         direction: "down",

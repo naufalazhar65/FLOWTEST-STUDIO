@@ -14,12 +14,19 @@ export const getTextPlugin: NodePlugin = {
 
     icon: Type,
 
+    // Sidebar metadata
+    supportedPlatforms: [
+        "cross-platform",
+    ],
+
+    category: "element",
+
     defaults: {
-    action: "getText",
-    locatorStrategy: "accessibilityId",
-    locator: "",
-    variableName: "",
-},
+        action: "getText",
+        locatorStrategy: "accessibilityId",
+        locator: "",
+        variableName: "",
+    },
 
     fields: [
         {

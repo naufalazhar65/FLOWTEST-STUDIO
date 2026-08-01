@@ -14,6 +14,13 @@ export const swipeNode: NodePlugin = {
 
     icon: MoveHorizontal,
 
+    // Sidebar metadata
+    supportedPlatforms: [
+        "cross-platform",
+    ],
+
+    category: "interaction",
+
     defaults: {
         action: "swipe",
         direction: "up",

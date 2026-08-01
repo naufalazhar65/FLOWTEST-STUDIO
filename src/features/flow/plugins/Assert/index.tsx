@@ -14,6 +14,13 @@ export const assertNode: NodePlugin = {
 
   icon: BadgeCheck,
 
+  // Sidebar metadata
+  supportedPlatforms: [
+    "cross-platform",
+  ],
+
+  category: "interaction",
+
   defaults: {
     action: "assert",
     actual: "",

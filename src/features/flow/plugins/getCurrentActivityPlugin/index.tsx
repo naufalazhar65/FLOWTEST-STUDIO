@@ -14,6 +14,12 @@ export const getCurrentActivityPlugin: NodePlugin = {
 
     icon: Activity,
 
+    supportedPlatforms: [
+        "android",
+    ],
+
+    category: "device",
+
     defaults: {
         action: "getCurrentActivity",
         variableName: "",

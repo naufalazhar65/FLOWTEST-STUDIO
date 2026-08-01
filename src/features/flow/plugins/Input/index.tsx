@@ -14,6 +14,13 @@ export const inputNode: NodePlugin = {
 
   icon: Keyboard,
 
+  // Sidebar metadata
+  supportedPlatforms: [
+    "cross-platform",
+  ],
+
+  category: "interaction",
+
   defaults: {
     action: "input",
     locatorStrategy: "id",

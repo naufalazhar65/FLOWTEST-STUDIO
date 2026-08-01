@@ -14,6 +14,13 @@ export const getLocationPlugin: NodePlugin = {
 
     icon: MapPin,
 
+    // Sidebar metadata
+    supportedPlatforms: [
+        "cross-platform",
+    ],
+
+    category: "element",
+
     defaults: {
         action: "getLocation",
 

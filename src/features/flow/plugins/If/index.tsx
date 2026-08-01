@@ -14,6 +14,13 @@ export const ifPlugin: NodePlugin = {
 
     icon: GitBranch,
 
+    // Sidebar metadata
+    supportedPlatforms: [
+        "cross-platform",
+    ],
+
+    category: "logic",
+
     defaults: {
         action: "if",
         actual: "",

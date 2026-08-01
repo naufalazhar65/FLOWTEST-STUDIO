@@ -14,6 +14,12 @@ export const getDeviceNamePlugin: NodePlugin = {
 
     icon: Smartphone,
 
+    supportedPlatforms: [
+        "cross-platform",
+    ],
+
+    category: "device",
+
     defaults: {
         action: "getDeviceName",
         variableName: "",

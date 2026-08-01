@@ -14,6 +14,12 @@ export const getDeviceTimePlugin: NodePlugin = {
 
     icon: Smartphone,
 
+    supportedPlatforms: [
+        "cross-platform",
+    ],
+
+    category: "device",
+
     defaults: {
         action: "getDeviceTime",
         variableName: "",

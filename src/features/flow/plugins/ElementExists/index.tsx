@@ -13,6 +13,13 @@ export const elementExistsNode: NodePlugin = {
 
     icon: SearchCheck,
 
+    // Sidebar metadata
+    supportedPlatforms: [
+        "cross-platform",
+    ],
+
+    category: "element",
+
     defaults: {
         action: "elementExists",
         locatorStrategy: "id",

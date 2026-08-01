@@ -1,18 +1,23 @@
+import type { ReactNode } from "react";
+
 import {
-    useLayoutEffect,
-    useRef,
-    useState,
-    type ReactNode,
-} from "react";
-import { ChevronDown } from "lucide-react";
+    ChevronDown,
+    ChevronRight,
+} from "lucide-react";
 
 interface SidebarSectionProps {
     title: string;
+
     count: number;
+
     icon: ReactNode;
+
     open: boolean;
+
     onToggle: () => void;
+
     children: ReactNode;
+
     accent: string;
 }
 
@@ -25,22 +30,6 @@ export function SidebarSection({
     children,
     accent,
 }: SidebarSectionProps) {
-    const contentRef = useRef<HTMLDivElement>(null);
-
-    const [maxHeight, setMaxHeight] = useState(0);
-
-    useLayoutEffect(() => {
-        if (contentRef.current) {
-            setMaxHeight(contentRef.current.scrollHeight);
-        }
-    }, [open, children]);
-
-    useLayoutEffect(() => {
-        if (open && contentRef.current) {
-            setMaxHeight(contentRef.current.scrollHeight);
-        }
-    }, [open]);
-
     return (
         <div
             style={{
@@ -51,64 +40,97 @@ export function SidebarSection({
                 onClick={onToggle}
                 style={{
                     width: "100%",
+
                     display: "flex",
-                    justifyContent: "space-between",
+
                     alignItems: "center",
-                    background: open ? "#1A1F27" : "transparent",
-                    border: "none",
-                    color: "#FFFFFF",
-                    padding: "8px 10px",
-                    borderRadius: 10,
+
+                    justifyContent:
+                        "space-between",
+
+                    padding: "10px 12px",
+
+                    borderRadius: 12,
+
+                    border: open
+                        ? `1px solid ${accent}55`
+                        : "1px solid #30363D",
+
+                    background: open
+                        ? "#1A1F27"
+                        : "#161B22",
+
                     cursor: "pointer",
-                    position: "relative",
-                    transition: "all .18s ease",
+
+                    color: "#FFFFFF",
+
+                    transition:
+                        "all .18s ease",
+
+                    userSelect: "none",
                 }}
                 onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "#1C212B";
+                    e.currentTarget.style.background =
+                        "#1C212B";
+
+                    e.currentTarget.style.borderColor =
+                        open
+                            ? `${accent}99`
+                            : "#404854";
                 }}
                 onMouseLeave={(e) => {
-                    e.currentTarget.style.background = open
-                        ? "#1A1F27"
-                        : "transparent";
+                    e.currentTarget.style.background =
+                        open
+                            ? "#1A1F27"
+                            : "#161B22";
+
+                    e.currentTarget.style.borderColor =
+                        open
+                            ? `${accent}55`
+                            : "#30363D";
                 }}
             >
                 <div
                     style={{
-                        position: "absolute",
-                        left: 0,
-                        top: 6,
-                        bottom: 6,
-                        width: 3,
-                        borderRadius: 999,
-                        background: accent,
-                        opacity: open ? 1 : 0,
-                        transition: "opacity .18s ease",
-                    }}
-                />
-
-                <div
-                    style={{
                         display: "flex",
+
                         alignItems: "center",
-                        gap: 8,
+
+                        gap: 10,
                     }}
                 >
-                    <ChevronDown
-                        size={16}
-                        style={{
-                            color: "#8B949E",
-                            transform: open
-                                ? "rotate(0deg)"
-                                : "rotate(-90deg)",
-                            transition: "transform .18s ease",
-                        }}
-                    />
+                    {open ? (
+                        <ChevronDown
+                            size={16}
+                            color="#8B949E"
+                        />
+                    ) : (
+                        <ChevronRight
+                            size={16}
+                            color="#8B949E"
+                        />
+                    )}
 
                     <div
                         style={{
+                            width: 28,
+
+                            height: 28,
+
+                            borderRadius: 8,
+
+                            background: `${accent}22`,
+
                             color: accent,
+
                             display: "flex",
+
                             alignItems: "center",
+
+                            justifyContent:
+                                "center",
+
+                            flexShrink: 0,
                         }}
                     >
                         {icon}
@@ -116,10 +138,11 @@ export function SidebarSection({
 
                     <span
                         style={{
-                            fontSize: 12,
+                            fontSize: 13,
+
                             fontWeight: 700,
-                            textTransform: "uppercase",
-                            letterSpacing: 1,
+
+                            letterSpacing: .3,
                         }}
                     >
                         {title}
@@ -128,36 +151,74 @@ export function SidebarSection({
 
                 <div
                     style={{
-                        minWidth: 22,
-                        height: 22,
+                        minWidth: 24,
+
+                        height: 24,
+
                         borderRadius: 999,
+
                         background: `${accent}22`,
+
                         border: `1px solid ${accent}55`,
-                        color: accent,
+
                         display: "flex",
+
                         alignItems: "center",
-                        justifyContent: "center",
+
+                        justifyContent:
+                            "center",
+
+                        color: accent,
+
                         fontSize: 11,
+
                         fontWeight: 700,
-                        transition: "all .18s ease",
                     }}
                 >
                     {count}
                 </div>
             </button>
 
+            {/* Animated Content */}
             <div
-                ref={contentRef}
                 style={{
-                    overflow: "hidden",
-                    maxHeight: open ? maxHeight : 0,
-                    opacity: open ? 1 : 0,
+                    display: "grid",
+
+                    gridTemplateRows: open
+                        ? "1fr"
+                        : "0fr",
+
                     transition:
-                        "max-height .22s ease, opacity .18s ease",
-                    paddingTop: open ? 10 : 0,
+                        "grid-template-rows .25s ease",
+
+                    marginLeft: 14,
                 }}
             >
-                {children}
+                <div
+                    style={{
+                        overflow: "hidden",
+                    }}
+                >
+                    <div
+                        style={{
+                            paddingTop: 12,
+
+                            paddingLeft: 16,
+
+                            borderLeft:
+                                `2px solid ${accent}33`,
+
+                            opacity: open
+                                ? 1
+                                : 0,
+
+                            transition:
+                                "opacity .18s ease",
+                        }}
+                    >
+                        {children}
+                    </div>
+                </div>
             </div>
         </div>
     );
