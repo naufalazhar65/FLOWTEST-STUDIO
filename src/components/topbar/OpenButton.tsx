@@ -6,7 +6,7 @@ import { useFlowStore } from "../../features/flow/store/useFlowStore";
 import { useProjectStore } from "../../features/project/store/useProjectStore";
 
 import { importProject } from "../../features/flow/services/importService";
-import { openJsonFile } from "../../features/flow/services/filePicker";
+import { openProject } from "../../features/project/services/fileSystem/openProject";
 
 export function OpenButton() {
     const loadProject = useFlowStore(
@@ -17,23 +17,37 @@ export function OpenButton() {
         (state) => state.setProjectName,
     );
 
+    const setFileHandle = useProjectStore(
+        (state) => state.setFileHandle,
+    );
+
     const markSaved = useProjectStore(
         (state) => state.markSaved,
     );
 
     async function handleOpen() {
-        const file = await openJsonFile();
+        const result = await openProject();
 
-        if (!file) {
+        if (!result) {
             return;
         }
 
-        const project =
-            await importProject(file);
+        const project = await importProject(
+            result.file,
+        );
 
         loadProject(project);
 
-        setProjectName(file.name);
+        setProjectName(
+            result.file.name.replace(
+                /\.json$/i,
+                ".flow",
+            ),
+        );
+
+        setFileHandle(
+            result.handle,
+        );
 
         markSaved();
     }

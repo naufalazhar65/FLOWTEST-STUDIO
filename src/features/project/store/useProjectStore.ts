@@ -3,10 +3,16 @@ import { create } from "zustand";
 export interface ProjectState {
     name: string;
 
+    fileHandle: FileSystemFileHandle | null;
+
     isModified: boolean;
 
     setProjectName(
         name: string,
+    ): void;
+
+    setFileHandle(
+        handle: FileSystemFileHandle | null,
     ): void;
 
     markModified(): void;
@@ -20,11 +26,19 @@ export const useProjectStore =
     create<ProjectState>((set) => ({
         name: "Untitled.flow",
 
+        fileHandle: null,
+
         isModified: false,
 
         setProjectName(name) {
             set({
                 name,
+            });
+        },
+
+        setFileHandle(handle) {
+            set({
+                fileHandle: handle,
             });
         },
 
@@ -43,6 +57,9 @@ export const useProjectStore =
         reset() {
             set({
                 name: "Untitled.flow",
+
+                fileHandle: null,
+
                 isModified: false,
             });
         },
