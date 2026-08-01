@@ -16,28 +16,18 @@ export function PlatformBadge({
                 ? "#A855F7"
                 : "#94A3B8";
 
-    const text =
-        platform ?? "Select Platform";
-
     return (
         <ToolbarBadge
-            minWidth={150}
-            borderColor={color}
+            minWidth={145}
+            icon={
+                <Smartphone
+                    size={16}
+                    color={color}
+                />
+            }
+            color="#E6EDF3"
         >
-            <Smartphone
-                size={16}
-                color={color}
-            />
-
-            <span
-                style={{
-                    color: "#E6EDF3",
-                    fontSize: 13,
-                    fontWeight: 600,
-                }}
-            >
-                {text}
-            </span>
+            {platform ?? "Select Platform"}
         </ToolbarBadge>
     );
 }

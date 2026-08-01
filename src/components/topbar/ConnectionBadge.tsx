@@ -1,12 +1,12 @@
-import { ToolbarBadge } from "../ui/ToolbarBadge";
-import { StatusDot } from "../ui/StatusDot";
+import { Cpu } from "lucide-react";
 
-import type {
-    AppiumConnectionStatus,
-} from "../../features/execution/store/useExecutionStore";
+import { ToolbarBadge } from "../ui/ToolbarBadge";
 
 interface Props {
-    status: AppiumConnectionStatus;
+    status:
+    | "offline"
+    | "checking"
+    | "connected";
 }
 
 export function ConnectionBadge({
@@ -21,33 +21,26 @@ export function ConnectionBadge({
 
     const text =
         status === "connected"
-            ? "Connected"
+            ? "Appium Connected"
             : status === "checking"
-                ? "Checking..."
-                : "Offline";
+                ? "Checking Appium..."
+                : "Appium Offline";
 
     return (
         <ToolbarBadge
             minWidth={170}
-            borderColor={color}
-            background={`${color}15`}
+            color="#E6EDF3"
+            icon={
+                <Cpu
+                    size={16}
+                    color={color}
+                />
+            }
+            pulse={
+                status === "checking"
+            }
         >
-            <StatusDot
-                color={color}
-                animated={
-                    status === "checking"
-                }
-            />
-
-            <span
-                style={{
-                    color: "#E6EDF3",
-                    fontSize: 13,
-                    fontWeight: 600,
-                }}
-            >
-                {text}
-            </span>
+            {text}
         </ToolbarBadge>
     );
 }

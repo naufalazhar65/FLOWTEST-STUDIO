@@ -19,46 +19,102 @@ export function ExecutionProgress() {
         (state) => state.totalNodes,
     );
 
-    if (status === "idle") {
-        return null;
-    }
+    const statusText =
+        status === "running"
+            ? "Running"
+            : status === "paused"
+                ? "Paused"
+                : status === "passed"
+                    ? "Passed"
+                    : status === "failed"
+                        ? "Failed"
+                        : status === "stopped"
+                            ? "Stopped"
+                            : "Ready";
+
+    const statusColor =
+        status === "failed"
+            ? "#EF4444"
+            : status === "passed"
+                ? "#22C55E"
+                : status === "running"
+                    ? "#3B82F6"
+                    : status === "paused"
+                        ? "#F59E0B"
+                        : "#8B949E";
 
     return (
         <div
             style={{
+                width: 220,
+                padding: "10px 14px",
+                borderRadius: 12,
+                background: "#0D1117",
+                border: "1px solid #30363D",
                 display: "flex",
-                alignItems: "center",
-                gap: 10,
+                flexDirection: "column",
+                justifyContent: "center",
+                gap: 8,
             }}
         >
-            <span
+            <div
                 style={{
-                    color: "#8B949E",
-                    fontSize: 12,
-                    minWidth: 48,
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
                 }}
             >
-                {executedNodes}/{totalNodes}
-            </span>
+                <span
+                    style={{
+                        fontSize: 11,
+                        color: "#8B949E",
+                        fontWeight: 500,
+                    }}
+                >
+                    Execution
+                </span>
+
+                <span
+                    style={{
+                        fontSize: 11,
+                        color: statusColor,
+                        fontWeight: 600,
+                    }}
+                >
+                    {statusText}
+                </span>
+            </div>
 
             <ProgressBar
                 progress={progress}
-                color={
-                    status === "failed"
-                        ? "#EF4444"
-                        : "#22C55E"
-                }
+                color={statusColor}
             />
 
-            <span
+            <div
                 style={{
-                    color: "#8B949E",
-                    fontSize: 12,
-                    minWidth: 36,
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
                 }}
             >
-                {progress}%
-            </span>
+                <span
+                    style={{
+                        fontSize: 11,
+                        color: "#8B949E",
+                    }}
+                >
+                    {executedNodes} / {totalNodes} Nodes
+                </span>
+
+                <span
+                    style={{
+                        fontSize: 11,
+                        color: "#8B949E",
+                    }}
+                >
+                    {progress}%
+                </span>
+            </div>
         </div>
     );
 }

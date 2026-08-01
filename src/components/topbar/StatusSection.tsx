@@ -2,7 +2,6 @@ import { ToolbarGroup } from "../ui/ToolbarGroup";
 
 import { PlatformBadge } from "./PlatformBadge";
 import { ConnectionBadge } from "./ConnectionBadge";
-import { ExecutionProgress } from "./ExecutionProgress";
 
 import { useFlowStore } from "../../features/flow/store/useFlowStore";
 import { useExecutionStore } from "../../features/execution/store/useExecutionStore";
@@ -30,7 +29,6 @@ export function StatusSection() {
                 status={appiumConnection}
             />
 
-            <ExecutionProgress />
         </ToolbarGroup>
     );
 }

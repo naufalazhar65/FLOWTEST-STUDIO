@@ -1,4 +1,5 @@
 import { BrandSection } from "./BrandSection";
+import { WorkspaceSection } from "./WorkspaceSection";
 import { StatusSection } from "./StatusSection";
 import { ActionSection } from "./ActionSection";
 
@@ -15,10 +16,22 @@ export function TopBar() {
         borderBottom: "1px solid #30363D",
       }}
     >
-      <BrandSection />
+      {/* Left */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 20,
+        }}
+      >
+        <BrandSection />
+        <WorkspaceSection />
+      </div>
 
+      {/* Center */}
       <StatusSection />
 
+      {/* Right */}
       <ActionSection />
     </header>
   );
