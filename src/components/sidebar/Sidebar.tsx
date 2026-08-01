@@ -101,8 +101,8 @@ export function Sidebar() {
                                 searching
                                     ? true
                                     : openSections[
-                                          section.id
-                                      ]
+                                    section.id
+                                    ]
                             }
                             onToggle={() =>
                                 toggleSection(

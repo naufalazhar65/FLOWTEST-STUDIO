@@ -6,8 +6,8 @@ import {
     Square,
 } from "lucide-react";
 
-import { ProgressBar } from "../../components/ui/ProgressBar";
-import { useExecutionStore } from "./store/useExecutionStore";
+import { ProgressBar } from "../../../components/ui/ProgressBar";
+import { useExecutionStore } from "../store/useExecutionStore";
 
 const STATUS_CONFIG = {
     idle: {

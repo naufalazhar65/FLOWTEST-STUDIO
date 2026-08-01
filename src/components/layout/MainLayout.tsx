@@ -8,7 +8,7 @@ import { ConsolePanel } from "../console/ConsolePanel";
 import { StatusBar } from "../statusbar/StatusBar";
 import { InspectorPanel } from "../inspector/InspectorPanel";
 import { useEffect } from "react";
-import { ExecutionBar } from "../../features/execution/ExecutionBar"
+import { ExecutionBar } from "../../features/execution/components/ExecutionBar"
 
 import { appiumConnectionService } from "../../features/execution/services/appium/AppiumConnectionService";
 
@@ -50,26 +50,26 @@ export function MainLayout() {
         <Sidebar />
 
         <div
-    style={{
-        display: "flex",
-        flexDirection: "column",
-        overflow: "hidden",
-        minHeight: 0,
-    }}
->
-    <ExecutionBar />
-
-    <Toolbar />
-
-    <div
-        style={{
-            flex: 1,
+          style={{
+            display: "flex",
+            flexDirection: "column",
             overflow: "hidden",
-        }}
-    >
-        <FlowCanvas />
-    </div>
-</div>
+            minHeight: 0,
+          }}
+        >
+          <ExecutionBar />
+
+          <Toolbar />
+
+          <div
+            style={{
+              flex: 1,
+              overflow: "hidden",
+            }}
+          >
+            <FlowCanvas />
+          </div>
+        </div>
 
         <div
           style={{

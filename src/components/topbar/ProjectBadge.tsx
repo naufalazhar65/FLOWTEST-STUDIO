@@ -1,10 +1,9 @@
-import { FileCode2 } from "lucide-react";
+import { Check, Circle, FileCode2 } from "lucide-react";
 
 import { ToolbarBadge } from "../ui/ToolbarBadge";
 
 interface Props {
     name: string;
-
     modified: boolean;
 }
 
@@ -14,27 +13,40 @@ export function ProjectBadge({
 }: Props) {
     return (
         <ToolbarBadge
-            minWidth={220}
+            minWidth={280}
             icon={
                 <FileCode2
-                    size={16}
+                    size={17}
                     color="#8B949E"
                 />
             }
         >
             <div
                 style={{
+                    width: "100%",
+
                     display: "flex",
-                    flexDirection: "column",
-                    alignItems: "flex-start",
-                    lineHeight: 1.2,
+
+                    alignItems: "center",
+
+                    justifyContent: "space-between",
+
+                    gap: 18,
                 }}
             >
                 <span
                     style={{
-                        fontSize: 13,
-                        fontWeight: 600,
+                        overflow: "hidden",
+
+                        textOverflow: "ellipsis",
+
+                        whiteSpace: "nowrap",
+
                         color: "#E6EDF3",
+
+                        fontSize: 13,
+
+                        fontWeight: 600,
                     }}
                 >
                     {name}
@@ -43,31 +55,36 @@ export function ProjectBadge({
                 <div
                     style={{
                         display: "flex",
+
                         alignItems: "center",
+
                         gap: 6,
-                        marginTop: 3,
+
+                        flexShrink: 0,
                     }}
                 >
-                    <div
-                        style={{
-                            width: 6,
-                            height: 6,
-                            borderRadius: "50%",
-                            background: modified
-                                ? "#F59E0B"
-                                : "#22C55E",
-
-                            boxShadow: modified
-                                ? "0 0 6px #F59E0B"
-                                : "0 0 6px #22C55E",
-                        }}
-                    />
+                    {modified ? (
+                        <Circle
+                            size={8}
+                            fill="#F59E0B"
+                            color="#F59E0B"
+                        />
+                    ) : (
+                        <Check
+                            size={12}
+                            color="#22C55E"
+                        />
+                    )}
 
                     <span
                         style={{
-                            fontSize: 11,
-                            color: "#8B949E",
-                            fontWeight: 500,
+                            color: modified
+                                ? "#F59E0B"
+                                : "#22C55E",
+
+                            fontSize: 12,
+
+                            fontWeight: 600,
                         }}
                     >
                         {modified
