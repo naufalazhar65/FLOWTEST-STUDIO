@@ -1,6 +1,9 @@
 import { create } from "zustand";
 import type { Edge } from "reactflow";
 import type { FlowProject } from "../types/FlowProject";
+import {
+  markProjectModified,
+} from "../../project/services/projectState";
 
 import {
   createProject,
@@ -166,11 +169,13 @@ export const useFlowStore =
         history: pushHistory(
           history,
           nodes,
-          edges
+          edges,
         ),
 
         future: [],
       });
+
+      markProjectModified();
     },
 
     undo: () => {
@@ -230,28 +235,34 @@ export const useFlowStore =
       });
     },
 
-    setNodes: (updater) =>
+    setNodes: (updater) => {
       set((state) => ({
         nodes:
           typeof updater === "function"
             ? updater(state.nodes)
             : updater,
-      })),
+      }));
 
-    setEdges: (updater) =>
+      markProjectModified();
+    },
+
+    setEdges: (updater) => {
       set((state) => ({
         edges:
           typeof updater === "function"
             ? updater(state.edges)
             : updater,
-      })),
+      }));
 
-    addNode: (type) =>
+      markProjectModified();
+    },
+
+    addNode: (type) => {
       set((state) => {
         const result = addNodeAction(
           state.nodes,
           state.edges,
-          type
+          type,
         );
 
         return {
@@ -260,53 +271,62 @@ export const useFlowStore =
           history: pushHistory(
             state.history,
             state.nodes,
-            state.edges
+            state.edges,
           ),
 
           future: [],
         };
-      }),
+      });
 
-    updateNode: (id, data) =>
+      markProjectModified();
+    },
+
+    updateNode: (id, data) => {
       set((state) => ({
         nodes: updateNodeAction(
           state.nodes,
           id,
-          data
+          data,
         ),
 
         history: pushHistory(
           state.history,
           state.nodes,
-          state.edges
+          state.edges,
         ),
 
         future: [],
-      })),
+      }));
 
-    updateNodeData: (id, data) =>
+      markProjectModified();
+    },
+
+    updateNodeData: (id, data) => {
       set((state) => ({
         nodes: updateNodeDataAction(
           state.nodes,
           id,
-          data
+          data,
         ),
 
         history: pushHistory(
           state.history,
           state.nodes,
-          state.edges
+          state.edges,
         ),
 
         future: [],
-      })),
+      }));
 
-    removeNode: (id) =>
+      markProjectModified();
+    },
+
+    removeNode: (id) => {
       set((state) => {
         const result = deleteNodeAction(
           state.nodes,
           state.edges,
-          id
+          id,
         );
 
         return {
@@ -315,20 +335,23 @@ export const useFlowStore =
           history: pushHistory(
             state.history,
             state.nodes,
-            state.edges
+            state.edges,
           ),
 
           future: [],
         };
-      }),
+      });
 
-    insertNode: (edgeId, type) =>
+      markProjectModified();
+    },
+
+    insertNode: (edgeId, type) => {
       set((state) => {
         const result = insertNodeAction(
           state.nodes,
           state.edges,
           edgeId,
-          type
+          type,
         );
 
         return {
@@ -337,19 +360,22 @@ export const useFlowStore =
           history: pushHistory(
             state.history,
             state.nodes,
-            state.edges
+            state.edges,
           ),
 
           future: [],
         };
-      }),
+      });
 
-    duplicateNode: (id) =>
+      markProjectModified();
+    },
+
+    duplicateNode: (id) => {
       set((state) => {
         const result = duplicateNodeAction(
           state.nodes,
           state.edges,
-          id
+          id,
         );
 
         return {
@@ -358,12 +384,15 @@ export const useFlowStore =
           history: pushHistory(
             state.history,
             state.nodes,
-            state.edges
+            state.edges,
           ),
 
           future: [],
         };
-      }),
+      });
+
+      markProjectModified();
+    },
 
     saveProject: (
       name = "Untitled"
