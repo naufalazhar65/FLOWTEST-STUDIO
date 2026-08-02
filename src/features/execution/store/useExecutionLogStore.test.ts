@@ -6,13 +6,17 @@ describe("useExecutionLogStore", () => {
     beforeEach(() => {
         vi.restoreAllMocks();
 
-        vi.spyOn(crypto, "randomUUID")
-            .mockReturnValue(
-                "123e4567-e89b-12d3-a456-426614174000"
-            );
+        vi.spyOn(
+            crypto,
+            "randomUUID",
+        ).mockReturnValue(
+            "123e4567-e89b-12d3-a456-426614174000",
+        );
 
-        vi.spyOn(Date, "now")
-            .mockReturnValue(123456789);
+        vi.spyOn(
+            Date,
+            "now",
+        ).mockReturnValue(123456789);
 
         useExecutionLogStore.setState({
             logs: [],
@@ -25,19 +29,24 @@ describe("useExecutionLogStore", () => {
             useExecutionLogStore.getState();
 
         expect(state.logs).toEqual([]);
+
         expect(state.filter).toBe("all");
     });
 
     it("adds a log", () => {
         useExecutionLogStore
             .getState()
-            .addLog(
-                "info",
-                "Node executed",
-                "node-1",
-                "tap",
-                100,
-            );
+            .addLog({
+                level: "info",
+
+                message: "Node executed",
+
+                nodeId: "node-1",
+
+                nodeType: "tap",
+
+                duration: 100,
+            });
 
         const logs =
             useExecutionLogStore.getState().logs;
@@ -46,11 +55,17 @@ describe("useExecutionLogStore", () => {
 
         expect(logs[0]).toEqual({
             id: "123e4567-e89b-12d3-a456-426614174000",
+
             level: "info",
+
             message: "Node executed",
+
             timestamp: 123456789,
+
             duration: 100,
+
             nodeId: "node-1",
+
             nodeType: "tap",
         });
     });
@@ -59,19 +74,20 @@ describe("useExecutionLogStore", () => {
         const store =
             useExecutionLogStore.getState();
 
-        store.addLog(
-            "success",
-            "Finished",
-        );
+        store.addLog({
+            level: "success",
+
+            message: "Finished",
+        });
 
         expect(
-            useExecutionLogStore.getState().logs
+            useExecutionLogStore.getState().logs,
         ).toHaveLength(1);
 
         store.clear();
 
         expect(
-            useExecutionLogStore.getState().logs
+            useExecutionLogStore.getState().logs,
         ).toEqual([]);
     });
 
@@ -81,7 +97,41 @@ describe("useExecutionLogStore", () => {
             .setFilter("error");
 
         expect(
-            useExecutionLogStore.getState().filter
+            useExecutionLogStore.getState().filter,
         ).toBe("error");
+    });
+
+    it("stores optional metadata", () => {
+        useExecutionLogStore
+            .getState()
+            .addLog({
+                level: "error",
+
+                message: "Tap failed",
+
+                nodeId: "tap-1",
+
+                nodeType: "tap",
+
+                nodeTitle: "Tap",
+
+                duration: 350,
+
+                details: {
+                    locator: "login_button",
+
+                    reason: "Element not found",
+                },
+            });
+
+        const log =
+            useExecutionLogStore.getState().logs[0];
+
+        expect(log.nodeTitle).toBe("Tap");
+
+        expect(log.details).toEqual({
+            locator: "login_button",
+            reason: "Element not found",
+        });
     });
 });

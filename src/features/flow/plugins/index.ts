@@ -27,12 +27,17 @@ import { getSelectedPlugin } from "./getSelectedPlugin";
 import { getLocationPlugin } from "./getLocationPlugin";
 import { getSizePlugin } from "./getSizePlugin";
 import { getRectPlugin } from "./getRectPlugin";
-
+import { longPressPlugin } from "./LongPress";
+import { doubleTapPlugin } from "./DoubleTap";
+import { dragPlugin } from "./Drag";
+import { pinchPlugin } from "./Pinch";
+import { zoomPlugin } from "./zoom"
 
 
 
 
 import type { NodePlugin } from "../types/NodePlugin";
+import flingPlugin from "./Fling";
 
 export const plugins: NodePlugin[] = [
   tapNode,
@@ -49,6 +54,13 @@ export const plugins: NodePlugin[] = [
   homePlugin,
   screenshotPlugin,
   ifPlugin,
+  longPressPlugin,
+  doubleTapPlugin,
+  dragPlugin,
+  pinchPlugin,
+  zoomPlugin,
+  flingPlugin,
+
 
   // Element Getter
   getTextNode,

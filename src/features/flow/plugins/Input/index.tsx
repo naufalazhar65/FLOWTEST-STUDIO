@@ -37,6 +37,10 @@ export const inputNode: NodePlugin = {
         "id",
         "xpath",
         "accessibilityId",
+        "className",
+        "androidUiAutomator",
+        "iOSPredicateString",
+        "iOSClassChain",
       ],
     },
     {

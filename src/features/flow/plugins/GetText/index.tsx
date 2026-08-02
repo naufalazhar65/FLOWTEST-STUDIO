@@ -32,7 +32,15 @@ export const getTextNode: NodePlugin = {
             key: "locatorStrategy",
             label: "Locator Strategy",
             type: "select",
-            options: ["id", "xpath", "accessibilityId"],
+            options: [
+                "id",
+                "xpath",
+                "accessibilityId",
+                "className",
+                "androidUiAutomator",
+                "iOSPredicateString",
+                "iOSClassChain",
+            ],
         },
         {
             key: "locator",

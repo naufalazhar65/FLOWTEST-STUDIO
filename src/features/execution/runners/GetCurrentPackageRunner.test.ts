@@ -1,131 +1,169 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("../services/AppiumClient", () => ({
+vi.mock("../services/appium/AppiumClient", () => ({
     appiumClient: {
         getCurrentPackage: vi.fn(),
     },
 }));
 
+vi.mock("../utils/storeResult", () => ({
+    storeResult: vi.fn(),
+}));
+
 import { appiumClient } from "../services/appium/AppiumClient";
+import { storeResult } from "../utils/storeResult";
 import { getCurrentPackageRunner } from "./GetCurrentPackageRunner";
 
-import type { ExecutionContext } from "../types/ExecutionContext";
-import {
-    clearVariables,
-    getVariable,
-} from "../variables/VariableStore";
 import type {
     FlowNode,
     GetCurrentPackageNodeData,
 } from "../../flow/types/flowNode";
 
+import type { ExecutionContext } from "../types/ExecutionContext";
+
 const context: ExecutionContext = {
-    device: "Android",
     edges: [],
 };
 
-const getCurrentPackageMock = vi.mocked(
-    appiumClient.getCurrentPackage,
-);
-
-function createGetCurrentPackageNode(): FlowNode {
+function createGetCurrentPackageNode(): FlowNode & {
+    data: GetCurrentPackageNodeData;
+} {
     return {
-        id: "get-current-package-1",
-        type: "default",
+        id: "node-1",
+
+        type: "flowNode",
+
         position: {
             x: 0,
             y: 0,
         },
+
         data: {
             action: "getCurrentPackage",
+
             title: "Get Current Package",
+
             subtitle: "",
+
             debug: {
                 breakpoint: false,
             },
+
             variableName: "currentPackage",
         },
-    } as FlowNode;
+    } as FlowNode & {
+        data: GetCurrentPackageNodeData;
+    };
 }
 
 describe("GetCurrentPackageRunner", () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        clearVariables();
     });
 
-    it("calls appiumClient.getCurrentPackage", async () => {
-        getCurrentPackageMock.mockResolvedValue(
+    it("calls appiumClient.getCurrentPackage()", async () => {
+        vi.mocked(
+            appiumClient.getCurrentPackage,
+        ).mockResolvedValue(
             "com.demo.app",
         );
 
-        const result = await getCurrentPackageRunner.run(
+        await getCurrentPackageRunner.run(
             createGetCurrentPackageNode(),
             context,
         );
 
         expect(
-            getCurrentPackageMock,
+            appiumClient.getCurrentPackage,
         ).toHaveBeenCalledTimes(1);
+    });
+
+    it("stores result into variable", async () => {
+        vi.mocked(
+            appiumClient.getCurrentPackage,
+        ).mockResolvedValue(
+            "com.demo.app",
+        );
+
+        await getCurrentPackageRunner.run(
+            createGetCurrentPackageNode(),
+            context,
+        );
+
+        expect(storeResult).toHaveBeenCalledWith(
+            "currentPackage",
+            "com.demo.app",
+        );
+    });
+
+    it("returns next output", async () => {
+        vi.mocked(
+            appiumClient.getCurrentPackage,
+        ).mockResolvedValue(
+            "com.demo.app",
+        );
+
+        const result =
+            await getCurrentPackageRunner.run(
+                createGetCurrentPackageNode(),
+                context,
+            );
 
         expect(result).toEqual({
             outputs: ["next"],
         });
     });
 
-    it("returns immediately when action is not getCurrentPackage", async () => {
-        const node = createGetCurrentPackageNode();
-
-        node.data = {
-            ...node.data,
-            action: "tap",
-        } as never;
-
+    it("returns undefined when action does not match", async () => {
         const result = await getCurrentPackageRunner.run(
-            node,
+            {
+                ...createGetCurrentPackageNode(),
+                data: {
+                    ...createGetCurrentPackageNode().data,
+                    action: "tap",
+                },
+            } as never,
             context,
         );
 
         expect(result).toBeUndefined();
 
         expect(
-            getCurrentPackageMock,
+            appiumClient.getCurrentPackage,
         ).not.toHaveBeenCalled();
+
+        expect(storeResult).not.toHaveBeenCalled();
     });
 
-    it("stores package into VariableStore", async () => {
-        getCurrentPackageMock.mockResolvedValue(
-            "com.demo.app",
-        );
+    it("throws when appiumClient.getCurrentPackage throws Error", async () => {
+        const error = new Error("Appium failed");
 
-        await getCurrentPackageRunner.run(
-            createGetCurrentPackageNode(),
-            context,
-        );
+        vi.mocked(
+            appiumClient.getCurrentPackage,
+        ).mockRejectedValue(error);
 
-        expect(
-            getVariable("currentPackage"),
-        ).toBe("com.demo.app");
+        await expect(
+            getCurrentPackageRunner.run(
+                createGetCurrentPackageNode(),
+                context,
+            ),
+        ).rejects.toThrow("Appium failed");
+
+        expect(storeResult).not.toHaveBeenCalled();
     });
 
-    it("does not store variable when variableName is empty", async () => {
-        getCurrentPackageMock.mockResolvedValue(
-            "com.demo.app",
-        );
+    it("throws when appiumClient.getCurrentPackage throws string", async () => {
+        vi.mocked(
+            appiumClient.getCurrentPackage,
+        ).mockRejectedValue("Unknown error");
 
-        const node = createGetCurrentPackageNode();
+        await expect(
+            getCurrentPackageRunner.run(
+                createGetCurrentPackageNode(),
+                context,
+            ),
+        ).rejects.toBe("Unknown error");
 
-        (
-            node.data as GetCurrentPackageNodeData
-        ).variableName = "";
-
-        await getCurrentPackageRunner.run(
-            node,
-            context,
-        );
-
-        expect(
-            getVariable("currentPackage"),
-        ).toBeUndefined();
+        expect(storeResult).not.toHaveBeenCalled();
     });
 });

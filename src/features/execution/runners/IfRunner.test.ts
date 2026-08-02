@@ -1,116 +1,178 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import {
+    beforeEach,
+    describe,
+    expect,
+    it,
+    vi,
+} from "vitest";
 
+vi.mock("../services/executionLogger", () => ({
+    executionLogger: {
+        success: vi.fn(),
+        warning: vi.fn(),
+    },
+}));
+
+import { executionLogger } from "../services/executionLogger";
 import { ifRunner } from "./IfRunner";
-import { clearVariables, setVariable } from "../variables/VariableStore";
 
-import type { FlowNode } from "../../flow/types/flowNode";
+import {
+    clearVariables,
+    setVariable,
+} from "../variables/VariableStore";
+
 import type { ExecutionContext } from "../types/ExecutionContext";
 
-const context = {
-    device: "Android",
+import type {
+    FlowNode,
+    IfNodeData,
+} from "../../flow/types/flowNode";
+
+const context: ExecutionContext = {
     edges: [],
-    services: {
-        driver: {} as never,
-        logger: {} as never,
-        variables: {} as never,
-    },
-} as ExecutionContext;
+};
 
-function createTapNode(): FlowNode {
-    return {
-        ...createIfNode('${status} === "success"'),
-        data: {
-            ...createIfNode('${status} === "success"').data,
-            action: "tap",
-        },
-    } as FlowNode;
-}
+const successMock = vi.mocked(
+    executionLogger.success,
+);
 
-function createIfNode(
-    condition: string
-): FlowNode {
+const warningMock = vi.mocked(
+    executionLogger.warning,
+);
+
+function createIfNode(): FlowNode & {
+    data: IfNodeData;
+} {
     return {
         id: "if-1",
+
         type: "default",
+
         position: {
             x: 0,
             y: 0,
         },
+
         data: {
             action: "if",
+
             title: "If",
+
             subtitle: "",
+
             debug: {
                 breakpoint: false,
             },
-            condition,
+
+            actual: "${status}",
+
+            expected: "success",
+
+            operator: "equals",
         },
-    } as FlowNode;
+    } as FlowNode & {
+        data: IfNodeData;
+    };
 }
 
 describe("IfRunner", () => {
     beforeEach(() => {
         clearVariables();
+        vi.clearAllMocks();
     });
 
     it("returns true output", async () => {
         setVariable(
             "status",
-            "success"
+            "success",
         );
 
         const result =
             await ifRunner.run(
-                createIfNode(
-                    '${status} === "success"'
-                ),
-                context
+                createIfNode(),
+                context,
             );
 
         expect(result).toEqual({
             outputs: ["true"],
         });
+
+        expect(successMock)
+            .toHaveBeenCalledTimes(1);
     });
 
     it("returns false output", async () => {
         setVariable(
             "status",
-            "failed"
+            "failed",
         );
 
         const result =
             await ifRunner.run(
-                createIfNode(
-                    '${status} === "success"'
-                ),
-                context
+                createIfNode(),
+                context,
             );
 
         expect(result).toEqual({
             outputs: ["false"],
         });
+
+        expect(successMock)
+            .toHaveBeenCalledTimes(1);
     });
 
-    it("returns false for invalid expression", async () => {
+    it("returns false when variable is missing", async () => {
         const result =
             await ifRunner.run(
-                createIfNode(
-                    "${status} =="
-                ),
-                context
+                createIfNode(),
+                context,
             );
 
         expect(result).toEqual({
             outputs: ["false"],
         });
+
+        expect(successMock)
+            .toHaveBeenCalledTimes(1);
     });
 
-    it("returns undefined when action is not if", async () => {
-        const result = await ifRunner.run(
-            createTapNode(),
+    it("returns immediately when action is not if", async () => {
+        const node =
+            createIfNode();
+
+        node.data = {
+            ...node.data,
+            action: "tap",
+        } as never;
+
+        const result =
+            await ifRunner.run(
+                node,
+                context,
+            );
+
+        expect(result)
+            .toBeUndefined();
+
+        expect(successMock)
+            .not.toHaveBeenCalled();
+    });
+
+    it("returns false when variable is missing", async () => {
+    const result =
+        await ifRunner.run(
+            createIfNode(),
             context,
         );
 
-        expect(result).toBeUndefined();
+    expect(result).toEqual({
+        outputs: ["false"],
     });
+
+    expect(warningMock)
+        .toHaveBeenCalledTimes(1);
+
+    expect(successMock)
+        .toHaveBeenCalledTimes(1);
+});
 });

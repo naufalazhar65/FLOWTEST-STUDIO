@@ -1,131 +1,169 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("../services/AppiumClient", () => ({
+vi.mock("../services/appium/AppiumClient", () => ({
     appiumClient: {
         getDeviceTime: vi.fn(),
     },
 }));
 
+vi.mock("../utils/storeResult", () => ({
+    storeResult: vi.fn(),
+}));
+
 import { appiumClient } from "../services/appium/AppiumClient";
+import { storeResult } from "../utils/storeResult";
 import { getDeviceTimeRunner } from "./GetDeviceTimeRunner";
 
-import type { ExecutionContext } from "../types/ExecutionContext";
-import {
-    clearVariables,
-    getVariable,
-} from "../variables/VariableStore";
 import type {
     FlowNode,
     GetDeviceTimeNodeData,
 } from "../../flow/types/flowNode";
 
+import type { ExecutionContext } from "../types/ExecutionContext";
+
 const context: ExecutionContext = {
-    device: "Android",
     edges: [],
 };
 
-const getDeviceTimeMock = vi.mocked(
-    appiumClient.getDeviceTime,
-);
-
-function createGetDeviceTimeNode(): FlowNode {
+function createGetDeviceTimeNode(): FlowNode & {
+    data: GetDeviceTimeNodeData;
+} {
     return {
-        id: "get-device-time-1",
-        type: "default",
+        id: "node-1",
+
+        type: "flowNode",
+
         position: {
             x: 0,
             y: 0,
         },
+
         data: {
             action: "getDeviceTime",
+
             title: "Get Device Time",
+
             subtitle: "",
+
             debug: {
                 breakpoint: false,
             },
+
             variableName: "deviceTime",
         },
-    } as FlowNode;
+    } as FlowNode & {
+        data: GetDeviceTimeNodeData;
+    };
 }
 
 describe("GetDeviceTimeRunner", () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        clearVariables();
     });
 
-    it("calls appiumClient.getDeviceTime", async () => {
-        getDeviceTimeMock.mockResolvedValue(
-            "2026-07-29T22:30:00+07:00",
+    it("calls appiumClient.getDeviceTime()", async () => {
+        vi.mocked(
+            appiumClient.getDeviceTime,
+        ).mockResolvedValue(
+            "2026-08-02T10:30:00Z",
         );
 
-        const result = await getDeviceTimeRunner.run(
+        await getDeviceTimeRunner.run(
             createGetDeviceTimeNode(),
             context,
         );
 
         expect(
-            getDeviceTimeMock,
+            appiumClient.getDeviceTime,
         ).toHaveBeenCalledTimes(1);
+    });
+
+    it("stores result into variable", async () => {
+        vi.mocked(
+            appiumClient.getDeviceTime,
+        ).mockResolvedValue(
+            "2026-08-02T10:30:00Z",
+        );
+
+        await getDeviceTimeRunner.run(
+            createGetDeviceTimeNode(),
+            context,
+        );
+
+        expect(storeResult).toHaveBeenCalledWith(
+            "deviceTime",
+            "2026-08-02T10:30:00Z",
+        );
+    });
+
+    it("returns next output", async () => {
+        vi.mocked(
+            appiumClient.getDeviceTime,
+        ).mockResolvedValue(
+            "2026-08-02T10:30:00Z",
+        );
+
+        const result =
+            await getDeviceTimeRunner.run(
+                createGetDeviceTimeNode(),
+                context,
+            );
 
         expect(result).toEqual({
             outputs: ["next"],
         });
     });
 
-    it("returns immediately when action is not getDeviceTime", async () => {
-        const node = createGetDeviceTimeNode();
-
-        node.data = {
-            ...node.data,
-            action: "tap",
-        } as never;
-
+    it("returns undefined when action does not match", async () => {
         const result = await getDeviceTimeRunner.run(
-            node,
+            {
+                ...createGetDeviceTimeNode(),
+                data: {
+                    ...createGetDeviceTimeNode().data,
+                    action: "tap",
+                },
+            } as never,
             context,
         );
 
         expect(result).toBeUndefined();
 
         expect(
-            getDeviceTimeMock,
+            appiumClient.getDeviceTime,
         ).not.toHaveBeenCalled();
+
+        expect(storeResult).not.toHaveBeenCalled();
     });
 
-    it("stores device time into VariableStore", async () => {
-        getDeviceTimeMock.mockResolvedValue(
-            "2026-07-29T22:30:00+07:00",
-        );
+    it("throws when appiumClient.getDeviceTime throws Error", async () => {
+        const error = new Error("Appium failed");
 
-        await getDeviceTimeRunner.run(
-            createGetDeviceTimeNode(),
-            context,
-        );
+        vi.mocked(
+            appiumClient.getDeviceTime,
+        ).mockRejectedValue(error);
 
-        expect(
-            getVariable("deviceTime"),
-        ).toBe("2026-07-29T22:30:00+07:00");
+        await expect(
+            getDeviceTimeRunner.run(
+                createGetDeviceTimeNode(),
+                context,
+            ),
+        ).rejects.toThrow("Appium failed");
+
+        expect(storeResult).not.toHaveBeenCalled();
     });
 
-    it("does not store variable when variableName is empty", async () => {
-        getDeviceTimeMock.mockResolvedValue(
-            "2026-07-29T22:30:00+07:00",
-        );
+    it("throws when appiumClient.getDeviceTime throws string", async () => {
+        vi.mocked(
+            appiumClient.getDeviceTime,
+        ).mockRejectedValue("Unknown error");
 
-        const node = createGetDeviceTimeNode();
+        await expect(
+            getDeviceTimeRunner.run(
+                createGetDeviceTimeNode(),
+                context,
+            ),
+        ).rejects.toBe("Unknown error");
 
-        (
-            node.data as GetDeviceTimeNodeData
-        ).variableName = "";
-
-        await getDeviceTimeRunner.run(
-            node,
-            context,
-        );
-
-        expect(
-            getVariable("deviceTime"),
-        ).toBeUndefined();
+        expect(storeResult).not.toHaveBeenCalled();
     });
 });

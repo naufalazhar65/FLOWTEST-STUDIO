@@ -20,6 +20,14 @@ import type {
     InputNodeData,
     SetVariableNodeData,
     TapNodeData,
+    LaunchAppNodeData,
+    CloseAppNodeData,
+    LongPressNodeData,
+    DoubleTapNodeData,
+    DragNodeData,
+    PinchNodeData,
+    ZoomNodeData,
+    FlingNodeData,
 } from "../types/flowNode";
 
 function createTapNode(
@@ -60,14 +68,21 @@ function createAssertNode(
 ): AssertNodeData {
     return {
         action: "assert",
+
         title: "Assert",
+
         subtitle: "",
+
         debug: {
             breakpoint: false,
         },
-        locatorStrategy: "id",
-        locator: "id=status",
+
+        actual: "${status}",
+
+        operator: "equals",
+
         expected: "success",
+
         ...overrides,
     };
 }
@@ -304,6 +319,149 @@ function createGetDeviceTimeNode(
     };
 }
 
+function createLaunchAppNode(
+    overrides: Partial<LaunchAppNodeData> = {},
+): LaunchAppNodeData {
+    return {
+        action: "launchApp",
+        title: "Launch App",
+        subtitle: "",
+        debug: {
+            breakpoint: false,
+        },
+        platform: "Android",
+        appPackage: "com.demo.app",
+        appActivity: ".MainActivity",
+        bundleId: "",
+        app: "",
+        noReset: false,
+        ...overrides,
+    };
+}
+
+function createCloseAppNode(
+    overrides: Partial<CloseAppNodeData> = {},
+): CloseAppNodeData {
+    return {
+        action: "closeApp",
+        title: "Close App",
+        subtitle: "",
+        debug: {
+            breakpoint: false,
+        },
+        platform: "Android",
+        appPackage: "com.demo.app",
+        bundleId: "",
+        ...overrides,
+    };
+}
+
+function createLongPressNode(
+    overrides: Partial<LongPressNodeData> = {},
+): LongPressNodeData {
+    return {
+        action: "longPress",
+        title: "Long Press",
+        subtitle: "",
+        debug: {
+            breakpoint: false,
+        },
+        locatorStrategy: "id",
+        locator: "login_button",
+        duration: 1000,
+        ...overrides,
+    };
+}
+
+function createDoubleTapNode(
+    overrides: Partial<DoubleTapNodeData> = {},
+): DoubleTapNodeData {
+    return {
+        action: "doubleTap",
+        title: "Double Tap",
+        subtitle: "",
+        debug: {
+            breakpoint: false,
+        },
+        locatorStrategy: "id",
+        locator: "login_button",
+        ...overrides,
+    };
+}
+
+function createDragNode(
+    overrides: Partial<DragNodeData> = {},
+): DragNodeData {
+    return {
+        action: "drag",
+        title: "Drag",
+        subtitle: "",
+        debug: {
+            breakpoint: false,
+        },
+        locatorStrategy: "id",
+        locator: "login_button",
+        direction: "down",
+        distance: 300,
+        duration: 500,
+        ...overrides,
+    };
+}
+
+function createPinchNode(
+    overrides: Partial<PinchNodeData> = {},
+): PinchNodeData {
+    return {
+        action: "pinch",
+        title: "Pinch",
+        subtitle: "",
+        debug: {
+            breakpoint: false,
+        },
+        locatorStrategy: "id",
+        locator: "login_button",
+        percent: 0.5,
+        duration: 500,
+        ...overrides,
+    };
+}
+
+function createZoomNode(
+    overrides: Partial<ZoomNodeData> = {},
+): ZoomNodeData {
+    return {
+        action: "zoom",
+        title: "Zoom",
+        subtitle: "",
+        debug: {
+            breakpoint: false,
+        },
+        locatorStrategy: "id",
+        locator: "login_button",
+        percent: 0.5,
+        duration: 500,
+        ...overrides,
+    };
+}
+
+function createFlingNode(
+    overrides: Partial<FlingNodeData> = {},
+): FlingNodeData {
+    return {
+        action: "fling",
+        title: "Fling",
+        subtitle: "",
+        debug: {
+            breakpoint: false,
+        },
+        locatorStrategy: "id",
+        locator: "login_button",
+        direction: "down",
+        speed: 1000,
+        ...overrides,
+    };
+}
+
 describe("validateNode", () => {
     it("accepts valid tap node", () => {
         const result = validateNode(createTapNode());
@@ -328,7 +486,7 @@ describe("validateNode", () => {
     it("requires locator strategy", () => {
         const result = validateNode(
             createTapNode({
-                locatorStrategy: "",
+                locatorStrategy: "" as never,
             }),
         );
 
@@ -436,6 +594,20 @@ describe("validateNode", () => {
             "Duration must be greater than 0.",
         );
     });
+
+    it("requires actual value", () => {
+        const result = validateNode(
+            createAssertNode({
+                actual: "",
+            }),
+        );
+
+        expect(result.valid).toBe(false);
+
+        expect(result.errors).toContain(
+            "Actual value is required.",
+        );
+    });
 });
 
 describe("Element Getter nodes", () => {
@@ -497,11 +669,12 @@ describe("Element Getter nodes", () => {
         ({ create }) => {
             const result = validateNode(
                 create({
-                    locatorStrategy: "",
+                    locatorStrategy: "" as never,
                 }),
             );
 
             expect(result.valid).toBe(false);
+
             expect(result.errors).toContain(
                 "Locator strategy is required.",
             );
@@ -578,4 +751,245 @@ describe("Device Getter nodes", () => {
             );
         },
     );
+
+    describe("Launch App validation", () => {
+        it("accepts valid Android launch app", () => {
+            const result = validateNode(
+                createLaunchAppNode(),
+            );
+
+            expect(result.valid).toBe(true);
+        });
+
+        it("requires Android package", () => {
+            const result = validateNode(
+                createLaunchAppNode({
+                    appPackage: "",
+                }),
+            );
+
+            expect(result.valid).toBe(false);
+
+            expect(result.errors).toContain(
+                "App Package is required.",
+            );
+        });
+
+        it("requires Android activity", () => {
+            const result = validateNode(
+                createLaunchAppNode({
+                    appActivity: "",
+                }),
+            );
+
+            expect(result.valid).toBe(false);
+
+            expect(result.errors).toContain(
+                "App Activity is required.",
+            );
+        });
+
+        it("accepts valid iOS launch app", () => {
+            const result = validateNode(
+                createLaunchAppNode({
+                    platform: "iOS",
+                    appPackage: "",
+                    appActivity: "",
+                    bundleId: "com.demo.app",
+                }),
+            );
+
+            expect(result.valid).toBe(true);
+        });
+
+        it("requires bundleId or app path on iOS", () => {
+            const result = validateNode(
+                createLaunchAppNode({
+                    platform: "iOS",
+                    appPackage: "",
+                    appActivity: "",
+                    bundleId: "",
+                    app: "",
+                }),
+            );
+
+            expect(result.valid).toBe(false);
+
+            expect(result.errors).toContain(
+                "Bundle ID or App path is required.",
+            );
+        });
+    });
+
+    describe("Close App validation", () => {
+        it("accepts valid Android close app", () => {
+            const result = validateNode(
+                createCloseAppNode(),
+            );
+
+            expect(result.valid).toBe(true);
+        });
+
+        it("requires Android package", () => {
+            const result = validateNode(
+                createCloseAppNode({
+                    appPackage: "",
+                }),
+            );
+
+            expect(result.valid).toBe(false);
+
+            expect(result.errors).toContain(
+                "App Package is required.",
+            );
+        });
+
+        it("accepts valid iOS close app", () => {
+            const result = validateNode(
+                createCloseAppNode({
+                    platform: "iOS",
+                    appPackage: "",
+                    bundleId: "com.demo.app",
+                }),
+            );
+
+            expect(result.valid).toBe(true);
+        });
+
+        it("requires iOS bundleId", () => {
+            const result = validateNode(
+                createCloseAppNode({
+                    platform: "iOS",
+                    appPackage: "",
+                    bundleId: "",
+                }),
+            );
+
+            expect(result.valid).toBe(false);
+
+            expect(result.errors).toContain(
+                "Bundle ID is required.",
+            );
+        });
+    });
+
+    describe("Gesture validation", () => {
+        it.each([
+            createLongPressNode,
+            createDoubleTapNode,
+            createDragNode,
+            createPinchNode,
+            createZoomNode,
+            createFlingNode,
+        ])("requires locator", (factory) => {
+            const result = validateNode(
+                factory({
+                    locator: "",
+                }),
+            );
+
+            expect(result.valid).toBe(false);
+
+            expect(result.errors).toContain(
+                "Locator is required.",
+            );
+        });
+
+        it.each([
+            createLongPressNode,
+            createDoubleTapNode,
+            createDragNode,
+            createPinchNode,
+            createZoomNode,
+            createFlingNode,
+        ])("requires locator strategy", (factory) => {
+            const result = validateNode(
+                factory({
+                    locatorStrategy: "" as never,
+                }),
+            );
+
+            expect(result.valid).toBe(false);
+
+            expect(result.errors).toContain(
+                "Locator strategy is required.",
+            );
+        });
+
+        it("rejects drag distance <= 0", () => {
+            const result = validateNode(
+                createDragNode({
+                    distance: 0,
+                }),
+            );
+
+            expect(result.valid).toBe(false);
+
+            expect(result.errors).toContain(
+                "Distance must be greater than 0.",
+            );
+        });
+
+        it("rejects drag duration <= 0", () => {
+            const result = validateNode(
+                createDragNode({
+                    duration: 0,
+                }),
+            );
+
+            expect(result.valid).toBe(false);
+
+            expect(result.errors).toContain(
+                "Duration must be greater than 0.",
+            );
+        });
+
+        it.each([0, 1.5])(
+            "rejects pinch percent %s",
+            (percent) => {
+                const result = validateNode(
+                    createPinchNode({
+                        percent,
+                    }),
+                );
+
+                expect(result.valid).toBe(false);
+
+                expect(result.errors).toContain(
+                    "Percent must be between 0 and 1.",
+                );
+            },
+        );
+
+        it.each([0, 1.5])(
+            "rejects zoom percent %s",
+            (percent) => {
+                const result = validateNode(
+                    createZoomNode({
+                        percent,
+                    }),
+                );
+
+                expect(result.valid).toBe(false);
+
+                expect(result.errors).toContain(
+                    "Percent must be between 0 and 1.",
+                );
+            },
+        );
+
+        it("rejects fling speed <= 0", () => {
+            const result = validateNode(
+                createFlingNode({
+                    speed: 0,
+                }),
+            );
+
+            expect(result.valid).toBe(false);
+
+            expect(result.errors).toContain(
+                "Speed must be greater than 0.",
+            );
+        });
+    });
 });

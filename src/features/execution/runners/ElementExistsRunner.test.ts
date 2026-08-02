@@ -1,80 +1,111 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+    beforeEach,
+    describe,
+    expect,
+    it,
+    vi,
+} from "vitest";
 
-vi.mock("../services/AppiumClient", () => ({
+vi.mock("../services/appium/AppiumClient", () => ({
     appiumClient: {
         elementExists: vi.fn(),
     },
 }));
 
+vi.mock("../utils/storeResult", () => ({
+    storeResult: vi.fn(),
+}));
+
 import { appiumClient } from "../services/appium/AppiumClient";
+import { storeResult } from "../utils/storeResult";
 import { elementExistsRunner } from "./ElementExistsRunner";
 
-import {
-    clearVariables,
-    getVariable,
-} from "../variables/VariableStore";
-
 import type {
-    FlowNode,
     ElementExistsNodeData,
+    FlowNode,
 } from "../../flow/types/flowNode";
+
 import type { ExecutionContext } from "../types/ExecutionContext";
 
 const context: ExecutionContext = {
-    device: "Android",
     edges: [],
 };
 
 const elementExistsMock = vi.mocked(
-    appiumClient.elementExists
+    appiumClient.elementExists,
 );
 
-function createElementExistsNode(): FlowNode {
+const storeResultMock = vi.mocked(
+    storeResult,
+);
+
+function createElementExistsNode(): FlowNode & {
+    data: ElementExistsNodeData;
+} {
     return {
         id: "element-exists-1",
+
         type: "default",
+
         position: {
             x: 0,
             y: 0,
         },
+
         data: {
             action: "elementExists",
+
             title: "Element Exists",
+
             subtitle: "",
+
             debug: {
                 breakpoint: false,
             },
+
             locatorStrategy: "id",
+
             locator: "login_button",
+
             variableName: "loginVisible",
         },
-    } as FlowNode;
+    } as FlowNode & {
+        data: ElementExistsNodeData;
+    };
 }
 
 describe("ElementExistsRunner", () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        clearVariables();
     });
 
-    it("calls appiumClient.elementExists", async () => {
-        elementExistsMock.mockResolvedValue(true);
+    it("calls appiumClient.elementExists()", async () => {
+        elementExistsMock.mockResolvedValue(
+            true,
+        );
 
         const result =
             await elementExistsRunner.run(
                 createElementExistsNode(),
-                context
+                context,
             );
 
         expect(
-            elementExistsMock
+            elementExistsMock,
         ).toHaveBeenCalledTimes(1);
 
         expect(
-            elementExistsMock
+            elementExistsMock,
         ).toHaveBeenCalledWith(
             "id",
-            "login_button"
+            "login_button",
+        );
+
+        expect(
+            storeResultMock,
+        ).toHaveBeenCalledWith(
+            "loginVisible",
+            true,
         );
 
         expect(result).toEqual({
@@ -82,34 +113,22 @@ describe("ElementExistsRunner", () => {
         });
     });
 
-    it("stores result into VariableStore", async () => {
-        elementExistsMock.mockResolvedValue(true);
+    it("stores false result into variable", async () => {
+        elementExistsMock.mockResolvedValue(
+            false,
+        );
 
         await elementExistsRunner.run(
             createElementExistsNode(),
-            context
-        );
-
-        expect(
-            getVariable("loginVisible")
-        ).toBe(true);
-    });
-
-    it("does not store variable when variableName is empty", async () => {
-        elementExistsMock.mockResolvedValue(true);
-
-        const node = createElementExistsNode();
-
-        (node.data as ElementExistsNodeData).variableName = "";
-
-        await elementExistsRunner.run(
-            node,
             context,
         );
 
         expect(
-            getVariable("loginVisible"),
-        ).toBeUndefined();
+            storeResultMock,
+        ).toHaveBeenCalledWith(
+            "loginVisible",
+            false,
+        );
     });
 
     it("returns immediately when action is not elementExists", async () => {
@@ -124,13 +143,17 @@ describe("ElementExistsRunner", () => {
         const result =
             await elementExistsRunner.run(
                 node,
-                context
+                context,
             );
 
         expect(result).toBeUndefined();
 
         expect(
-            elementExistsMock
+            elementExistsMock,
+        ).not.toHaveBeenCalled();
+
+        expect(
+            storeResultMock,
         ).not.toHaveBeenCalled();
     });
 });

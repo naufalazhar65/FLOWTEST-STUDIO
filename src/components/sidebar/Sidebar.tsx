@@ -6,6 +6,7 @@ import { useFlowStore } from "../../features/flow/store/useFlowStore";
 
 import { SidebarButton } from "./SidebarButton";
 import { SidebarSection } from "./SidebarSection";
+import { SidebarCategory } from "./SidebarCategory";
 
 import {
     platformMetadata,
@@ -38,16 +39,8 @@ export function Sidebar() {
         () =>
             new Set([
                 "cross-platform",
-            ]),
-    );
-
-    const [
-        expandedCategories,
-        setExpandedCategories,
-    ] = useState<Set<string>>(
-        () =>
-            new Set([
-                "cross-platform:interaction",
+                "android",
+                "ios",
             ]),
     );
 
@@ -67,25 +60,10 @@ export function Sidebar() {
         });
     }
 
-    function toggleCategory(
-        platform: NodePlatform,
-        category: NodeCategory,
-    ) {
-        const key =
-            `${platform}:${category}`;
 
-        setExpandedCategories((prev) => {
-            const next = new Set(prev);
 
-            if (next.has(key)) {
-                next.delete(key);
-            } else {
-                next.add(key);
-            }
 
-            return next;
-        });
-    }
+
 
     /* ------------------------------------------ */
     /* Plugin List                                */
@@ -271,76 +249,41 @@ export function Sidebar() {
                                                 category
                                                 ];
 
-                                            const Icon =
-                                                info.icon;
 
-                                            const categoryKey =
-                                                `${platform}:${category}`;
 
                                             return (
-                                                <SidebarSection
-                                                    key={
-                                                        categoryKey
-                                                    }
-                                                    title={
-                                                        info.title
-                                                    }
-                                                    icon={
-                                                        <Icon
-                                                            size={15}
-                                                        />
-                                                    }
-                                                    accent={
-                                                        platformInfo.accent
-                                                    }
-                                                    count={
-                                                        items.length
-                                                    }
-                                                    open={expandedCategories.has(
-                                                        categoryKey,
-                                                    )}
-                                                    onToggle={() =>
-                                                        toggleCategory(
-                                                            platform,
-                                                            category,
-                                                        )
-                                                    }
+                                                <div
+                                                    key={`${platform}-${category}`}
+                                                    style={{
+                                                        marginBottom: 16,
+                                                    }}
                                                 >
-                                                    {expandedCategories.has(
-                                                        categoryKey,
-                                                    ) &&
-                                                        items.map(
-                                                            (
-                                                                plugin,
-                                                            ) => {
-                                                                const PluginIcon =
-                                                                    plugin.icon;
+                                                    <SidebarCategory
+                                                        title={info.title}
+                                                        count={items.length}
+                                                        accent={platformInfo.accent}
+                                                    />
 
-                                                                return (
-                                                                    <SidebarButton
-                                                                        key={
-                                                                            plugin.type
-                                                                        }
-                                                                        icon={
-                                                                            <PluginIcon
-                                                                                size={
-                                                                                    18
-                                                                                }
-                                                                            />
-                                                                        }
-                                                                        label={
-                                                                            plugin.title
-                                                                        }
-                                                                        onClick={() =>
-                                                                            addNode(
-                                                                                plugin.type,
-                                                                            )
-                                                                        }
-                                                                    />
-                                                                );
-                                                            },
-                                                        )}
-                                                </SidebarSection>
+                                                    {items.map((plugin) => {
+                                                        const PluginIcon =
+                                                            plugin.icon;
+
+                                                        return (
+                                                            <SidebarButton
+                                                                key={plugin.type}
+                                                                icon={
+                                                                    <PluginIcon size={18} />
+                                                                }
+                                                                label={plugin.title}
+                                                                subtitle={plugin.subtitle}
+                                                                color={plugin.color}
+                                                                onClick={() =>
+                                                                    addNode(plugin.type)
+                                                                }
+                                                            />
+                                                        );
+                                                    })}
+                                                </div>
                                             );
                                         },
                                     )}

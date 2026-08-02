@@ -48,6 +48,81 @@ export type NodeDefaults =
     text: string;
   }
   | {
+    action: "longPress";
+
+    locatorStrategy: LocatorStrategy;
+
+    locator: string;
+
+    duration: number;
+  }
+  | {
+    action: "doubleTap";
+
+    locatorStrategy: LocatorStrategy;
+
+    locator: string;
+  }
+
+  | {
+    action: "drag";
+
+    locatorStrategy: LocatorStrategy;
+
+    locator: string;
+
+    direction:
+    | "up"
+    | "down"
+    | "left"
+    | "right";
+
+    distance: number;
+
+    duration: number;
+  }
+
+  | {
+    action: "pinch";
+
+    locatorStrategy: LocatorStrategy;
+
+    locator: string;
+
+    percent: number;
+
+    duration: number;
+  }
+
+  | {
+    action: "zoom";
+
+    locatorStrategy: LocatorStrategy;
+
+    locator: string;
+
+    percent: number;
+
+    duration: number;
+  }
+
+  | {
+    action: "fling";
+
+    locatorStrategy: LocatorStrategy;
+
+    locator: string;
+
+    direction:
+    | "up"
+    | "down"
+    | "left"
+    | "right";
+
+    speed: number;
+  }
+
+  | {
     action: "assert";
     actual: string;
     expected: string;
@@ -105,6 +180,10 @@ export type NodeDefaults =
   }
   | {
     action: "closeApp";
+
+    platform:
+    | "Android"
+    | "iOS";
 
     // Android
     appPackage: string;
@@ -178,6 +257,7 @@ export type NodeDefaults =
 export interface NodeHandles {
   outputs: string[];
 }
+
 
 export interface NodePlugin {
   type: NodeType;

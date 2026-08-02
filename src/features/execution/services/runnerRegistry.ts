@@ -30,6 +30,12 @@ import { getSelectedRunner } from "../runners/GetSelectedRunner";
 import { getLocationRunner } from "../runners/GetLocationRunner";
 import { getSizeRunner } from "../runners/GetSizeRunner";
 import { getRectRunner } from "../runners/GetRectRunner";
+import { longPressRunner } from "../runners/LongPressRunner";
+import { doubleTapRunner } from "../runners/DoubleTapRunner";
+import { dragRunner } from "../runners/DragRunner";
+import { pinchRunner } from "../runners/PinchRunner";
+import { zoomRunner } from "../runners/ZoomRunner";
+import { flingRunner } from "../runners/FlingRunner";
 
 const registry = new Map<NodeAction, NodeRunner>([
   ["tap", tapRunner],
@@ -61,8 +67,14 @@ const registry = new Map<NodeAction, NodeRunner>([
   ["getEnabled", getEnabledRunner],
   ["getLocation", getLocationRunner],
   ["getSize", getSizeRunner],
-  ["getRect", getRectRunner]
-  
+  ["getRect", getRectRunner],
+  ["longPress", longPressRunner],
+  ["doubleTap", doubleTapRunner],
+  ["drag", dragRunner],
+  ["pinch", pinchRunner],
+  ["zoom", zoomRunner],
+  ["fling", flingRunner],
+
 
 ]);
 

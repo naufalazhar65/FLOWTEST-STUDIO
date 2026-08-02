@@ -111,6 +111,21 @@ function validateComparison(
   }
 }
 
+function validatePositiveNumber(
+  value: number,
+  field: string,
+  errors: string[],
+) {
+  if (
+    Number.isNaN(Number(value)) ||
+    Number(value) <= 0
+  ) {
+    errors.push(
+      `${field} must be greater than 0.`,
+    );
+  }
+}
+
 export function validateNode(
   data: FlowNodeData,
 ): ValidationResult {
@@ -126,7 +141,79 @@ export function validateNode(
       break;
 
     case "tap":
+    case "longPress":
+    case "doubleTap":
       validateLocator(data, errors);
+      break;
+
+    case "drag":
+      validateLocator(data, errors);
+
+      validatePositiveNumber(
+        data.distance,
+        "Distance",
+        errors,
+      );
+
+      validatePositiveNumber(
+        data.duration,
+        "Duration",
+        errors,
+      );
+
+      break;
+
+    case "pinch":
+      validateLocator(data, errors);
+
+      if (
+        Number.isNaN(Number(data.percent)) ||
+        data.percent <= 0 ||
+        data.percent > 1
+      ) {
+        errors.push(
+          "Percent must be between 0 and 1.",
+        );
+      }
+
+      validatePositiveNumber(
+        data.duration,
+        "Duration",
+        errors,
+      );
+
+      break;
+
+    case "zoom":
+      validateLocator(data, errors);
+
+      if (
+        Number.isNaN(Number(data.percent)) ||
+        data.percent <= 0 ||
+        data.percent > 1
+      ) {
+        errors.push(
+          "Percent must be between 0 and 1.",
+        );
+      }
+
+      validatePositiveNumber(
+        data.duration,
+        "Duration",
+        errors,
+      );
+
+      break;
+
+    case "fling":
+      validateLocator(data, errors);
+
+      validatePositiveNumber(
+        data.speed,
+        "Speed",
+        errors,
+      );
+
       break;
 
     case "input":
@@ -152,6 +239,9 @@ export function validateNode(
     case "getDisplayed":
     case "getEnabled":
     case "getSelected":
+    case "getLocation":
+    case "getSize":
+    case "getRect":
       validateElementGetter(
         data,
         errors,
@@ -164,9 +254,6 @@ export function validateNode(
     case "getPlatformVersion":
     case "getDeviceName":
     case "getDeviceTime":
-    case "getLocation":
-    case "getSize":
-    case "getRect":
       validateDeviceGetter(
         data,
         errors,
@@ -187,17 +274,11 @@ export function validateNode(
       break;
 
     case "delay":
-      if (
-        Number.isNaN(
-          Number(data.duration),
-        ) ||
-        Number(data.duration) <= 0
-      ) {
-        errors.push(
-          "Duration must be greater than 0.",
-        );
-      }
-
+      validatePositiveNumber(
+        data.duration,
+        "Duration",
+        errors,
+      );
       break;
   }
 

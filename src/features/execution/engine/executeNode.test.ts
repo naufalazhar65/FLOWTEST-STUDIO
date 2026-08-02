@@ -6,12 +6,6 @@ import {
     vi,
 } from "vitest";
 
-import { executeNode } from "./executeNode";
-
-import { getRunner } from "../services/runnerRegistry";
-import { executionLogger } from "../services/executionLogger";
-import { useExecutionStore } from "../store/useExecutionStore";
-
 vi.mock("../services/runnerRegistry", () => ({
     getRunner: vi.fn(),
 }));
@@ -20,7 +14,9 @@ vi.mock("../services/executionLogger", () => ({
     executionLogger: {
         info: vi.fn(),
         success: vi.fn(),
+        warning: vi.fn(),
         error: vi.fn(),
+        clear: vi.fn(),
     },
 }));
 
@@ -30,193 +26,245 @@ vi.mock("../store/useExecutionStore", () => ({
     },
 }));
 
-describe("executeNode", () => {
-    const execution = {
-        setCurrentNode: vi.fn(),
-        setNodeStatus: vi.fn(),
-        completeNode: vi.fn(),
-    };
+import { executeNode } from "./executeNode";
+import { getRunner } from "../services/runnerRegistry";
+import { executionLogger } from "../services/executionLogger";
+import { useExecutionStore } from "../store/useExecutionStore";
 
-    const runner = {
-        run: vi.fn(),
-    };
+import type {
+    FlowNode,
+    TapNodeData,
+} from "../../flow/types/flowNode";
 
-    const node = {
-        id: "node-1",
+import type { ExecutionContext } from "../types/ExecutionContext";
+
+const context: ExecutionContext = {
+    edges: [],
+};
+
+const executionStore = {
+    setCurrentNode: vi.fn(),
+    setNodeStatus: vi.fn(),
+    completeNode: vi.fn(),
+};
+
+function createNode(): FlowNode & {
+    data: TapNodeData;
+} {
+    return {
+        id: "tap-1",
+
+        type: "default",
+
+        position: {
+            x: 0,
+            y: 0,
+        },
+
         data: {
             action: "tap",
+
             title: "Tap",
+
             subtitle: "",
+
             debug: {
                 breakpoint: false,
             },
+
             locatorStrategy: "id",
-            locator: "login",
+
+            locator: "login_button",
         },
+    } as FlowNode & {
+        data: TapNodeData;
     };
+}
 
-    const context = {
-        device: "emulator",
-        edges: [],
-    };
-
+describe("executeNode", () => {
     beforeEach(() => {
         vi.clearAllMocks();
 
         vi.mocked(
-            useExecutionStore.getState
+            useExecutionStore.getState,
         ).mockReturnValue(
-            execution as never
-        );
-
-        vi.mocked(
-            getRunner
-        ).mockReturnValue(
-            runner as never
+            executionStore as never,
         );
     });
 
-    it("executes a node successfully", async () => {
-        runner.run.mockResolvedValue({
+    it("executes runner successfully", async () => {
+        const run = vi.fn().mockResolvedValue({
             outputs: ["next"],
         });
 
+        vi.mocked(getRunner).mockReturnValue({
+            run,
+        } as never);
+
         const result = await executeNode(
-            node as never,
-            context
+            createNode(),
+            context,
         );
 
+        expect(getRunner).toHaveBeenCalledWith(
+            "tap",
+        );
+
+        expect(run).toHaveBeenCalledTimes(1);
+
+        expect(result).toEqual({
+            outputs: ["next"],
+        });
+
         expect(
-            execution.setCurrentNode
+            executionStore.setCurrentNode,
         ).toHaveBeenNthCalledWith(
             1,
-            "node-1"
+            "tap-1",
         );
 
         expect(
-            execution.setNodeStatus
+            executionStore.setNodeStatus,
         ).toHaveBeenNthCalledWith(
             1,
-            "node-1",
-            "running"
+            "tap-1",
+            "running",
         );
 
         expect(
-            runner.run
-        ).toHaveBeenCalledWith(
-            node,
-            context
-        );
-
-        expect(
-            execution.setNodeStatus
+            executionStore.setNodeStatus,
         ).toHaveBeenNthCalledWith(
             2,
-            "node-1",
-            "passed"
+            "tap-1",
+            "passed",
         );
 
         expect(
-            execution.completeNode
+            executionStore.completeNode,
         ).toHaveBeenCalledWith(
-            true
+            true,
         );
 
         expect(
-            execution.setCurrentNode
-        ).toHaveBeenNthCalledWith(
-            2,
-            null
+            executionLogger.info,
+        ).toHaveBeenCalledWith({
+            message: "Executing node",
+            nodeId: "tap-1",
+            nodeType: "tap",
+            nodeTitle: "Tap",
+        });
+    });
+
+    it("returns default output when runner returns undefined", async () => {
+        const run = vi.fn().mockResolvedValue(
+            undefined,
         );
 
-        expect(
-            executionLogger.success
-        ).toHaveBeenCalled();
+        vi.mocked(getRunner).mockReturnValue({
+            run,
+        } as never);
+
+        const result =
+            await executeNode(
+                createNode(),
+                context,
+            );
 
         expect(result).toEqual({
             outputs: ["next"],
         });
     });
 
-    it("returns default output when runner returns undefined", async () => {
-        runner.run.mockResolvedValue(
-            undefined
+    it("marks node as failed when runner throws Error", async () => {
+        const run = vi.fn().mockRejectedValue(
+            new Error("Runner failed"),
         );
+
+        vi.mocked(getRunner).mockReturnValue({
+            run,
+        } as never);
 
         await expect(
             executeNode(
-                node as never,
-                context
-            )
-        ).resolves.toEqual({
-            outputs: ["next"],
-        });
-    });
-
-    it("marks node as failed when runner throws", async () => {
-        runner.run.mockRejectedValue(
-            new Error("Boom")
+                createNode(),
+                context,
+            ),
+        ).rejects.toThrow(
+            "Runner failed",
         );
-
-        await expect(
-            executeNode(
-                node as never,
-                context
-            )
-        ).rejects.toThrow("Boom");
 
         expect(
-            execution.setNodeStatus
+            executionStore.setNodeStatus,
+        ).toHaveBeenNthCalledWith(
+            1,
+            "tap-1",
+            "running",
+        );
+
+        expect(
+            executionStore.setNodeStatus,
         ).toHaveBeenNthCalledWith(
             2,
-            "node-1",
-            "failed"
+            "tap-1",
+            "failed",
         );
 
         expect(
-            execution.completeNode
+            executionStore.completeNode,
         ).toHaveBeenCalledWith(
-            false
+            false,
         );
 
         expect(
-            execution.setCurrentNode
-        ).toHaveBeenLastCalledWith(
-            null
+            executionLogger.error,
+        ).toHaveBeenCalledTimes(
+            1,
         );
-
-        expect(
-            executionLogger.error
-        ).toHaveBeenCalled();
     });
 
-    it("logs delay message", async () => {
-        runner.run.mockResolvedValue({
+    it("marks node as failed when runner throws non-Error", async () => {
+        const run = vi.fn().mockRejectedValue(
+            "Unknown error",
+        );
+
+        vi.mocked(getRunner).mockReturnValue({
+            run,
+        } as never);
+
+        await expect(
+            executeNode(
+                createNode(),
+                context,
+            ),
+        ).rejects.toBe(
+            "Unknown error",
+        );
+
+        expect(
+            executionLogger.error,
+        ).toHaveBeenCalledTimes(
+            1,
+        );
+    });
+
+    it("always clears current node", async () => {
+        const run = vi.fn().mockResolvedValue({
             outputs: ["next"],
         });
 
+        vi.mocked(getRunner).mockReturnValue({
+            run,
+        } as never);
+
         await executeNode(
-            {
-                ...node,
-                data: {
-                    action: "delay",
-                    title: "Delay",
-                    subtitle: "",
-                    debug: {
-                        breakpoint: false,
-                    },
-                    duration: 1000,
-                },
-            } as never,
-            context
+            createNode(),
+            context,
         );
 
         expect(
-            executionLogger.info
-        ).toHaveBeenCalledWith(
-            "Waiting 1000 ms",
-            "node-1",
-            "delay"
+            executionStore.setCurrentNode,
+        ).toHaveBeenLastCalledWith(
+            null,
         );
     });
 });

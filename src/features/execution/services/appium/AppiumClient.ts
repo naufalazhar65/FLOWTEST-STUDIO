@@ -13,6 +13,7 @@ import {
   type AppiumCapabilities,
 } from "./AppiumSession";
 import { createDriver } from "./driver/DriverFactory";
+import { gestureService } from "./GestureService";
 
 
 
@@ -141,6 +142,125 @@ export class AppiumClient {
 
     await elementService.click(
       elementId,
+    );
+  }
+
+  async longPress(
+    locatorStrategy: LocatorStrategy,
+    locator: string,
+    duration: number,
+  ): Promise<void> {
+    const elementId =
+      await elementService.findElement(
+        locatorStrategy,
+        locator,
+      );
+
+    await gestureService.longPress(
+      elementId,
+      duration,
+    );
+  }
+
+  async doubleTap(
+    locatorStrategy: LocatorStrategy,
+    locator: string,
+  ): Promise<void> {
+    const elementId =
+      await elementService.findElement(
+        locatorStrategy,
+        locator,
+      );
+
+    await gestureService.doubleTap(
+      elementId,
+    );
+  }
+
+  async drag(
+    locatorStrategy: LocatorStrategy,
+    locator: string,
+    direction:
+      | "up"
+      | "down"
+      | "left"
+      | "right",
+    distance: number,
+    duration: number,
+  ): Promise<void> {
+
+    const elementId =
+      await elementService.findElement(
+        locatorStrategy,
+        locator,
+      );
+
+    await gestureService.drag(
+      elementId,
+      direction,
+      distance,
+      duration,
+    );
+  }
+
+  async pinch(
+    locatorStrategy: LocatorStrategy,
+    locator: string,
+    percent: number,
+    duration: number,
+  ): Promise<void> {
+    const elementId =
+      await elementService.findElement(
+        locatorStrategy,
+        locator,
+      );
+
+    await gestureService.pinch(
+      elementId,
+      percent,
+      duration,
+    );
+  }
+
+  async zoom(
+    locatorStrategy: LocatorStrategy,
+    locator: string,
+    percent: number,
+    duration: number,
+  ): Promise<void> {
+    const elementId =
+      await elementService.findElement(
+        locatorStrategy,
+        locator,
+      );
+
+    await gestureService.zoom(
+      elementId,
+      percent,
+      duration,
+    );
+  }
+
+  async fling(
+    locatorStrategy: LocatorStrategy,
+    locator: string,
+    direction:
+      | "up"
+      | "down"
+      | "left"
+      | "right",
+    speed: number,
+  ): Promise<void> {
+    const elementId =
+      await elementService.findElement(
+        locatorStrategy,
+        locator,
+      );
+
+    await gestureService.fling(
+      elementId,
+      direction,
+      speed,
     );
   }
 

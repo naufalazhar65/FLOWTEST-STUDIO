@@ -78,6 +78,27 @@ export class ElementService {
         );
     }
 
+    async longPress(
+        elementId: string,
+        duration: number,
+    ): Promise<void> {
+        const sessionId =
+            appiumSession.getSessionId();
+
+        await webDriverClient.post<void>(
+            `/session/${sessionId}/execute/sync`,
+            {
+                script: "mobile: longClickGesture",
+                args: [
+                    {
+                        elementId,
+                        duration,
+                    },
+                ],
+            },
+        );
+    }
+
     async sendKeys(
         elementId: string,
         text: string,

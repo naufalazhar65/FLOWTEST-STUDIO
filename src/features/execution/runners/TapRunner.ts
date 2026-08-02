@@ -1,58 +1,67 @@
-import { isTapNode } from "../../flow/utils/nodeGuards";
+import type { TapNodeData } from "../../flow/types/flowNode";
+
 import { executionLogger } from "../services/executionLogger";
 import { appiumClient } from "../services/appium/AppiumClient";
 import type { NodeRunner } from "../types/NodeRunner";
 import { resolveVariables } from "../variables/resolveVariable";
 
-export const tapRunner: NodeRunner = {
-  async run(node) {
-    if (!isTapNode(node)) {
-      return;
-    }
+export const tapRunner: NodeRunner<TapNodeData> = {
+    async run(node) {
+        const startedAt = performance.now();
 
-    const start = performance.now();
+        const data = node.data;
 
-    const locator = resolveVariables(node.data.locator);
+        const locator = resolveVariables(
+            data.locator,
+        );
 
-    try {
-      await appiumClient.tap(
-        node.data.locatorStrategy,
-        locator,
-      );
+        try {
+            await appiumClient.tap(
+                data.locatorStrategy,
+                locator,
+            );
 
-      const duration = performance.now() - start;
+            const duration =
+                performance.now() - startedAt;
 
-      executionLogger.success({
-        message: "Tap completed",
-        nodeId: node.id,
-        nodeType: node.type,
-        nodeTitle: node.data.title,
-        duration,
-        details: {
-          locator,
-          locatorStrategy: node.data.locatorStrategy,
-        },
-      });
-    } catch (error) {
-      const duration = performance.now() - start;
+            executionLogger.success({
+                message: "Tap completed",
+                nodeId: node.id,
+                nodeType: data.action,
+                nodeTitle: data.title,
+                duration,
+                details: {
+                    locator,
+                    locatorStrategy:
+                        data.locatorStrategy,
+                },
+            });
 
-      executionLogger.error({
-        message: "Tap failed",
-        nodeId: node.id,
-        nodeType: node.type,
-        nodeTitle: node.data.title,
-        duration,
-        details: {
-          locator,
-          locatorStrategy: node.data.locatorStrategy,
-          reason:
-            error instanceof Error
-              ? error.message
-              : String(error),
-        },
-      });
+            return {
+                outputs: ["next"],
+            };
+        } catch (error) {
+            const duration =
+                performance.now() - startedAt;
 
-      throw error;
-    }
-  },
+            executionLogger.error({
+                message: "Tap failed",
+                nodeId: node.id,
+                nodeType: data.action,
+                nodeTitle: data.title,
+                duration,
+                details: {
+                    locator,
+                    locatorStrategy:
+                        data.locatorStrategy,
+                    reason:
+                        error instanceof Error
+                            ? error.message
+                            : String(error),
+                },
+            });
+
+            throw error;
+        }
+    },
 };

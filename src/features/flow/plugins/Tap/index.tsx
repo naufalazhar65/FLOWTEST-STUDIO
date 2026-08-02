@@ -36,6 +36,10 @@ export const tapNode: NodePlugin = {
         "id",
         "xpath",
         "accessibilityId",
+        "className",
+        "androidUiAutomator",
+        "iOSPredicateString",
+        "iOSClassChain",
       ],
     },
 

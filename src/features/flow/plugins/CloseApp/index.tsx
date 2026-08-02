@@ -15,13 +15,16 @@ export const closeAppPlugin: NodePlugin = {
   icon: PowerOff,
 
   supportedPlatforms: [
-    "cross-platform",
+    "android",
+    "ios",
   ],
 
   category: "device",
 
   defaults: {
     action: "closeApp",
+
+    platform: "Android",
 
     // Android
     appPackage: "",
@@ -31,6 +34,16 @@ export const closeAppPlugin: NodePlugin = {
   },
 
   fields: [
+    {
+      key: "platform",
+      label: "Platform",
+      type: "select",
+      options: [
+        "Android",
+        "iOS",
+      ],
+    },
+
     {
       key: "appPackage",
       label: "App Package",
@@ -69,26 +82,29 @@ export const closeAppPlugin: NodePlugin = {
       >
         <strong>📴 Close App</strong>
 
-        {app.appPackage && (
+        {app.platform ===
+          "Android" ? (
           <span>
             Package:
             <br />
-            {app.appPackage}
+            <strong>
+              {app.appPackage ||
+                "-"}
+            </strong>
           </span>
-        )}
-
-        {app.bundleId && (
+        ) : (
           <span>
             Bundle ID:
             <br />
-            {app.bundleId}
+            <strong>
+              {app.bundleId ||
+                "-"}
+            </strong>
           </span>
-        )}
-
-        {!app.appPackage && !app.bundleId && (
-          <span>-</span>
         )}
       </div>
     );
   },
 };
+
+export default closeAppPlugin;

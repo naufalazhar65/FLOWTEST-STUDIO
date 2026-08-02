@@ -25,7 +25,6 @@ import type { FlowNode } from "../../flow/types/flowNode";
 import type { ExecutionContext } from "../types/ExecutionContext";
 
 const context: ExecutionContext = {
-    device: "Android",
     edges: [],
 };
 

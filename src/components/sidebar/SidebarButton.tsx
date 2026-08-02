@@ -1,12 +1,17 @@
-import type {
-    CSSProperties,
-    ReactNode,
+import {
+    useRef,
+    type CSSProperties,
+    type ReactNode,
 } from "react";
 
 interface SidebarButtonProps {
     icon: ReactNode;
 
     label: string;
+
+    subtitle?: string;
+
+    color?: string;
 
     onClick?: () => void;
 
@@ -16,9 +21,13 @@ interface SidebarButtonProps {
 export function SidebarButton({
     icon,
     label,
+    subtitle = "Click to add component",
+    color = "#58A6FF",
     onClick,
     disabled,
 }: SidebarButtonProps) {
+    const iconRef =
+        useRef<HTMLDivElement>(null);
     return (
         <button
             onClick={onClick}
@@ -27,46 +36,67 @@ export function SidebarButton({
             onMouseEnter={(e) => {
                 if (disabled) return;
 
+                const glow = `${color}55`;
+
                 e.currentTarget.style.background =
                     "#161B22";
 
                 e.currentTarget.style.borderColor =
-                    "#3B82F6";
+                    color;
 
                 e.currentTarget.style.transform =
                     "translateY(-2px)";
 
                 e.currentTarget.style.boxShadow =
-                    "0 8px 24px rgba(59,130,246,.18)";
+                    `0 2px 10px ${glow}`;
+
+                if (iconRef.current) {
+                    iconRef.current.style.transform =
+                        "scale(1.08) rotate(-2deg)";
+
+                    iconRef.current.style.boxShadow =
+                        `0 0 10px ${glow}`;
+                }
             }}
+
             onMouseLeave={(e) => {
                 if (disabled) return;
 
                 e.currentTarget.style.background =
                     "#0D1117";
 
-                e.currentTarget.style.borderColor =
-                    "#30363D";
+                e.currentTarget.style.borderColor = `${color}BB`;
 
                 e.currentTarget.style.transform =
                     "translateY(0px)";
 
                 e.currentTarget.style.boxShadow =
                     "none";
+
+                if (iconRef.current) {
+                    iconRef.current.style.transform =
+                        "scale(1) rotate(0deg)";
+
+                    iconRef.current.style.boxShadow =
+                        "none";
+                }
             }}
         >
-            <div style={iconContainer}>
+            <div
+                ref={iconRef}
+                style={iconContainer(color)}
+            >
                 {icon}
             </div>
 
             <div style={content}>
-                <span style={title}>
+                <div style={title}>
                     {label}
-                </span>
+                </div>
 
-                <span style={subtitle}>
-                    Click to add
-                </span>
+                <div style={subtitleStyle}>
+                    {subtitle}
+                </div>
             </div>
         </button>
     );
@@ -104,71 +134,91 @@ function buttonStyle(
             ? "not-allowed"
             : "pointer",
 
-        transition:
-            "all .18s ease",
+        transition: "all .18s ease",
 
         textAlign: "left",
     };
 }
 
-const iconContainer: CSSProperties = {
-    width: 42,
+function iconContainer(
+    color: string,
+): CSSProperties {
+    return {
+        width: 42,
 
-    height: 42,
+        height: 42,
 
-    borderRadius: 10,
+        borderRadius: 10,
 
-    background: "#1C2330",
+        background: `${color}20`,
 
-    border: "1px solid #2B3648",
+        border: `1px solid ${color}66`,
 
-    display: "flex",
+        display: "flex",
 
-    alignItems: "center",
+        alignItems: "center",
 
-    justifyContent: "center",
+        justifyContent: "center",
 
-    flexShrink: 0,
+        flexShrink: 0,
 
-    color: "#58A6FF",
-};
+        color,
+
+        transition:
+            "transform .18s ease, box-shadow .18s ease",
+    };
+}
 
 const content: CSSProperties = {
+    flex: 1,
+
+    minWidth: 0,
+
     display: "flex",
 
     flexDirection: "column",
 
-    alignItems: "flex-start",
+    justifyContent: "center",
 
     overflow: "hidden",
-
-    minWidth: 0,
 };
 
 const title: CSSProperties = {
+    color: "#E6EDF3",
+
     fontSize: 14,
 
     fontWeight: 600,
 
-    color: "#E6EDF3",
+    lineHeight: 1.25,
 
-    whiteSpace: "nowrap",
+    display: "-webkit-box",
+
+    WebkitBoxOrient: "vertical",
+
+    WebkitLineClamp: 2,
 
     overflow: "hidden",
 
-    textOverflow: "ellipsis",
+    wordBreak: "break-word",
 };
 
-const subtitle: CSSProperties = {
-    marginTop: 4,
-
-    fontSize: 12,
+const subtitleStyle: CSSProperties = {
+    marginTop: 5,
 
     color: "#8B949E",
 
-    whiteSpace: "nowrap",
+    fontSize: 12,
+
+    lineHeight: 1.35,
+
+    display: "-webkit-box",
+
+    WebkitBoxOrient: "vertical",
+
+    WebkitLineClamp: 2,
 
     overflow: "hidden",
 
-    textOverflow: "ellipsis",
+    wordBreak: "break-word",
 };

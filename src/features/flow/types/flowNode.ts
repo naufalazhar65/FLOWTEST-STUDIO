@@ -48,6 +48,12 @@ export type NodeAction =
   | "getLocation"
   | "getSize"
   | "getRect"
+  | "longPress"
+  | "doubleTap"
+  | "drag"
+  | "pinch"
+  | "zoom"
+  | "fling"
 
 
 export interface NodeDebug {
@@ -83,6 +89,76 @@ export interface DeviceGetterNodeData
 
 export interface TapNodeData extends LocatorNodeData {
   action: "tap";
+}
+
+export interface LongPressNodeData
+  extends LocatorNodeData {
+
+  action: "longPress";
+
+  duration: number;
+}
+
+export interface DoubleTapNodeData
+  extends LocatorNodeData {
+
+  action: "doubleTap";
+}
+
+export interface DragNodeData
+  extends LocatorNodeData {
+
+  action: "drag";
+
+  direction:
+  | "up"
+  | "down"
+  | "left"
+  | "right";
+
+  distance: number;
+
+  duration: number;
+}
+
+export interface PinchNodeData
+  extends LocatorNodeData {
+
+  action: "pinch";
+
+  /**
+   * 0 - 1
+   */
+  percent: number;
+
+  duration: number;
+}
+
+export interface ZoomNodeData
+  extends LocatorNodeData {
+
+  action: "zoom";
+
+  /**
+   * 0 - 1
+   */
+  percent: number;
+
+  duration: number;
+}
+
+export interface FlingNodeData
+  extends LocatorNodeData {
+
+  action: "fling";
+
+  direction:
+  | "up"
+  | "down"
+  | "left"
+  | "right";
+
+  speed: number;
 }
 
 export interface InputNodeData extends LocatorNodeData {
@@ -303,6 +379,7 @@ export interface GetRectNodeData
 
 export type FlowNodeData =
   | TapNodeData
+  | LongPressNodeData
   | InputNodeData
   | SwipeNodeData
   | ScrollNodeData
@@ -331,6 +408,11 @@ export type FlowNodeData =
   | GetLocationNodeData
   | GetSizeNodeData
   | GetRectNodeData
+  | DoubleTapNodeData
+  | DragNodeData
+  | PinchNodeData
+  | ZoomNodeData
+  | FlingNodeData
 
 
 export type FlowNode = Node<FlowNodeData>;

@@ -1,139 +1,216 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("../services/AppiumClient", () => ({
+vi.mock("../services/appium/AppiumClient", () => ({
     appiumClient: {
         getText: vi.fn(),
     },
 }));
 
+vi.mock("../utils/executeElementGetter", () => ({
+    executeElementGetter: vi.fn(),
+}));
+
 import { appiumClient } from "../services/appium/AppiumClient";
+import { executeElementGetter } from "../utils/executeElementGetter";
 import { getTextRunner } from "./GetTextRunner";
 
-import type { ExecutionContext } from "../types/ExecutionContext";
-import {
-    clearVariables,
-    getVariable,
-} from "../variables/VariableStore";
 import type {
     FlowNode,
     GetTextNodeData,
 } from "../../flow/types/flowNode";
 
+import type { ExecutionContext } from "../types/ExecutionContext";
+
 const context: ExecutionContext = {
-    device: "Android",
     edges: [],
 };
 
-const getTextMock = vi.mocked(appiumClient.getText);
-
-function createGetTextNode(): FlowNode {
+function createGetTextNode(): FlowNode & {
+    data: GetTextNodeData;
+} {
     return {
-        id: "get-text-1",
-        type: "default",
+        id: "node-1",
+
+        type: "flowNode",
+
         position: {
             x: 0,
             y: 0,
         },
+
         data: {
             action: "getText",
+
             title: "Get Text",
+
             subtitle: "",
+
             debug: {
                 breakpoint: false,
             },
+
             locatorStrategy: "id",
-            locator: "welcome_text",
-            variableName: "welcomeMessage",
+
+            locator: "login_button",
+
+            variableName: "buttonText",
         },
-    } as FlowNode;
+    } as FlowNode & {
+        data: GetTextNodeData;
+    };
 }
 
 describe("GetTextRunner", () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        clearVariables();
     });
 
-    it("calls appiumClient.getText", async () => {
-        getTextMock.mockResolvedValue("Welcome");
+    it("delegates execution to executeElementGetter()", async () => {
+        vi.mocked(
+            executeElementGetter,
+        ).mockResolvedValue({
+            outputs: ["next"],
+        });
 
-        const result = await getTextRunner.run(
+        await getTextRunner.run(
             createGetTextNode(),
             context,
         );
 
-        expect(getTextMock).toHaveBeenCalledTimes(1);
+        expect(
+            executeElementGetter,
+        ).toHaveBeenCalledTimes(1);
+    });
 
-        expect(getTextMock).toHaveBeenCalledWith(
-            "id",
-            "welcome_text",
+    it("passes variable name and label", async () => {
+        vi.mocked(
+            executeElementGetter,
+        ).mockResolvedValue({
+            outputs: ["next"],
+        });
+
+        await getTextRunner.run(
+            createGetTextNode(),
+            context,
         );
+
+        expect(
+            executeElementGetter,
+        ).toHaveBeenCalledWith(
+            expect.any(Function),
+            "buttonText",
+            "Text",
+        );
+    });
+
+    it("calls appiumClient.getText()", async () => {
+        vi.mocked(
+            appiumClient.getText,
+        ).mockResolvedValue("Login");
+
+        vi.mocked(
+            executeElementGetter,
+        ).mockImplementation(
+            async (getter) => {
+                await getter();
+
+                return {
+                    outputs: ["next"],
+                };
+            },
+        );
+
+        await getTextRunner.run(
+            createGetTextNode(),
+            context,
+        );
+
+        expect(
+            appiumClient.getText,
+        ).toHaveBeenCalledWith(
+            "id",
+            "login_button",
+        );
+    });
+
+    it("returns next output", async () => {
+        vi.mocked(
+            executeElementGetter,
+        ).mockResolvedValue({
+            outputs: ["next"],
+        });
+
+        const result =
+            await getTextRunner.run(
+                createGetTextNode(),
+                context,
+            );
+
         expect(result).toEqual({
             outputs: ["next"],
         });
     });
 
-
-    it("returns immediately when action is not getText", async () => {
-        const node = createGetTextNode();
-
-        node.data = {
-            ...node.data,
-            action: "tap",
-        } as never;
-
+    it("returns undefined when action does not match", async () => {
         const result = await getTextRunner.run(
-            node,
+            {
+                ...createGetTextNode(),
+                data: {
+                    ...createGetTextNode().data,
+                    action: "tap",
+                },
+            } as never,
             context,
         );
 
         expect(result).toBeUndefined();
-        expect(getTextMock).not.toHaveBeenCalled();
+
+        expect(executeElementGetter).not.toHaveBeenCalled();
+
+        expect(appiumClient.getText).not.toHaveBeenCalled();
     });
 
-    it("stores text into VariableStore", async () => {
-        getTextMock.mockResolvedValue("Welcome");
+    it("throws when appiumClient.getText fails", async () => {
+        const error = new Error("Appium failed");
 
-        await getTextRunner.run(
-            createGetTextNode(),
-            context
+        vi.mocked(appiumClient.getText).mockRejectedValue(error);
+
+        vi.mocked(executeElementGetter).mockImplementation(
+            async (getter) => {
+                await getter();
+
+                return {
+                    outputs: ["next"],
+                };
+            },
         );
 
-        expect(
-            getVariable("welcomeMessage")
-        ).toBe("Welcome");
-    });
-    it("does not store variable when variableName is empty", async () => {
-        getTextMock.mockResolvedValue("Welcome");
-
-        const node = createGetTextNode();
-
-        (node.data as GetTextNodeData).variableName = "";
-
-        await getTextRunner.run(
-            node,
-            context,
-        );
-
-        expect(
-            getVariable("welcomeMessage"),
-        ).toBeUndefined();
+        await expect(
+            getTextRunner.run(
+                createGetTextNode(),
+                context,
+            ),
+        ).rejects.toThrow("Appium failed");
     });
 
-    it("does not store variable when variableName is empty", async () => {
-        getTextMock.mockResolvedValue("Welcome");
+    it("handles non-Error exceptions", async () => {
+        vi.mocked(appiumClient.getText).mockRejectedValue("Unknown error");
 
-        const node = createGetTextNode();
+        vi.mocked(executeElementGetter).mockImplementation(
+            async (getter) => {
+                await getter();
 
-        (node.data as GetTextNodeData).variableName = "";
-
-        await getTextRunner.run(
-            node,
-            context,
+                return {
+                    outputs: ["next"],
+                };
+            },
         );
 
-        expect(
-            getVariable("welcomeMessage"),
-        ).toBeUndefined();
+        await expect(
+            getTextRunner.run(
+                createGetTextNode(),
+                context,
+            ),
+        ).rejects.toBe("Unknown error");
     });
 });

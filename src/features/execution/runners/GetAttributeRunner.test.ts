@@ -1,127 +1,170 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("../services/AppiumClient", () => ({
+vi.mock("../services/appium/AppiumClient", () => ({
     appiumClient: {
         getAttribute: vi.fn(),
     },
 }));
 
+vi.mock("../utils/storeResult", () => ({
+    storeResult: vi.fn(),
+}));
+
 import { appiumClient } from "../services/appium/AppiumClient";
+import { storeResult } from "../utils/storeResult";
 import { getAttributeRunner } from "./GetAttributeRunner";
 
-import {
-    clearVariables,
-    getVariable,
-} from "../variables/VariableStore";
+import type {
+    FlowNode,
+    GetAttributeNodeData,
+} from "../../flow/types/flowNode";
 
-import type { FlowNode } from "../../flow/types/flowNode";
 import type { ExecutionContext } from "../types/ExecutionContext";
-import type { GetAttributeNodeData } from "../../flow/types/flowNode";
 
 const context: ExecutionContext = {
-    device: "Android",
     edges: [],
 };
 
-const getAttributeMock = vi.mocked(
-    appiumClient.getAttribute,
-);
-
-function createGetAttributeNode(): FlowNode {
+function createGetAttributeNode(): FlowNode & {
+    data: GetAttributeNodeData;
+} {
     return {
-        id: "get-attribute-1",
-        type: "default",
+        id: "node-1",
+
+        type: "flowNode",
+
         position: {
             x: 0,
             y: 0,
         },
+
         data: {
             action: "getAttribute",
+
             title: "Get Attribute",
+
             subtitle: "",
+
             debug: {
                 breakpoint: false,
             },
+
             locatorStrategy: "id",
+
             locator: "login_button",
+
             attribute: "content-desc",
+
             variableName: "buttonLabel",
         },
-    } as FlowNode;
+    } as FlowNode & {
+        data: GetAttributeNodeData;
+    };
 }
 
 describe("GetAttributeRunner", () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        clearVariables();
     });
 
-    it("calls appiumClient.getAttribute", async () => {
-        getAttributeMock.mockResolvedValue("Login");
+    it("calls appiumClient.getAttribute()", async () => {
+        vi.mocked(
+            appiumClient.getAttribute,
+        ).mockResolvedValue("Login");
 
-        const result = await getAttributeRunner.run(
+        await getAttributeRunner.run(
             createGetAttributeNode(),
             context,
         );
 
-        expect(getAttributeMock).toHaveBeenCalledTimes(1);
-
-        expect(getAttributeMock).toHaveBeenCalledWith(
+        expect(
+            appiumClient.getAttribute,
+        ).toHaveBeenCalledWith(
             "id",
             "login_button",
             "content-desc",
         );
+    });
+
+    it("stores result into variable", async () => {
+        vi.mocked(
+            appiumClient.getAttribute,
+        ).mockResolvedValue("Login");
+
+        await getAttributeRunner.run(
+            createGetAttributeNode(),
+            context,
+        );
+
+        expect(storeResult).toHaveBeenCalledWith(
+            "buttonLabel",
+            "Login",
+        );
+    });
+
+    it("returns next output", async () => {
+        vi.mocked(
+            appiumClient.getAttribute,
+        ).mockResolvedValue("Login");
+
+        const result =
+            await getAttributeRunner.run(
+                createGetAttributeNode(),
+                context,
+            );
 
         expect(result).toEqual({
             outputs: ["next"],
         });
     });
 
-    it("stores result into VariableStore", async () => {
-        getAttributeMock.mockResolvedValue("Login");
+    it("returns undefined when action does not match", async () => {
+    const result = await getAttributeRunner.run(
+        {
+            ...createGetAttributeNode(),
+            data: {
+                ...createGetAttributeNode().data,
+                action: "tap",
+            },
+        } as never,
+        context,
+    );
 
-        await getAttributeRunner.run(
+    expect(result).toBeUndefined();
+
+    expect(appiumClient.getAttribute).not.toHaveBeenCalled();
+    expect(storeResult).not.toHaveBeenCalled();
+});
+
+it("throws when appiumClient.getAttribute throws Error", async () => {
+    const error = new Error("Appium failed");
+
+    vi.mocked(
+        appiumClient.getAttribute,
+    ).mockRejectedValue(error);
+
+    await expect(
+        getAttributeRunner.run(
             createGetAttributeNode(),
             context,
-        );
+        ),
+    ).rejects.toThrow("Appium failed");
 
-        expect(
-            getVariable("buttonLabel"),
-        ).toBe("Login");
-    });
+    expect(storeResult).not.toHaveBeenCalled();
+});
 
-    it("returns immediately when action is not getAttribute", async () => {
-        const node = createGetAttributeNode();
+it("throws when appiumClient.getAttribute throws string", async () => {
+    vi.mocked(
+        appiumClient.getAttribute,
+    ).mockRejectedValue("Unknown error");
 
-        node.data = {
-            ...node.data,
-            action: "tap",
-        } as never;
-
-        const result = await getAttributeRunner.run(
-            node,
+    await expect(
+        getAttributeRunner.run(
+            createGetAttributeNode(),
             context,
-        );
+        ),
+    ).rejects.toBe("Unknown error");
 
-        expect(result).toBeUndefined();
-
-        expect(getAttributeMock).not.toHaveBeenCalled();
-    });
-
-    it("does not store variable when variableName is empty", async () => {
-        getAttributeMock.mockResolvedValue("Login");
-
-        const node = createGetAttributeNode();
-
-        (node.data as GetAttributeNodeData).variableName = "";
-
-        await getAttributeRunner.run(
-            node,
-            context,
-        );
-
-        expect(
-            getVariable("buttonLabel"),
-        ).toBeUndefined();
-    });
+    expect(storeResult).not.toHaveBeenCalled();
+});
 });

@@ -26,6 +26,12 @@ import type {
   SwipeNodeData,
   TapNodeData,
   WaitNodeData,
+  LongPressNodeData,
+  DoubleTapNodeData,
+  DragNodeData,
+  PinchNodeData,
+  ZoomNodeData,
+  FlingNodeData
 } from "./flowNode";
 
 export type NodeFieldKey =
@@ -55,7 +61,13 @@ export type NodeFieldKey =
   | keyof GetSelectedNodeData
   | keyof GetLocationNodeData
   | keyof GetSizeNodeData
-  | keyof GetRectNodeData;
+  | keyof GetRectNodeData
+  | keyof LongPressNodeData
+  | keyof DoubleTapNodeData
+  | keyof DragNodeData
+  | keyof PinchNodeData
+  | keyof ZoomNodeData
+  | keyof FlingNodeData
 
 export interface NodeField {
   key: NodeFieldKey;

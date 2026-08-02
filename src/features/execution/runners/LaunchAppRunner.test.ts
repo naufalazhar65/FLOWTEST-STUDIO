@@ -1,44 +1,134 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+    beforeEach,
+    describe,
+    expect,
+    it,
+    vi,
+} from "vitest";
 
-vi.mock("../services/AppiumClient", () => ({
+vi.mock("../services/appium/AppiumClient", () => ({
     appiumClient: {
         launchApp: vi.fn(),
     },
 }));
 
+vi.mock("../services/executionLogger", () => ({
+    executionLogger: {
+        info: vi.fn(),
+        success: vi.fn(),
+        warning: vi.fn(),
+        error: vi.fn(),
+        clear: vi.fn(),
+    },
+}));
+
 import { appiumClient } from "../services/appium/AppiumClient";
+import { executionLogger } from "../services/executionLogger";
 import { launchAppRunner } from "./LaunchAppRunner";
 
-import type { ExecutionContext } from "../types/ExecutionContext";
-import type { FlowNode } from "../../flow/types/flowNode";
+import type {
+    FlowNode,
+    LaunchAppNodeData,
+} from "../../flow/types/flowNode";
 
-const launchAppMock = vi.mocked(appiumClient.launchApp);
+import type { ExecutionContext } from "../types/ExecutionContext";
+
+const launchAppMock = vi.mocked(
+    appiumClient.launchApp,
+);
+
+const successMock = vi.mocked(
+    executionLogger.success,
+);
+
+const errorMock = vi.mocked(
+    executionLogger.error,
+);
 
 const context: ExecutionContext = {
-    device: "Android",
     edges: [],
 };
 
-function createLaunchAppNode(): FlowNode {
+function createAndroidNode(): FlowNode & {
+    data: LaunchAppNodeData;
+} {
     return {
         id: "launch-app-1",
+
         type: "default",
+
         position: {
             x: 0,
             y: 0,
         },
+
         data: {
             action: "launchApp",
+
             title: "Launch App",
+
             subtitle: "",
+
             debug: {
                 breakpoint: false,
             },
+
+            platform: "Android",
+
             appPackage: "com.demo.app",
+
             appActivity: ".MainActivity",
+
+            bundleId: "",
+
+            app: "",
+
             noReset: true,
         },
-    } as FlowNode;
+    } as FlowNode & {
+        data: LaunchAppNodeData;
+    };
+}
+
+function createIOSNode(): FlowNode & {
+    data: LaunchAppNodeData;
+} {
+    return {
+        id: "launch-app-ios",
+
+        type: "default",
+
+        position: {
+            x: 0,
+            y: 0,
+        },
+
+        data: {
+            action: "launchApp",
+
+            title: "Launch App",
+
+            subtitle: "",
+
+            debug: {
+                breakpoint: false,
+            },
+
+            platform: "iOS",
+
+            appPackage: "",
+
+            appActivity: "",
+
+            bundleId: "com.demo.ios",
+
+            app: "/Users/demo/Demo.app",
+
+            noReset: false,
+        },
+    } as FlowNode & {
+        data: LaunchAppNodeData;
+    };
 }
 
 describe("LaunchAppRunner", () => {
@@ -46,18 +136,109 @@ describe("LaunchAppRunner", () => {
         vi.clearAllMocks();
     });
 
-    it("calls appiumClient.launchApp with node data", async () => {
+    it("launches Android app", async () => {
+        const result =
+            await launchAppRunner.run(
+                createAndroidNode(),
+                context,
+            );
+
+        expect(launchAppMock).toHaveBeenCalledTimes(
+            1,
+        );
+
+        expect(launchAppMock).toHaveBeenCalledWith({
+            platform: "Android",
+            appPackage: "com.demo.app",
+            appActivity: ".MainActivity",
+            bundleId: "",
+            app: "",
+            noReset: true,
+        });
+
+        expect(successMock).toHaveBeenCalledTimes(
+            1,
+        );
+
+        expect(result).toEqual({
+            outputs: ["next"],
+        });
+    });
+
+    it("launches iOS app", async () => {
         await launchAppRunner.run(
-            createLaunchAppNode(),
+            createIOSNode(),
             context,
         );
 
-        expect(launchAppMock).toHaveBeenCalledTimes(1);
+        expect(launchAppMock).toHaveBeenCalledWith({
+            platform: "iOS",
+            appPackage: "",
+            appActivity: "",
+            bundleId: "com.demo.ios",
+            app: "/Users/demo/Demo.app",
+            noReset: false,
+        });
 
-        expect(launchAppMock).toHaveBeenCalledWith(
-            "com.demo.app",
-            ".MainActivity",
-            true,
+        expect(successMock).toHaveBeenCalledTimes(
+            1,
         );
+    });
+
+    it("throws when launchApp fails with Error", async () => {
+        launchAppMock.mockRejectedValueOnce(
+            new Error("Launch failed"),
+        );
+
+        await expect(
+            launchAppRunner.run(
+                createAndroidNode(),
+                context,
+            ),
+        ).rejects.toThrow("Launch failed");
+
+        expect(errorMock).toHaveBeenCalledTimes(
+            1,
+        );
+    });
+
+    it("throws when launchApp fails with non-Error", async () => {
+        launchAppMock.mockRejectedValueOnce(
+            "Unknown error",
+        );
+
+        await expect(
+            launchAppRunner.run(
+                createAndroidNode(),
+                context,
+            ),
+        ).rejects.toBe("Unknown error");
+
+        expect(errorMock).toHaveBeenCalledTimes(
+            1,
+        );
+    });
+
+    it("returns undefined when action is not launchApp", async () => {
+        const node = createAndroidNode();
+
+        node.data = {
+            ...node.data,
+            action: "tap",
+        } as never;
+
+        const result =
+            await launchAppRunner.run(
+                node,
+                context,
+            );
+
+        expect(result).toBeUndefined();
+
+        expect(launchAppMock).not.toHaveBeenCalled();
+
+        expect(successMock).not.toHaveBeenCalled();
+
+        expect(errorMock).not.toHaveBeenCalled();
     });
 });
