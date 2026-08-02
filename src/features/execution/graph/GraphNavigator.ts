@@ -86,4 +86,28 @@ export class GraphNavigator {
             nextNode,
         };
     }
+
+    getExecutionOrder(): FlowNode[] {
+        const ordered: FlowNode[] = [];
+
+        const visited = new Set<string>();
+
+        let current = this.getStartNode();
+
+        while (current) {
+            if (visited.has(current.id)) {
+                break;
+            }
+
+            visited.add(current.id);
+
+            ordered.push(current);
+
+            current = this.getNextNode(
+                current.id,
+            );
+        }
+
+        return ordered;
+    }
 }

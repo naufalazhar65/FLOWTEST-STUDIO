@@ -140,4 +140,81 @@ describe("GraphNavigator", () => {
             graph.getTransition("A"),
         ).toBeNull();
     });
+
+    it("returns execution order", () => {
+        const order =
+            graph.getExecutionOrder();
+
+        expect(
+            order.map(
+                (node) => node.id,
+            ),
+        ).toEqual([
+            "A",
+            "B",
+            "C",
+        ]);
+    });
+
+    it("returns empty execution order when no start node exists", () => {
+        const graph = new GraphNavigator(
+            [
+                { id: "A" } as FlowNode,
+                { id: "B" } as FlowNode,
+            ],
+            [
+                {
+                    id: "1",
+                    source: "A",
+                    target: "B",
+                },
+                {
+                    id: "2",
+                    source: "B",
+                    target: "A",
+                },
+            ],
+        );
+
+        expect(
+            graph.getExecutionOrder(),
+        ).toEqual([]);
+    });
+
+    it("does not loop forever when graph contains a cycle", () => {
+        const graph = new GraphNavigator(
+            [
+                { id: "A" } as FlowNode,
+                { id: "B" } as FlowNode,
+                { id: "C" } as FlowNode,
+            ],
+            [
+                {
+                    id: "1",
+                    source: "A",
+                    target: "B",
+                },
+                {
+                    id: "2",
+                    source: "B",
+                    target: "C",
+                },
+                {
+                    id: "3",
+                    source: "C",
+                    target: "B",
+                },
+            ],
+        );
+
+        expect(
+            graph.getExecutionOrder().map(
+                (node) => node.id,
+            ),
+        ).toEqual([
+            "A",
+            "B",
+            "C",
+        ]);
+    });
 });
