@@ -1,5 +1,4 @@
 import type {
-    FlowNode,
     InputNodeData,
 } from "../../flow/types/flowNode";
 
@@ -10,14 +9,12 @@ import { locatorStrategy } from "../utils/locator";
 import { quote } from "../utils/quote";
 
 export const inputEmitter: NodeEmitter = {
-    emit(node: FlowNode, context) {
-        void context;
-
+    emit(node) {
         const data =
             node.data as InputNodeData;
 
         return emitFunction(
-            "input",
+            "input_text",
             [
                 locatorStrategy(
                     data.locatorStrategy,

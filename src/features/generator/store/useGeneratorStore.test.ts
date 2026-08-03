@@ -1,51 +1,89 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { useGeneratorStore } from "./useGeneratorStore";
 
-describe(
-    "useGeneratorStore",
-    () => {
+import type { GeneratedProject } from "../types/GeneratedProject";
 
-        it(
-            "sets generated code",
-            () => {
+describe("useGeneratorStore", () => {
+    beforeEach(() => {
+        useGeneratorStore.getState().clear();
+    });
 
-                useGeneratorStore
-                    .getState()
-                    .setCode(
-                        "print()",
-                    );
+    it("sets generated project", () => {
+        const project: GeneratedProject = {
+            files: [
+                {
+                    path: "tests/test_generated.py",
+                    content: "print('hello')",
+                },
+            ],
+        };
 
-                expect(
-                    useGeneratorStore
-                        .getState()
-                        .code,
-                ).toBe(
-                    "print()",
-                );
-            },
+        useGeneratorStore
+            .getState()
+            .setProject(project);
+
+        const state =
+            useGeneratorStore.getState();
+
+        expect(state.project).toEqual(project);
+
+        expect(state.selectedFile).toBe(
+            "tests/test_generated.py",
         );
+    });
 
-        it(
-            "clears generated code",
-            () => {
+    it("selects generated file", () => {
+        const project: GeneratedProject = {
+            files: [
+                {
+                    path: "tests/test_generated.py",
+                    content: "print('hello')",
+                },
+                {
+                    path: "README.md",
+                    content: "# README",
+                },
+            ],
+        };
 
-                useGeneratorStore
-                    .getState()
-                    .setCode(
-                        "abc",
-                    );
+        useGeneratorStore
+            .getState()
+            .setProject(project);
 
-                useGeneratorStore
-                    .getState()
-                    .clear();
+        useGeneratorStore
+            .getState()
+            .selectFile("README.md");
 
-                expect(
-                    useGeneratorStore
-                        .getState()
-                        .code,
-                ).toBe("");
-            },
-        );
-    },
-);
+        expect(
+            useGeneratorStore.getState()
+                .selectedFile,
+        ).toBe("README.md");
+    });
+
+    it("clears generated project", () => {
+        const project: GeneratedProject = {
+            files: [
+                {
+                    path: "tests/test_generated.py",
+                    content: "print('hello')",
+                },
+            ],
+        };
+
+        useGeneratorStore
+            .getState()
+            .setProject(project);
+
+        useGeneratorStore
+            .getState()
+            .clear();
+
+        const state =
+            useGeneratorStore.getState();
+
+        expect(state.project).toBeNull();
+
+        expect(state.selectedFile).toBeNull();
+    });
+});

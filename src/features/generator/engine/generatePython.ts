@@ -1,17 +1,16 @@
 import type { FlowNode } from "../../flow/types/flowNode";
 
-import { emitterRegistry } from "../registry/emitterRegistry";
-
 import { pythonTestTemplate } from "../templates/pythonTestTemplate";
+import { generateNode } from "./generateNode";
 
 import type { GeneratorContext } from "../types/GeneratorContext";
 
 export function generatePython(
     nodes: FlowNode[],
 ): string {
-
     const context: GeneratorContext = {
-        framework: "selenium-python-mobile",
+        framework:
+            "selenium-python-mobile",
 
         indent: "    ",
 
@@ -19,31 +18,22 @@ export function generatePython(
     };
 
     const body = nodes
-        .map((node) => {
-            const emitter =
-                emitterRegistry[
-                node.data.action
-                ];
-
-            if (!emitter) {
-                throw new Error(
-                    `No emitter registered for "${node.data.action}"`,
-                );
-            }
-
-            return emitter.emit(
+        .map((node) =>
+            generateNode(
                 node,
                 context,
-            );
-        })
+            ),
+        )
         .map(
             (line) =>
-                `    ${line.replace(
+                `${context.indent}${line.replace(
                     /\n/g,
-                    "\n    ",
+                    `\n${context.indent}`,
                 )}`,
         )
-        .join("\n\n");
+        .join(
+            `${context.newline}${context.newline}`,
+        );
 
     return pythonTestTemplate(
         body,

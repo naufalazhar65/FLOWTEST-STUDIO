@@ -66,7 +66,7 @@ describe("InputEmitter", () => {
             );
 
         expect(code).toBe(
-            `input(
+    `input_text(
     AppiumBy.ID,
     "username",
     "admin",

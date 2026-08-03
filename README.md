@@ -1,305 +1,378 @@
-ini isi file useflowstore
+# Mobile Automation Flow Builder
+
+A visual Mobile Automation Testing framework built with **React + TypeScript + React Flow + Appium**.
+
+Users can build automation test scenarios visually using drag-and-drop nodes, then execute them through an Appium-based execution engine.
+
+---
+
+# Features
+
+## Flow Builder
+
+- Drag & Drop Node
+- Connect Nodes
+- Visual Flow Editor
+- Validation
+- Node Execution Status
+- Breakpoint Support
+- Variable System
+- Expression Resolver
+
+---
+
+## Supported Nodes
+
+### Application
+
+- Launch App
+- Close App
+
+### Element Actions
+
+- Tap
+- Double Tap
+- Long Press
+- Swipe
+- Drag
+- Pinch
+- Zoom
+- Fling
+- Input
+
+### Device Actions
+
+- Home
+- Back
+- Delay
+- Wait
+- Screenshot
+- Scroll
+
+### Getter
+
+#### Element Getter
+
+- Get Text
+- Get Attribute
+- Get Displayed
+- Get Enabled
+- Get Selected
+- Get Location
+- Get Size
+- Get Rect
+
+#### Device Getter
+
+- Get Current Activity
+- Get Current Package
+- Get Orientation
+- Get Platform Version
+- Get Device Name
+- Get Device Time
 
-import { create } from "zustand";
+### Logic
 
-import type { Node, Edge } from "reactflow";
+- If
+- Assert
+- Set Variable
+
+---
+
+# Architecture
+
+```
+src/
+ ├── features/
+ │
+ ├── flow/
+ │      ├── components/
+ │      ├── actions/
+ │      ├── factories/
+ │      ├── plugins/
+ │      ├── validation/
+ │      ├── utils/
+ │      └── types/
+ │
+ ├── execution/
+ │      ├── engine/
+ │      ├── graph/
+ │      ├── runners/
+ │      ├── services/
+ │      ├── variables/
+ │      ├── utils/
+ │      ├── store/
+ │      └── types/
+ │
+ └── shared/
+```
 
+---
 
+# Execution Engine
 
-import {
+Execution Flow
 
-  initialNodes,
+```
+Start Node
+      │
+      ▼
+Execute Node
+      │
+      ▼
+Find Next Edge
+      │
+      ▼
+Execute Next Node
+      │
+      ▼
+End
+```
 
-  initialEdges,
+Main Components
 
-} from "../data/initialFlow";
+- executeFlow
+- executeNode
+- GraphNavigator
+- Runner Registry
+- Variable Resolver
+- Execution Logger
 
+---
 
+# Variable System
 
-import { createNode } from "../factories/nodeFactory";
+Supports:
 
+```
+${username}
 
+${password}
 
-interface FlowStore {
+${status}
 
-  // =========================
+${price}
+```
 
-  // State
+Example
 
-  // =========================
+```
+Input Text
 
-  nodes: Node[];
+${username}
+```
 
-  edges: Edge[];
+---
 
+# Validation
 
+Supported Validation
 
-  selectedNodeId: string | null;
+- Launch App
+- Close App
+- Locator
+- Element Getter
+- Device Getter
+- Assert
+- If
+- Drag
+- Pinch
+- Zoom
+- Fling
+- Delay
+- Input
+- Set Variable
 
+---
 
+# Unit Testing
 
-  // =========================
+Framework
 
-  // Actions
+- Vitest
 
-  // =========================
+Coverage includes:
 
-  setNodes: (nodes: Node[]) => void;
+## Engine
 
-  setEdges: (edges: Edge[]) => void;
+- executeFlow
+- executeNode
 
+## Graph
 
+- GraphNavigator
+- findStartNode
+- findNextNode
+- findIncomingEdges
+- findOutgoingEdges
 
-  addNode: (node: Node) => void;
+## Runner
 
-  addTapNode: () => void;
+### Element Actions
 
-  addInputNode: () => void;
+- Tap
+- Double Tap
+- Long Press
+- Drag
+- Swipe
+- Pinch
+- Zoom
+- Fling
+- Input
 
-  addAssertNode: () => void;
+### Device Actions
 
+- Launch App
+- Close App
+- Home
+- Back
+- Delay
+- Wait
+- Screenshot
+- Scroll
 
+### Getter
 
-  updateNode: (id: string, data: Partial<Node>) => void;
+#### Element Getter
 
-  removeNode: (id: string) => void;
+- Get Text
+- Get Attribute
+- Get Displayed
+- Get Enabled
+- Get Selected
+- Get Location
+- Get Size
+- Get Rect
 
+#### Device Getter
 
+- Get Current Activity
+- Get Current Package
+- Get Orientation
+- Get Platform Version
+- Get Device Name
+- Get Device Time
 
-  setSelectedNode: (id: string | null) => void;
+### Logic
 
-}
+- Assert
+- If
+- Set Variable
 
+---
 
+# Utilities Tested
 
-export const useFlowStore = create<FlowStore>((set) => ({
+- assertCompare
+- executeElementGetter
+- storeResult
+- formatDuration
 
-  // =========================
+---
 
-  // Initial State
+# Variable Utilities Tested
 
-  // =========================
+- VariableStore
+- resolveVariable
+- resolveNodeVariables
+- evaluateExpression
 
-  nodes: initialNodes,
+---
 
-  edges: initialEdges,
+# Validation Tested
 
+- validateNode
+- validateFlow
 
+---
 
-  selectedNodeId: null,
+# Type Guards Tested
 
+- isTapNode
+- isLongPressNode
+- isDoubleTapNode
+- isDragNode
+- isPinchNode
+- isZoomNode
+- isFlingNode
+- isAssertNode
+- isGetTextNode
 
+---
 
-  // =========================
+# Current Coverage
 
-  // State Setters
+Current Status
 
-  // =========================
+- Engine: ✅ 100%
+- Graph: ✅ 100%
+- Validation: ✅ 97%+
+- Node Guards: ✅ 100%
+- Execution Utils: ✅ 100%
+- Variable System: ✅ 98%+
 
-  setNodes: (nodes) => set({ nodes }),
+Overall coverage is continuously improving as additional runner scenarios and Appium integration tests are added.
 
+---
 
+# Tech Stack
 
-  setEdges: (edges) => set({ edges }),
+Frontend
 
+- React
+- TypeScript
+- React Flow
+- Zustand
+- TailwindCSS
+- Vite
 
+Automation
 
-  // =========================
+- Appium
+- WebDriver
 
-  // Node Actions
+Testing
 
-  // =========================
+- Vitest
 
-  addNode: (node) =>
+---
 
-    set((state) => ({
+# Roadmap
 
-      nodes: [...state.nodes, node],
+## Phase 1
 
-    })),
+- [x] Flow Builder
+- [x] Node System
+- [x] Execution Engine
+- [x] Variable System
+- [x] Validation
+- [x] Execution Logger
+- [x] Unit Testing
 
+---
 
+## Phase 2
 
-  addTapNode: () =>
+- [ ] Python Script Generator
+- [ ] Export Test Project
+- [ ] Import Project
+- [ ] Mobile Element Inspector
+- [ ] Locator Recorder
 
-    set((state) => ({
+---
 
-      nodes: [...state.nodes, createNode("tap")],
+## Phase 3
 
-    })),
+- [ ] Test Report
+- [ ] Parallel Execution
+- [ ] Retry Mechanism
+- [ ] Plugin System
+- [ ] AI Test Generation
 
+---
 
+# Author
 
-  addInputNode: () =>
+Developed by **Naufal Azhar**
 
-    set((state) => ({
-
-      nodes: [...state.nodes, createNode("input")],
-
-    })),
-
-
-
-  addAssertNode: () =>
-
-    set((state) => ({
-
-      nodes: [...state.nodes, createNode("assert")],
-
-    })),
-
-
-
-  updateNode: (id, data) =>
-
-    set((state) => ({
-
-      nodes: state.nodes.map((node) =>
-
-        node.id === id
-
-          ? {
-
-              ...node,
-
-              ...data,
-
-            }
-
-          : node
-
-      ),
-
-    })),
-
-
-
-  removeNode: (id) =>
-
-    set((state) => ({
-
-      nodes: state.nodes.filter((node) => node.id !== id),
-
-      edges: state.edges.filter(
-
-        (edge) => edge.source !== id && edge.target !== id
-
-      ),
-
-    })),
-
-
-
-  // =========================
-
-  // Selection
-
-  // =========================
-
-  setSelectedNode: (id) =>
-
-    set({
-
-      selectedNodeId: id,
-
-    }),
-
-}));
-
-
-
-dan ini intialflow
-
-import type { Node, Edge } from "reactflow";
-
-
-
-export const initialNodes: Node[] = [
-
-   {
-
-    id: "1",
-
-    type: "tap",
-
-    position: {
-
-      x: 250,
-
-      y: 80,
-
-    },
-
-    data: {},
-
-  },
-
-
-
-  {
-
-    id: "2",
-
-    type: "input",
-
-    position: {
-
-      x: 250,
-
-      y: 260,
-
-    },
-
-    data: {},
-
-  },
-
-
-
-  {
-
-    id: "3",
-
-    type: "assert",
-
-    position: {
-
-      x: 250,
-
-      y: 440,
-
-    },
-
-    data: {},
-
-  },
-
-];
-
-
-
-export const initialEdges: Edge[] = [
-
-  {
-
-    id: "e1",
-
-    source: "1",
-
-    target: "2",
-
-  },
-
-
-
-  {
-
-    id: "e2",
-
-    source: "2",
-
-    target: "3",
-
-  },
-
-];
+Software Quality Assurance Engineer

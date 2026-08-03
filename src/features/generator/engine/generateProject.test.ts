@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { Edge } from "reactflow";
 
 import { generateProject } from "./generateProject";
 
@@ -40,19 +41,23 @@ function createTapNode(): FlowNode & {
     };
 }
 
+const emptyEdges: Edge[] = [];
+
 describe("generateProject", () => {
     it("generates project files", () => {
-        const project = generateProject([
-            createTapNode(),
-        ]);
+        const project = generateProject(
+            [createTapNode()],
+            emptyEdges,
+        );
 
-        expect(project.files).toHaveLength(4);
+        expect(project.files).toHaveLength(6);
     });
 
     it("generates python test file", () => {
-        const project = generateProject([
-            createTapNode(),
-        ]);
+        const project = generateProject(
+            [createTapNode()],
+            emptyEdges,
+        );
 
         const file = project.files.find(
             (f) =>
@@ -72,7 +77,11 @@ describe("generateProject", () => {
     });
 
     it("generates actions runtime", () => {
-        const project = generateProject([]);
+        const project =
+            generateProject(
+                [],
+                emptyEdges,
+            );
 
         const file = project.files.find(
             (f) =>
@@ -88,7 +97,11 @@ describe("generateProject", () => {
     });
 
     it("generates driver runtime", () => {
-        const project = generateProject([]);
+        const project =
+            generateProject(
+                [],
+                emptyEdges,
+            );
 
         const file = project.files.find(
             (f) =>
@@ -102,7 +115,11 @@ describe("generateProject", () => {
     });
 
     it("generates variables runtime", () => {
-        const project = generateProject([]);
+        const project =
+            generateProject(
+                [],
+                emptyEdges,
+            );
 
         const file = project.files.find(
             (f) =>
@@ -116,7 +133,11 @@ describe("generateProject", () => {
     });
 
     it("contains expected file paths", () => {
-        const project = generateProject([]);
+        const project =
+            generateProject(
+                [],
+                emptyEdges,
+            );
 
         expect(
             project.files.map(
@@ -127,6 +148,8 @@ describe("generateProject", () => {
             "framework/actions.py",
             "framework/driver.py",
             "framework/variables.py",
+            "framework/assertions.py",
+            "framework/waits.py",
         ]);
     });
 });

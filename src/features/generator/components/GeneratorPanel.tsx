@@ -1,24 +1,9 @@
-import type { FlowNode } from "../../flow/types/flowNode";
+import { GeneratorWorkspace } from "./GeneratorWorkspace";
 
-import { GeneratorToolbar } from "./GeneratorToolbar";
-import { CodePreview } from "./CodePreview";
-
-interface GeneratorPanelProps {
-    nodes: FlowNode[];
-}
-
-export function GeneratorPanel({
-    nodes,
-}: GeneratorPanelProps) {
+export function GeneratorPanel() {
     return (
-        <div className="flex h-full flex-col border-l">
-            <GeneratorToolbar
-                nodes={nodes}
-            />
-
-            <div className="flex-1 overflow-hidden">
-                <CodePreview />
-            </div>
+        <div className="flex h-full w-full min-h-0 overflow-hidden">
+            <GeneratorWorkspace />
         </div>
     );
 }

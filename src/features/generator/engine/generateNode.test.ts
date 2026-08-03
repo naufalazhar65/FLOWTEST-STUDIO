@@ -104,7 +104,7 @@ describe("generateNode", () => {
             );
 
         expect(code).toContain(
-            "input(",
+            "input_text(",
         );
 
         expect(code).toContain(

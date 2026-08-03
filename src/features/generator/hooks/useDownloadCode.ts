@@ -1,23 +1,17 @@
 import { useGeneratorStore } from "../store/useGeneratorStore";
-
-import { downloadFile } from "../utils/downloadFile";
+import { downloadProject } from "../utils/downloadProject";
 
 export function useDownloadCode() {
-    const code = useGeneratorStore(
-        (state) => state.code,
-    );
+    return async () => {
+        const project =
+            useGeneratorStore
+                .getState()
+                .project;
 
-    return () => {
-        if (!code) {
-            return false;
+        if (!project) {
+            return;
         }
 
-        downloadFile(
-            "test_generated.py",
-            code,
-            "text/x-python",
-        );
-
-        return true;
+        await downloadProject(project);
     };
 }

@@ -9,6 +9,8 @@ export interface DeviceConfig {
 export interface AppiumConfig {
   serverUrl: string;
 
+  platformName: "Android" | "iOS";
+
   android: DeviceConfig;
 
   ios: DeviceConfig;
@@ -26,6 +28,8 @@ export const useAppiumConfigStore =
   create<AppiumConfigState>((set) => ({
     config: {
       serverUrl: "http://127.0.0.1:4723",
+
+      platformName: "Android",
 
       android: {
         deviceName: "Android Emulator",

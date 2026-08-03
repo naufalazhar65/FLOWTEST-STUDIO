@@ -28,42 +28,48 @@ describe("GraphNavigator", () => {
 
     const graph = new GraphNavigator(
         nodes,
-        edges
+        edges,
     );
 
     it("returns the start node", () => {
         expect(
-            graph.getStartNode()?.id
+            graph.getStartNode()?.id,
         ).toBe("A");
     });
 
     it("returns outgoing edges", () => {
         expect(
-            graph.getOutgoingEdges("A")
+            graph.getOutgoingEdges("A"),
         ).toHaveLength(1);
     });
 
     it("returns incoming edges", () => {
         expect(
-            graph.getIncomingEdges("B")
+            graph.getIncomingEdges("B"),
         ).toHaveLength(1);
     });
 
     it("returns the next node", () => {
         expect(
-            graph.getNextNode("A")?.id
+            graph.getNextNode("A")?.id,
         ).toBe("B");
     });
 
     it("returns the next node for a specific handle", () => {
         expect(
-            graph.getNextNode("B", "true")?.id
+            graph.getNextNode(
+                "B",
+                "true",
+            )?.id,
         ).toBe("C");
     });
 
     it("returns null when no matching edge exists", () => {
         expect(
-            graph.getNextNode("B", "false")
+            graph.getNextNode(
+                "B",
+                "false",
+            ),
         ).toBeNull();
     });
 
@@ -88,29 +94,45 @@ describe("GraphNavigator", () => {
         );
 
         expect(
-            graph.getStartNode()
+            graph.getStartNode(),
         ).toBeNull();
     });
 
     it("returns transition for default output", () => {
-        const transition = graph.getTransition("A");
+        const transition =
+            graph.getTransition("A");
 
-        expect(transition).not.toBeNull();
+        expect(
+            transition,
+        ).not.toBeNull();
 
-        expect(transition?.edge.id).toBe("1");
-        expect(transition?.nextNode.id).toBe("B");
+        expect(
+            transition?.edge.id,
+        ).toBe("1");
+
+        expect(
+            transition?.nextNode.id,
+        ).toBe("B");
     });
 
     it("returns transition for specific output handle", () => {
-        const transition = graph.getTransition(
-            "B",
-            "true",
-        );
+        const transition =
+            graph.getTransition(
+                "B",
+                "true",
+            );
 
-        expect(transition).not.toBeNull();
+        expect(
+            transition,
+        ).not.toBeNull();
 
-        expect(transition?.edge.id).toBe("2");
-        expect(transition?.nextNode.id).toBe("C");
+        expect(
+            transition?.edge.id,
+        ).toBe("2");
+
+        expect(
+            transition?.nextNode.id,
+        ).toBe("C");
     });
 
     it("returns null when transition edge does not exist", () => {
@@ -141,14 +163,33 @@ describe("GraphNavigator", () => {
         ).toBeNull();
     });
 
-    it("returns execution order", () => {
-        const order =
-            graph.getExecutionOrder();
+    it("returns execution order using default output", () => {
+        const graph = new GraphNavigator(
+            [
+                { id: "A" } as FlowNode,
+                { id: "B" } as FlowNode,
+                { id: "C" } as FlowNode,
+            ],
+            [
+                {
+                    id: "1",
+                    source: "A",
+                    target: "B",
+                },
+                {
+                    id: "2",
+                    source: "B",
+                    target: "C",
+                },
+            ],
+        );
 
         expect(
-            order.map(
-                (node) => node.id,
-            ),
+            graph
+                .getExecutionOrder()
+                .map(
+                    (node) => node.id,
+                ),
         ).toEqual([
             "A",
             "B",
@@ -208,9 +249,11 @@ describe("GraphNavigator", () => {
         );
 
         expect(
-            graph.getExecutionOrder().map(
-                (node) => node.id,
-            ),
+            graph
+                .getExecutionOrder()
+                .map(
+                    (node) => node.id,
+                ),
         ).toEqual([
             "A",
             "B",

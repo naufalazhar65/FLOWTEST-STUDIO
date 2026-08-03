@@ -4,7 +4,7 @@ import { TopBar } from "../topbar/TopBar";
 import { Sidebar } from "../sidebar/Sidebar";
 import { ConsolePanel } from "../console/ConsolePanel";
 import { StatusBar } from "../statusbar/StatusBar";
-import { InspectorPanel } from "../inspector/InspectorPanel";
+import { RightPanel } from "../rightpanel/RightPanel";
 
 import { Toolbar } from "../../features/flow/components/toolbar/Toolbar";
 import { FlowCanvas } from "../../features/flow/components/canvas/FlowCanvas";
@@ -30,8 +30,8 @@ export function MainLayout() {
         display: "grid",
 
         gridTemplateRows: `auto 1fr ${consoleExpanded
-            ? "220px"
-            : "48px"
+          ? "220px"
+          : "48px"
           } 32px`,
 
         background: "#0D1117",
@@ -99,24 +99,19 @@ export function MainLayout() {
         </div>
 
         {/* Inspector */}
-        <div
-          style={{
-            display: "flex",
-
-            flexDirection: "column",
-
-            minHeight: 0,
-
-            overflow: "hidden",
-
-            borderLeft:
-              "1px solid #30363D",
-
-            background: "#0D1117",
-          }}
-        >
-          <InspectorPanel />
-        </div>
+       <div
+    style={{
+        display: "flex",
+        flexDirection: "column",
+        flex: 1,
+        minHeight: 0,
+        overflow: "hidden",
+        borderLeft: "1px solid #30363D",
+        background: "#0D1117",
+    }}
+>
+    <RightPanel />
+</div>
       </div>
 
       <ConsolePanel
