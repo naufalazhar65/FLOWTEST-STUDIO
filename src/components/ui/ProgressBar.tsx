@@ -1,55 +1,33 @@
 interface ProgressBarProps {
     progress: number;
-
-    color?: string;
-
-    width?: number | string;
-
-    height?: number;
+    color: string;
 }
 
 export function ProgressBar({
     progress,
-    color = "#22C55E",
-    width = "100%",
-    height = 6,
+    color,
 }: ProgressBarProps) {
-    const value = Math.max(
-        0,
-        Math.min(progress, 100),
-    );
-
     return (
         <div
-            style={{
-                width,
-                height,
-
-                borderRadius: 999,
-
-                background: "#30363D",
-
-                overflow: "hidden",
-
-                position: "relative",
-            }}
+            className="
+                h-[6px]
+                w-full
+                overflow-hidden
+                rounded-full
+                bg-neutral-800
+            "
         >
             <div
+                className="
+                    h-full
+                    rounded-full
+                    transition-all
+                    duration-300
+                    ease-out
+                "
                 style={{
-                    width: `${value}%`,
-                    height: "100%",
-
+                    width: `${progress}%`,
                     background: color,
-
-                    borderRadius: 999,
-
-                    transition:
-                        "width .35s ease, background-color .25s ease",
-
-                    boxShadow:
-                        value > 0
-                            ? `0 0 8px ${color}66`
-                            : undefined,
                 }}
             />
         </div>

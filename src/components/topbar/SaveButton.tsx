@@ -54,7 +54,10 @@ export function SaveButton() {
     }
 
     return (
-        <Button onClick={handleSave}>
+        <Button
+            variant="secondary"
+            onClick={handleSave}
+        >
             <Save size={16} />
             Save
         </Button>

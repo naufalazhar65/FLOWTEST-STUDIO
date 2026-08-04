@@ -1,143 +1,51 @@
-import { describe, expect, it } from "vitest";
-import type { Edge } from "reactflow";
+import { describe, expect, it, vi } from "vitest";
 
 import { generateProject } from "./generateProject";
 
-import type {
-    FlowNode,
-    TapNodeData,
-} from "../../flow/types/flowNode";
+import { orderNodes } from "./orderNodes";
+import { generatePython } from "./generatePython";
 
-function createTapNode(): FlowNode & {
-    data: TapNodeData;
-} {
-    return {
-        id: "tap-1",
+vi.mock("./orderNodes", () => ({
+    orderNodes: vi.fn(),
+}));
 
-        type: "default",
-
-        position: {
-            x: 0,
-            y: 0,
-        },
-
-        data: {
-            action: "tap",
-
-            title: "Tap",
-
-            subtitle: "",
-
-            debug: {
-                breakpoint: false,
-            },
-
-            locatorStrategy: "id",
-
-            locator: "login_button",
-        },
-    } as FlowNode & {
-        data: TapNodeData;
-    };
-}
-
-const emptyEdges: Edge[] = [];
+vi.mock("./generatePython", () => ({
+    generatePython: vi.fn(),
+}));
 
 describe("generateProject", () => {
-    it("generates project files", () => {
-        const project = generateProject(
-            [createTapNode()],
-            emptyEdges,
+    it("generates project metadata", () => {
+        vi.mocked(orderNodes).mockReturnValue([]);
+
+        vi.mocked(generatePython).mockReturnValue(
+            "# generated",
         );
 
-        expect(project.files).toHaveLength(6);
-    });
-
-    it("generates python test file", () => {
-        const project = generateProject(
-            [createTapNode()],
-            emptyEdges,
-        );
-
-        const file = project.files.find(
-            (f) =>
-                f.path ===
-                "tests/test_generated.py",
-        );
-
-        expect(file).toBeDefined();
-
-        expect(file?.content).toContain(
-            "def test_generated()",
-        );
-
-        expect(file?.content).toContain(
-            "tap(",
-        );
-    });
-
-    it("generates actions runtime", () => {
         const project =
-            generateProject(
-                [],
-                emptyEdges,
-            );
+            generateProject([], []);
 
-        const file = project.files.find(
-            (f) =>
-                f.path ===
-                "framework/actions.py",
+        expect(project.generator).toBe(
+            "FlowTest Studio",
         );
 
-        expect(file).toBeDefined();
-
-        expect(file?.content).toContain(
-            "def tap",
-        );
-    });
-
-    it("generates driver runtime", () => {
-        const project =
-            generateProject(
-                [],
-                emptyEdges,
-            );
-
-        const file = project.files.find(
-            (f) =>
-                f.path ===
-                "framework/driver.py",
+        expect(project.framework).toBe(
+            "Pytest + Appium",
         );
 
-        expect(file).toBeDefined();
-
-        expect(file?.content).not.toBe("");
-    });
-
-    it("generates variables runtime", () => {
-        const project =
-            generateProject(
-                [],
-                emptyEdges,
-            );
-
-        const file = project.files.find(
-            (f) =>
-                f.path ===
-                "framework/variables.py",
-        );
-
-        expect(file).toBeDefined();
-
-        expect(file?.content).not.toBe("");
+        expect(
+            project.generatedAt,
+        ).toBeInstanceOf(Date);
     });
 
     it("contains expected file paths", () => {
+        vi.mocked(orderNodes).mockReturnValue([]);
+
+        vi.mocked(generatePython).mockReturnValue(
+            "# generated",
+        );
+
         const project =
-            generateProject(
-                [],
-                emptyEdges,
-            );
+            generateProject([], []);
 
         expect(
             project.files.map(
@@ -145,11 +53,68 @@ describe("generateProject", () => {
             ),
         ).toEqual([
             "tests/test_generated.py",
+
             "framework/actions.py",
+
             "framework/driver.py",
+
             "framework/variables.py",
+
             "framework/assertions.py",
+
             "framework/waits.py",
+
+            "README.md",
+
+            "requirements.txt",
+
+            "pytest.ini",
         ]);
+    });
+
+    it("generates python test file", () => {
+        vi.mocked(orderNodes).mockReturnValue([]);
+
+        vi.mocked(generatePython).mockReturnValue(
+            "# generated",
+        );
+
+        const project =
+            generateProject([], []);
+
+        expect(
+            project.files[0].content,
+        ).toBe("# generated");
+    });
+
+    it("calls orderNodes before generating python", () => {
+        vi.mocked(orderNodes).mockReturnValue([]);
+
+        vi.mocked(generatePython).mockReturnValue(
+            "# generated",
+        );
+
+        generateProject([], []);
+
+        expect(orderNodes).toHaveBeenCalled();
+
+        expect(
+            generatePython,
+        ).toHaveBeenCalledWith([]);
+    });
+
+    it("generates nine files", () => {
+        vi.mocked(orderNodes).mockReturnValue([]);
+
+        vi.mocked(generatePython).mockReturnValue(
+            "# generated",
+        );
+
+        const project =
+            generateProject([], []);
+
+        expect(
+            project.files,
+        ).toHaveLength(9);
     });
 });

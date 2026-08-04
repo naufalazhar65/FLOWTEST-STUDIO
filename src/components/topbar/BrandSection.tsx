@@ -2,12 +2,7 @@ import { Logo } from "./Logo";
 
 export function BrandSection() {
     return (
-        <div
-            style={{
-                display: "flex",
-                alignItems: "center",
-            }}
-        >
+        <div className="flex items-center">
             <Logo />
         </div>
     );

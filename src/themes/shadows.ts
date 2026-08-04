@@ -1,7 +1,10 @@
-export const shadows = {
-  sm: "0 2px 8px rgba(0,0,0,.15)",
+export const shadow = {
+    panel:
+        "0 6px 20px rgba(0,0,0,.18)",
 
-  md: "0 8px 24px rgba(0,0,0,.25)",
+    floating:
+        "0 12px 40px rgba(0,0,0,.35)",
 
-  lg: "0 12px 32px rgba(0,0,0,.35)",
+    card:
+        "0 4px 12px rgba(0,0,0,.15)",
 };

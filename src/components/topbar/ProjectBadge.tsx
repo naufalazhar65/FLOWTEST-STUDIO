@@ -1,4 +1,8 @@
-import { Check, Circle, FileCode2 } from "lucide-react";
+import {
+    CheckCircle2,
+    Circle,
+    FileCode2,
+} from "lucide-react";
 
 import { ToolbarBadge } from "../ui/ToolbarBadge";
 
@@ -13,84 +17,89 @@ export function ProjectBadge({
 }: Props) {
     return (
         <ToolbarBadge
-            minWidth={280}
+            minWidth={300}
             icon={
                 <FileCode2
                     size={17}
-                    color="#8B949E"
+                    className="text-blue-400"
                 />
             }
         >
             <div
-                style={{
-                    width: "100%",
-
-                    display: "flex",
-
-                    alignItems: "center",
-
-                    justifyContent: "space-between",
-
-                    gap: 18,
-                }}
+                className="
+                    flex
+                    w-full
+                    items-center
+                    justify-between
+                    gap-4
+                "
             >
-                <span
-                    style={{
-                        overflow: "hidden",
-
-                        textOverflow: "ellipsis",
-
-                        whiteSpace: "nowrap",
-
-                        color: "#E6EDF3",
-
-                        fontSize: 13,
-
-                        fontWeight: 600,
-                    }}
+                <div
+                    className="
+                        flex
+                        min-w-0
+                        items-center
+                        gap-2
+                    "
                 >
-                    {name}
-                </span>
+                    <span
+                        className="
+                            truncate
+                            text-sm
+                            font-semibold
+                            text-white
+                        "
+                    >
+                        {name}
+                    </span>
+                </div>
 
                 <div
-                    style={{
-                        display: "flex",
-
-                        alignItems: "center",
-
-                        gap: 6,
-
-                        flexShrink: 0,
-                    }}
+                    className="
+                        flex
+                        items-center
+                        gap-2
+                        rounded-full
+                        px-2
+                        py-1
+                    "
                 >
                     {modified ? (
-                        <Circle
-                            size={8}
-                            fill="#F59E0B"
-                            color="#F59E0B"
-                        />
+                        <>
+                            <Circle
+                                size={8}
+                                fill="#F59E0B"
+                                className="text-amber-500"
+                            />
+
+                            <span
+                                className="
+                                    text-xs
+                                    font-semibold
+                                    text-amber-400
+                                "
+                            >
+                                Modified
+                            </span>
+                        </>
                     ) : (
-                        <Check
-                            size={12}
-                            color="#22C55E"
-                        />
+                        <>
+                            <CheckCircle2
+                                size={14}
+                                className="text-emerald-400"
+                            />
+
+                            <span
+                                className="
+                                    text-xs
+                                    font-semibold
+                                    text-emerald-400
+                                "
+                            >
+                                Saved
+                            </span>
+                        </>
                     )}
-
-                    <span
-                        style={{
-                            color: modified
-                                ? "#F59E0B"
-                                : "#22C55E",
-
-                            fontSize: 12,
-
-                            fontWeight: 600,
-                        }}
-                    >
-                        {modified
-                            ? "Modified"
-                            : "Saved"}
-                    </span>
                 </div>
             </div>
         </ToolbarBadge>

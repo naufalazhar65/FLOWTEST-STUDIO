@@ -1,50 +1,110 @@
 import type {
-  ButtonHTMLAttributes,
-  ReactNode,
+    ButtonHTMLAttributes,
+    ReactNode,
 } from "react";
 
-type Props =
-  ButtonHTMLAttributes<HTMLButtonElement> & {
+interface Props
+    extends ButtonHTMLAttributes<HTMLButtonElement> {
     children: ReactNode;
-  };
+
+    variant?: "primary" | "secondary";
+}
 
 export function Button({
-  children,
-  disabled,
-  style,
-  ...props
+    children,
+    disabled = false,
+    variant = "secondary",
+    style,
+    ...props
 }: Props) {
-  return (
-    <button
-      {...props}
-      disabled={disabled}
-      style={{
-        border: 0,
-        padding: "10px 18px",
-        borderRadius: 10,
+    const background =
+        disabled
+            ? "#30363D"
+            : variant === "primary"
+              ? "#2563EB"
+              : "#1F2937";
 
-        background: disabled
-          ? "#30363D"
-          : "#7C5CFC",
+    const border =
+        disabled
+            ? "#30363D"
+            : variant === "primary"
+              ? "#2563EB"
+              : "#374151";
 
-        color: disabled
-          ? "#8B949E"
-          : "#FFFFFF",
+    const color = disabled
+        ? "#8B949E"
+        : "#FFFFFF";
 
-        fontWeight: 600,
+    return (
+        <button
+            {...props}
+            disabled={disabled}
+            style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
 
-        cursor: disabled
-          ? "not-allowed"
-          : "pointer",
+                gap: 8,
 
-        opacity: disabled ? 0.6 : 1,
+                height: 40,
 
-        transition: ".2s",
+                minWidth: 96,
 
-        ...style,
-      }}
-    >
-      {children}
-    </button>
-  );
+                padding: "0 16px",
+
+                borderRadius: 10,
+
+                border: `1px solid ${border}`,
+
+                background,
+
+                color,
+
+                fontSize: 14,
+
+                fontWeight: 600,
+
+                whiteSpace: "nowrap",
+
+                cursor: disabled
+                    ? "not-allowed"
+                    : "pointer",
+
+                transition:
+                    "all .18s ease",
+
+                userSelect: "none",
+
+                ...style,
+            }}
+            onMouseEnter={(e) => {
+                if (disabled) {
+                    return;
+                }
+
+                if (variant === "primary") {
+                    e.currentTarget.style.background =
+                        "#3B82F6";
+                } else {
+                    e.currentTarget.style.background =
+                        "#374151";
+                    e.currentTarget.style.borderColor =
+                        "#4B5563";
+                }
+            }}
+            onMouseLeave={(e) => {
+                if (disabled) {
+                    return;
+                }
+
+                e.currentTarget.style.background =
+                    background;
+
+                e.currentTarget.style.borderColor =
+                    border;
+            }}
+        >
+            {children}
+        </button>
+    );
 }

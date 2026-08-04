@@ -23,6 +23,8 @@ const context: GeneratorContext = {
 
 function createNode(
     operator: AssertNodeData["operator"],
+    actual = "username",
+    expected = "admin",
 ): FlowNode & {
     data: AssertNodeData;
 } {
@@ -47,9 +49,9 @@ function createNode(
                 breakpoint: false,
             },
 
-            actual: "username",
+            actual,
 
-            expected: "admin",
+            expected,
 
             operator,
         },
@@ -59,68 +61,109 @@ function createNode(
 }
 
 describe("AssertEmitter", () => {
-    it("generates equals assertion", () => {
+    it.each([
+        [
+            "equals",
+            'assert "username" == "admin"',
+        ],
+        [
+            "notEquals",
+            'assert "username" != "admin"',
+        ],
+        [
+            "contains",
+            'assert "admin" in "username"',
+        ],
+        [
+            "notContains",
+            'assert "admin" not in "username"',
+        ],
+        [
+            "startsWith",
+            'assert "username".startswith("admin")',
+        ],
+        [
+            "endsWith",
+            'assert "username".endswith("admin")',
+        ],
+        [
+            "greaterThan",
+            'assert "username" > "admin"',
+        ],
+        [
+            "greaterThanOrEqual",
+            'assert "username" >= "admin"',
+        ],
+        [
+            "lessThan",
+            'assert "username" < "admin"',
+        ],
+        [
+            "lessThanOrEqual",
+            'assert "username" <= "admin"',
+        ],
+        [
+            "isTrue",
+            'assert "username"',
+        ],
+        [
+            "isFalse",
+            'assert not "username"',
+        ],
+        [
+            "isEmpty",
+            'assert len("username") == 0',
+        ],
+        [
+            "isNotEmpty",
+            'assert len("username") > 0',
+        ],
+        [
+            "matches",
+            'assert re.match("admin", "username")',
+        ],
+    ] as const)(
+        "generates %s assertion",
+        (
+            operator,
+            expected,
+        ) => {
+            expect(
+                assertEmitter.emit(
+                    createNode(operator),
+                    context,
+                ),
+            ).toBe(expected);
+        },
+    );
+
+    it("quotes values correctly", () => {
         expect(
             assertEmitter.emit(
                 createNode(
                     "equals",
+                    "hello world",
+                    "flow test",
                 ),
                 context,
             ),
         ).toBe(
-            'assert "username" == "admin"',
+            'assert "hello world" == "flow test"',
         );
     });
 
-    it("generates notEquals assertion", () => {
+    it("supports empty expected value", () => {
         expect(
             assertEmitter.emit(
                 createNode(
-                    "notEquals",
+                    "equals",
+                    "username",
+                    "",
                 ),
                 context,
             ),
         ).toBe(
-            'assert "username" != "admin"',
-        );
-    });
-
-    it("generates contains assertion", () => {
-        expect(
-            assertEmitter.emit(
-                createNode(
-                    "contains",
-                ),
-                context,
-            ),
-        ).toBe(
-            'assert "admin" in "username"',
-        );
-    });
-
-    it("generates startsWith assertion", () => {
-        expect(
-            assertEmitter.emit(
-                createNode(
-                    "startsWith",
-                ),
-                context,
-            ),
-        ).toBe(
-            'assert "username".startswith("admin")',
-        );
-    });
-
-    it("generates isTrue assertion", () => {
-        expect(
-            assertEmitter.emit(
-                createNode(
-                    "isTrue",
-                ),
-                context,
-            ),
-        ).toBe(
-            'assert "username"',
+            'assert "username" == ""',
         );
     });
 });

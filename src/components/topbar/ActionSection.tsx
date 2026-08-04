@@ -5,13 +5,20 @@ import { SaveButton } from "./SaveButton";
 import { RunButton } from "./RunButton";
 
 export function ActionSection() {
-  return (
-    <ToolbarGroup>
-      <OpenButton />
+    return (
+        <div className="flex items-center gap-3">
 
-      <SaveButton />
+            <ToolbarGroup>
+                <OpenButton />
+                <SaveButton />
+            </ToolbarGroup>
 
-      <RunButton />
-    </ToolbarGroup>
-  );
+            <div className="h-7 w-px bg-neutral-700" />
+
+            <ToolbarGroup>
+                <RunButton />
+            </ToolbarGroup>
+
+        </div>
+    );
 }

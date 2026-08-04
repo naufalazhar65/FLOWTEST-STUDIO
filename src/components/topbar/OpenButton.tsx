@@ -53,7 +53,10 @@ export function OpenButton() {
     }
 
     return (
-        <Button onClick={handleOpen}>
+        <Button
+            variant="secondary"
+            onClick={handleOpen}
+        >
             <FolderOpen size={16} />
             Open
         </Button>
