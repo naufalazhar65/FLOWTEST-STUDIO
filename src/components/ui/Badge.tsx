@@ -1,40 +1,56 @@
-import type { ReactNode } from "react";
+import type {
+    CSSProperties,
+    ReactNode,
+} from "react";
 
-interface BadgeProps {
-  children: ReactNode;
+import {
+    colors,
+    radius,
+} from "../../themes";
 
-  color: string;
+interface Props {
+    children: ReactNode;
+
+    color?: string;
+
+    style?: CSSProperties;
 }
 
 export function Badge({
-  children,
-  color,
-}: BadgeProps) {
-  return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
+    children,
+    color = colors.textSecondary,
+    style,
+}: Props) {
+    return (
+        <span
+            style={{
+                display: "inline-flex",
 
-        minWidth: 70,
+                alignItems: "center",
 
-        padding: "3px 10px",
+                gap: 6,
 
-        borderRadius: 999,
+                padding: "4px 10px",
 
-        background: color,
+                borderRadius:
+                    radius.full,
 
-        color: "#FFF",
+                background:
+                    colors.panelHover,
 
-        fontSize: 11,
+                border:
+                    `1px solid ${colors.border}`,
 
-        fontWeight: 700,
+                color,
 
-        textTransform: "uppercase",
-      }}
-    >
-      {children}
-    </span>
-  );
+                fontSize: 12,
+
+                fontWeight: 600,
+
+                ...style,
+            }}
+        >
+            {children}
+        </span>
+    );
 }

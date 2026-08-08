@@ -1,5 +1,5 @@
-import { MainLayout } from "../components/layout/MainLayout";
+import { WorkspaceRouter } from "../features/workspace/components/WorkspaceRoot";
 
 export function Studio() {
-  return <MainLayout />;
+    return <WorkspaceRouter />;
 }

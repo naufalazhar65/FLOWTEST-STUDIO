@@ -7,42 +7,50 @@ import {
 } from "lucide-react";
 
 import { ProgressBar } from "../../../components/ui/ProgressBar";
+
 import { useExecutionStore } from "../store/useExecutionStore";
+
+import {
+    colors,
+    layout,
+    spacing,
+    typography,
+} from "../../../themes";
 
 const STATUS_CONFIG = {
     idle: {
         label: "Ready",
-        color: "#8B949E",
+        color: colors.textSecondary,
         icon: <Play size={15} />,
     },
 
     running: {
         label: "Running",
-        color: "#3B82F6",
+        color: colors.accent,
         icon: <Play size={15} />,
     },
 
     paused: {
         label: "Paused",
-        color: "#F59E0B",
+        color: colors.warning,
         icon: <Pause size={15} />,
     },
 
     passed: {
         label: "Passed",
-        color: "#22C55E",
+        color: colors.success,
         icon: <CheckCircle2 size={15} />,
     },
 
     failed: {
         label: "Failed",
-        color: "#EF4444",
+        color: colors.danger,
         icon: <XCircle size={15} />,
     },
 
     stopped: {
         label: "Stopped",
-        color: "#8B949E",
+        color: colors.textSecondary,
         icon: <Square size={15} />,
     },
 } as const;
@@ -72,41 +80,43 @@ export function ExecutionBar() {
     return (
         <div
             style={{
-                height: 40,
-                display: "flex",
-                alignItems: "center",
-                gap: 18,
+                ...layout.row,
 
-                padding: "0 18px",
+                height: 44,
 
-                background: "#11161D",
+                gap: spacing.lg,
 
-                borderBottom: "1px solid #30363D",
+                padding: `0 ${spacing.lg}px`,
+
+                background: colors.panel,
+
+                borderBottom: `1px solid ${colors.border}`,
             }}
         >
             <div
                 style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
+                    ...layout.row,
 
-                    minWidth: 120,
+                    gap: spacing.sm,
+
+                    minWidth: 130,
 
                     color: current.color,
 
-                    fontSize: 13,
-
-                    fontWeight: 600,
+                    ...typography.subtitle,
                 }}
             >
                 {current.icon}
 
-                {current.label}
+                <span>
+                    {current.label}
+                </span>
             </div>
 
             <div
                 style={{
                     flex: 1,
+
                     maxWidth: 420,
                 }}
             >
@@ -122,9 +132,9 @@ export function ExecutionBar() {
 
                     textAlign: "right",
 
-                    color: "#8B949E",
+                    color: colors.textSecondary,
 
-                    fontSize: 12,
+                    ...typography.caption,
                 }}
             >
                 {executedNodes} / {totalNodes} Nodes

@@ -40,6 +40,7 @@ interface FlowStore {
 
   selectedNodeId: string | null;
   clipboard: FlowNode | null;
+  resetFlow(): void;
 
 
   saveHistory: () => void;
@@ -427,4 +428,24 @@ export const useFlowStore =
       set({
         selectedNodeId: id,
       }),
+
+    resetFlow() {
+      set({
+        nodes: structuredClone(
+          initialNodes,
+        ),
+
+        edges: structuredClone(
+          initialEdges,
+        ),
+
+        selectedNodeId: null,
+
+        clipboard: null,
+
+        history: [],
+
+        future: [],
+      });
+    },
   }));

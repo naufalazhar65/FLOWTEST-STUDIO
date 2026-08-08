@@ -4,7 +4,24 @@ export interface OpenProjectResult {
     file: File;
 }
 
-export async function openProject(): Promise<OpenProjectResult | null> {
+export interface OpenProjectResult {
+    file: File;
+    handle: FileSystemFileHandle;
+}
+
+export async function openProject(): Promise<
+    OpenProjectResult | null
+> {
+    if (
+        !("showOpenFilePicker" in window)
+    ) {
+        alert(
+            "Your browser does not support File System Access API.",
+        );
+
+        return null;
+    }
+
     try {
         const [handle] =
             await window.showOpenFilePicker({
@@ -13,12 +30,11 @@ export async function openProject(): Promise<OpenProjectResult | null> {
                 types: [
                     {
                         description:
-                            "FlowTest Project",
+                            "FlowTest Studio Project",
 
                         accept: {
                             "application/json": [
                                 ".flow",
-                                ".json",
                             ],
                         },
                     },
@@ -29,8 +45,8 @@ export async function openProject(): Promise<OpenProjectResult | null> {
             await handle.getFile();
 
         return {
-            handle,
             file,
+            handle,
         };
     } catch {
         return null;

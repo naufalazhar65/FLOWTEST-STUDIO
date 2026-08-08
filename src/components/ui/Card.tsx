@@ -1,22 +1,47 @@
-import type { HTMLAttributes, ReactNode } from "react";
+import type {
+    CSSProperties,
+    ReactNode,
+} from "react";
 
-type Props = HTMLAttributes<HTMLDivElement> & {
-  children: ReactNode;
-};
+import {
+    colors,
+    radius,
+    shadow,
+} from "../../themes";
 
-export function Card({ children, ...props }: Props) {
-  return (
-    <div
-      {...props}
-      style={{
-        background: "#161B22",
-        border: "1px solid #30363D",
-        borderRadius: 12,
-        padding: 16,
-        ...props.style,
-      }}
-    >
-      {children}
-    </div>
-  );
+interface Props {
+    children: ReactNode;
+
+    padding?: number;
+
+    hoverable?: boolean;
+
+    style?: CSSProperties;
+}
+
+export function Card({
+    children,
+    style,
+}: Props) {
+    return (
+        <div
+            style={{
+                background:
+                    colors.panel,
+
+                border:
+                    `1px solid ${colors.border}`,
+
+                borderRadius:
+                    radius.md,
+
+                boxShadow:
+                    shadow.card,
+
+                ...style,
+            }}
+        >
+            {children}
+        </div>
+    );
 }

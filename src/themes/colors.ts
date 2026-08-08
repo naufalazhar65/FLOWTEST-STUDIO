@@ -1,25 +1,32 @@
 export const colors = {
-  background: "#0D1117",
+    // Base
+    background: "#0D1117",
+    canvas: "#0B1016",
+    panel: "#161B22",
+    panelHover: "#1C2128",
 
-  surface: "#161B22",
+    // Border
+    border: "#30363D",
+    borderLight: "#3D444D",
 
-  surfaceHover: "#1F2630",
+    // Text
+    text: "#F0F6FC",
+    textSecondary: "#8B949E",
+    textMuted: "#6E7681",
 
-  border: "#30363D",
+    // Brand
+    accent: "#2F81F7",
+    accentHover: "#58A6FF",
 
-  primary: "#7C5CFC",
+    // Status
+    success: "#3FB950",
+    warning: "#D29922",
+    danger: "#F85149",
 
-  primaryHover: "#947BFF",
-
-  success: "#3FB950",
-
-  warning: "#D29922",
-
-  danger: "#F85149",
-
-  text: "#F0F6FC",
-
-  textSecondary: "#8B949E",
-
-  canvas: "#0F141A",
+    // ⭐ Baru
+    selection: "#1F6FEB33",
+    overlay: "rgba(0,0,0,.45)",
+    shadow: "rgba(0,0,0,.30)",
+    focus: "#388BFD",
+    disabled: "#484F58",
 };

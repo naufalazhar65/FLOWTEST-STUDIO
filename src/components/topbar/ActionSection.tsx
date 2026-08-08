@@ -1,24 +1,49 @@
 import { ToolbarGroup } from "../ui/ToolbarGroup";
 
-import { OpenButton } from "./OpenButton";
-import { SaveButton } from "./SaveButton";
+import { ProjectMenu } from "./ProjectMenu";
 import { RunButton } from "./RunButton";
 
-export function ActionSection() {
-    return (
-        <div className="flex items-center gap-3">
+import { useProjectStore } from "../../features/project/store/useProjectStore";
 
+export function ActionSection() {
+    const name = useProjectStore(
+        (state) => state.name,
+    );
+
+    const modified = useProjectStore(
+        (state) => state.isModified,
+    );
+
+    return (
+        <div
+            style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+            }}
+        >
+            {/* Project */}
             <ToolbarGroup>
-                <OpenButton />
-                <SaveButton />
+                <ProjectMenu
+                    name={name}
+                    modified={modified}
+                />
             </ToolbarGroup>
 
-            <div className="h-7 w-px bg-neutral-700" />
+            {/* Divider */}
+            <div
+                style={{
+                    width: 1,
+                    height: 24,
+                    margin: "0 2px",
+                    background: "#30363D",
+                }}
+            />
 
+            {/* Run */}
             <ToolbarGroup>
                 <RunButton />
             </ToolbarGroup>
-
         </div>
     );
 }
