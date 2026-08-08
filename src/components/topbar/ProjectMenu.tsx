@@ -7,13 +7,9 @@ import {
     X,
 } from "lucide-react";
 
-import {
-    useState,
-} from "react";
+import { useState } from "react";
 
-import type {
-    ReactNode,
-} from "react";
+import type { ReactNode } from "react";
 
 import {
     colors,
@@ -26,17 +22,26 @@ import {
 } from "../../features/workspace/store/useWorkspaceStore";
 
 import {
+    useProjectStore,
+} from "../../features/project/store/useProjectStore";
+
+import {
     executeCommand,
 } from "../../features/command/services/commandRegistry";
 
-import {
-    ProjectBadge,
-} from "./ProjectBadge";
+import { ProjectBadge } from "./ProjectBadge";
+
+import { ConfirmDialog } from "../ui/ConfirmDialog";
 
 interface Props {
     name: string;
     modified: boolean;
 }
+
+type ProjectTransition =
+    | "new"
+    | "open"
+    | "close";
 
 export function ProjectMenu({
     name,
@@ -45,183 +50,356 @@ export function ProjectMenu({
     const [open, setOpen] =
         useState(false);
 
+    const [
+        confirmTransition,
+        setConfirmTransition,
+    ] = useState<ProjectTransition | null>(
+        null,
+    );
+
     const openCreateProject =
         useWorkspaceStore(
             (state) =>
                 state.openCreateProject,
         );
 
-    async function runCommand(
-        id: string,
+    const projectModified =
+        useProjectStore(
+            (state) =>
+                state.isModified,
+        );
+
+    /**
+     * Execute the actual project action.
+     */
+    async function executeTransition(
+        action: ProjectTransition,
+    ) {
+        switch (action) {
+            case "new":
+                openCreateProject();
+                break;
+
+            case "open":
+                await executeCommand(
+                    "project.open",
+                );
+                break;
+
+            case "close":
+                await executeCommand(
+                    "project.close",
+                );
+                break;
+        }
+    }
+
+    /**
+     * Ask for confirmation when the
+     * current project has unsaved changes.
+     */
+    function requestTransition(
+        action: ProjectTransition,
     ) {
         setOpen(false);
 
-        await executeCommand(id);
+        const hasUnsavedChanges =
+            projectModified || modified;
+
+        if (hasUnsavedChanges) {
+            setConfirmTransition(action);
+            return;
+        }
+
+        void executeTransition(action);
     }
 
-    function handleNewProject() {
-        setOpen(false);
+    /**
+     * Cancel the pending transition.
+     */
+    function handleCancelTransition() {
+        setConfirmTransition(null);
+    }
 
-        openCreateProject();
+    /**
+     * Save the current project first,
+     * then continue with the requested action.
+     */
+    async function handleSaveAndContinue() {
+        const action =
+            confirmTransition;
+
+        if (!action) {
+            return;
+        }
+
+        try {
+            await executeCommand(
+                "project.save",
+            );
+
+            const stillModified =
+                useProjectStore
+                    .getState()
+                    .isModified;
+
+            /*
+             * Save was cancelled or failed.
+             * Keep the confirmation dialog open.
+             */
+            if (stillModified) {
+                return;
+            }
+
+            setConfirmTransition(null);
+
+            await executeTransition(
+                action,
+            );
+        } catch (error) {
+            console.error(
+                "Failed to save project:",
+                error,
+            );
+        }
+    }
+
+    /**
+     * Discard current changes and
+     * continue with the requested action.
+     */
+    async function handleDiscardAndContinue() {
+        const action =
+            confirmTransition;
+
+        if (!action) {
+            return;
+        }
+
+        try {
+            setConfirmTransition(null);
+
+            await executeTransition(
+                action,
+            );
+        } catch (error) {
+            console.error(
+                "Failed to continue project transition:",
+                error,
+            );
+        }
     }
 
     return (
-        <div
-            style={{
-                position: "relative",
-            }}
-        >
-            <button
-                type="button"
-                onClick={() =>
-                    setOpen(
-                        (value) => !value,
-                    )
-                }
+        <>
+            <div
                 style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6,
-
-                    background:
-                        "transparent",
-
-                    border: "none",
-
-                    padding: 0,
-
-                    cursor: "pointer",
+                    position: "relative",
                 }}
             >
-                <ProjectBadge
-                    name={name}
-                    modified={modified}
-                />
-
-                <ChevronDown
-                    size={15}
-                    color={
-                        colors.textSecondary
+                <button
+                    type="button"
+                    onClick={() =>
+                        setOpen(
+                            (value) =>
+                                !value,
+                        )
                     }
                     style={{
-                        transition:
-                            "transform .18s ease",
+                        display: "flex",
+                        alignItems:
+                            "center",
 
-                        transform: open
-                            ? "rotate(180deg)"
-                            : "rotate(0deg)",
-                    }}
-                />
-            </button>
-
-            {open && (
-                <div
-                    style={{
-                        position:
-                            "absolute",
-
-                        top:
-                            "calc(100% + 8px)",
-
-                        left: 0,
-
-                        width: 240,
-
-                        padding: 6,
+                        gap: 6,
 
                         background:
-                            colors.panel,
+                            "transparent",
 
-                        border:
-                            `1px solid ${colors.border}`,
+                        border: "none",
 
-                        borderRadius:
-                            radius.md,
+                        padding: 0,
 
-                        boxShadow:
-                            shadow.floating,
-
-                        zIndex: 1000,
+                        cursor: "pointer",
                     }}
                 >
-                    <MenuItem
-                        icon={
-                            <FilePlus2
-                                size={16}
-                            />
-                        }
-                        label="New Project"
-                        shortcut="⌘N"
-                        onClick={
-                            handleNewProject
+                    <ProjectBadge
+                        name={name}
+                        modified={
+                            modified
                         }
                     />
 
-                    <MenuItem
-                        icon={
-                            <FolderOpen
-                                size={16}
-                            />
+                    <ChevronDown
+                        size={15}
+                        color={
+                            colors.textSecondary
                         }
-                        label="Open Project"
-                        shortcut="⌘O"
-                        onClick={() => {
-                            void runCommand(
-                                "project.open",
-                            );
+                        style={{
+                            transition:
+                                "transform .18s ease",
+
+                            transform:
+                                open
+                                    ? "rotate(180deg)"
+                                    : "rotate(0deg)",
                         }}
                     />
+                </button>
 
-                    <MenuDivider />
+                {open && (
+                    <div
+                        style={{
+                            position:
+                                "absolute",
 
-                    <MenuItem
-                        icon={
-                            <Save
-                                size={16}
-                            />
-                        }
-                        label="Save"
-                        shortcut="⌘S"
-                        onClick={() => {
-                            void runCommand(
-                                "project.save",
-                            );
+                            top:
+                                "calc(100% + 8px)",
+
+                            left: 0,
+
+                            width: 240,
+
+                            padding: 6,
+
+                            background:
+                                colors.panel,
+
+                            border:
+                                `1px solid ${colors.border}`,
+
+                            borderRadius:
+                                radius.md,
+
+                            boxShadow:
+                                shadow.floating,
+
+                            zIndex: 1000,
                         }}
-                    />
+                    >
+                        <MenuItem
+                            icon={
+                                <FilePlus2
+                                    size={16}
+                                />
+                            }
+                            label="New Project"
+                            shortcut="⌘N"
+                            onClick={() =>
+                                requestTransition(
+                                    "new",
+                                )
+                            }
+                        />
 
-                    <MenuItem
-                        icon={
-                            <SaveAll
-                                size={16}
-                            />
-                        }
-                        label="Save As"
-                        shortcut="⇧⌘S"
-                        onClick={() => {
-                            void runCommand(
-                                "project.saveAs",
-                            );
-                        }}
-                    />
+                        <MenuItem
+                            icon={
+                                <FolderOpen
+                                    size={16}
+                                />
+                            }
+                            label="Open Project"
+                            shortcut="⌘O"
+                            onClick={() =>
+                                requestTransition(
+                                    "open",
+                                )
+                            }
+                        />
 
-                    <MenuDivider />
+                        <MenuDivider />
 
-                    <MenuItem
-                        icon={
-                            <X size={16} />
-                        }
-                        label="Close Project"
-                        shortcut="⇧⌘W"
-                        danger
-                        onClick={() => {
-                            void runCommand(
-                                "project.close",
-                            );
-                        }}
-                    />
-                </div>
-            )}
-        </div>
+                        <MenuItem
+                            icon={
+                                <Save
+                                    size={16}
+                                />
+                            }
+                            label="Save"
+                            shortcut="⌘S"
+                            onClick={() => {
+                                setOpen(
+                                    false,
+                                );
+
+                                void executeCommand(
+                                    "project.save",
+                                );
+                            }}
+                        />
+
+                        <MenuItem
+                            icon={
+                                <SaveAll
+                                    size={16}
+                                />
+                            }
+                            label="Save As"
+                            shortcut="⇧⌘S"
+                            onClick={() => {
+                                setOpen(
+                                    false,
+                                );
+
+                                void executeCommand(
+                                    "project.saveAs",
+                                );
+                            }}
+                        />
+
+                        <MenuDivider />
+
+                        <MenuItem
+                            icon={
+                                <X size={16} />
+                            }
+                            label="Close Project"
+                            shortcut="⇧⌘W"
+                            danger
+                            onClick={() =>
+                                requestTransition(
+                                    "close",
+                                )
+                            }
+                        />
+                    </div>
+                )}
+            </div>
+
+            <ConfirmDialog
+                open={
+                    confirmTransition !==
+                    null
+                }
+                title="Unsaved Changes"
+                message={
+                    <>
+                        You have unsaved
+                        changes in{" "}
+                        <strong>
+                            {name}
+                        </strong>
+                        .
+                        <br />
+                        <br />
+                        Do you want to save
+                        them before
+                        continuing?
+                    </>
+                }
+                cancelLabel="Cancel"
+                secondaryLabel="Don't Save"
+                confirmLabel="Save"
+                onCancel={
+                    handleCancelTransition
+                }
+                onSecondary={() => {
+                    void handleDiscardAndContinue();
+                }}
+                onConfirm={() => {
+                    void handleSaveAndContinue();
+                }}
+            />
+        </>
     );
 }
 
@@ -253,7 +431,8 @@ function MenuItem({
 
                 display: "flex",
 
-                alignItems: "center",
+                alignItems:
+                    "center",
 
                 gap: 10,
 
@@ -277,11 +456,15 @@ function MenuItem({
 
                 fontSize: 13,
             }}
-            onMouseEnter={(event) => {
+            onMouseEnter={(
+                event,
+            ) => {
                 event.currentTarget.style.background =
                     colors.panelHover;
             }}
-            onMouseLeave={(event) => {
+            onMouseLeave={(
+                event,
+            ) => {
                 event.currentTarget.style.background =
                     "transparent";
             }}
