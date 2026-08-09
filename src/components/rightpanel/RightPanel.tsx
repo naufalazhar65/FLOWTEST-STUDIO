@@ -2,9 +2,11 @@ import { useState } from "react";
 
 import { InspectorPanel } from "../inspector/InspectorPanel";
 import { GeneratorPanel } from "../../features/generator/components/GeneratorPanel";
+import { ElementInspector } from "../../features/inspector/components/ElementInspector";
 
 type RightPanelTab =
     | "properties"
+    | "element"
     | "generator";
 
 export function RightPanel() {
@@ -17,18 +19,27 @@ export function RightPanel() {
         <div
             style={{
                 height: "100%",
+
                 display: "flex",
+
                 flexDirection: "column",
+
                 minHeight: 0,
+
                 background: "#0D1117",
             }}
         >
+            {/* Tabs */}
+
             <div
                 style={{
                     display: "flex",
+
                     flexShrink: 0,
+
                     borderBottom:
                         "1px solid #30363D",
+
                     background: "#161B22",
                 }}
             >
@@ -48,6 +59,19 @@ export function RightPanel() {
 
                 <TabButton
                     active={
+                        tab === "element"
+                    }
+                    onClick={() =>
+                        setTab(
+                            "element",
+                        )
+                    }
+                >
+                    Element
+                </TabButton>
+
+                <TabButton
+                    active={
                         tab ===
                         "generator"
                     }
@@ -61,37 +85,64 @@ export function RightPanel() {
                 </TabButton>
             </div>
 
+            {/* Panel */}
+
             <div
                 style={{
                     flex: 1,
+
                     display: "flex",
+
                     minHeight: 0,
+
                     overflow: "hidden",
                 }}
             >
                 {tab ===
-                "properties" ? (
+                    "properties" && (
+                        <div
+                            style={{
+                                flex: 1,
+
+                                minHeight: 0,
+
+                                overflow: "auto",
+                            }}
+                        >
+                            <InspectorPanel />
+                        </div>
+                    )}
+
+                {tab === "element" && (
                     <div
                         style={{
                             flex: 1,
+
                             minHeight: 0,
-                            overflow: "auto",
-                        }}
-                    >
-                        <InspectorPanel />
-                    </div>
-                ) : (
-                    <div
-                        style={{
-                            flex: 1,
-                            minHeight: 0,
-                            display: "flex",
+
                             overflow: "hidden",
                         }}
                     >
-                        <GeneratorPanel />
+                        <ElementInspector />
                     </div>
                 )}
+
+                {tab ===
+                    "generator" && (
+                        <div
+                            style={{
+                                flex: 1,
+
+                                minHeight: 0,
+
+                                display: "flex",
+
+                                overflow: "hidden",
+                            }}
+                        >
+                            <GeneratorPanel />
+                        </div>
+                    )}
             </div>
         </div>
     );
@@ -99,7 +150,9 @@ export function RightPanel() {
 
 interface TabButtonProps {
     active: boolean;
+
     children: React.ReactNode;
+
     onClick(): void;
 }
 
@@ -114,18 +167,28 @@ function TabButton({
             onClick={onClick}
             style={{
                 flex: 1,
+
                 padding: "12px 16px",
+
                 cursor: "pointer",
+
                 border: "none",
-                background: "transparent",
+
+                background:
+                    "transparent",
+
                 borderBottom: active
                     ? "2px solid #3B82F6"
                     : "2px solid transparent",
+
                 color: active
                     ? "#FFFFFF"
                     : "#8B949E",
+
                 fontWeight: 600,
-                transition: "all .2s",
+
+                transition:
+                    "all .2s",
             }}
         >
             {children}

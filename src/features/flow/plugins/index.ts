@@ -32,6 +32,8 @@ import { doubleTapPlugin } from "./DoubleTap";
 import { dragPlugin } from "./Drag";
 import { pinchPlugin } from "./Pinch";
 import { zoomPlugin } from "./zoom"
+import { hideKeyboardplugin } from "./HideKeyboard";
+import { pressReturnPlugin } from "./PressReturn";
 
 
 
@@ -60,6 +62,8 @@ export const plugins: NodePlugin[] = [
   pinchPlugin,
   zoomPlugin,
   flingPlugin,
+  hideKeyboardplugin,
+  pressReturnPlugin,
 
 
   // Element Getter

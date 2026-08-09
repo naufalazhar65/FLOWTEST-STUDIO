@@ -36,6 +36,9 @@ import { dragRunner } from "../runners/DragRunner";
 import { pinchRunner } from "../runners/PinchRunner";
 import { zoomRunner } from "../runners/ZoomRunner";
 import { flingRunner } from "../runners/FlingRunner";
+import { hideKeyboardRunner } from "../runners/HideKeyboardRunner";
+import { pressReturnRunner } from "../runners/PressReturnRunner";
+
 
 const registry = new Map<NodeAction, NodeRunner>([
   ["tap", tapRunner],
@@ -74,8 +77,8 @@ const registry = new Map<NodeAction, NodeRunner>([
   ["pinch", pinchRunner],
   ["zoom", zoomRunner],
   ["fling", flingRunner],
-
-
+  ["hideKeyboard", hideKeyboardRunner],
+  ["pressReturn", pressReturnRunner],
 ]);
 
 export function getRunner(

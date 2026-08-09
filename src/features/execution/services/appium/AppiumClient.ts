@@ -84,7 +84,6 @@ export class AppiumClient {
     );
   }
 
-
   private async ensureSession(
     capabilities: AppiumCapabilities,
   ): Promise<void> {
@@ -411,6 +410,29 @@ export class AppiumClient {
     await driver.home();
   }
 
+  async hideKeyboard(): Promise<void> {
+    try {
+      await this.executeMobileCommand(
+        "hideKeyboard",
+        {},
+      );
+    } catch {
+      // iOS may not provide a dismiss action.
+      // Treat this as best-effort.
+    }
+  }
+
+  async pressReturn(): Promise<void> {
+    await this.executeMobileCommand(
+      "keys",
+      {
+        keys: [
+          "\uE006",
+        ],
+      },
+    );
+  }
+
   async screenshot(
     fileName: string,
   ): Promise<string> {
@@ -556,6 +578,13 @@ export class AppiumClient {
 
     return elementService.isDisplayed(
       elementId,
+    );
+  }
+
+  async isKeyboardShown(): Promise<boolean> {
+    return this.executeMobileCommand<boolean>(
+      "isKeyboardShown",
+      {},
     );
   }
 

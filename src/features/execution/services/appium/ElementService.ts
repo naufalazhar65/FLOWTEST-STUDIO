@@ -45,6 +45,20 @@ export class ElementService {
         return STRATEGY_MAP[strategy];
     }
 
+    async getPageSource(): Promise<string> {
+        const sessionId =
+            appiumSession.getSessionId();
+
+        const response =
+            await webDriverClient.get<
+                WebDriverValueResponse<string>
+            >(
+                `/session/${sessionId}/source`,
+            );
+
+        return response.value;
+    }
+
     async findElement(
         strategy: LocatorStrategy,
         locator: string,
@@ -125,6 +139,8 @@ export class ElementService {
             {},
         );
     }
+
+    
 
     async getText(
         elementId: string,
@@ -222,6 +238,8 @@ export class ElementService {
 
         return response.value;
     }
+
+
 }
 
 export const elementService =

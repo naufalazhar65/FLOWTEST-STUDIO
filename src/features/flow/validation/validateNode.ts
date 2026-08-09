@@ -280,7 +280,14 @@ export function validateNode(
         errors,
       );
       break;
+
+    case "pressReturn":
+      break;
+
+    case "hideKeyboard":
+      break;
   }
+
 
   return {
     valid: errors.length === 0,

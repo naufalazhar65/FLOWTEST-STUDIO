@@ -23,6 +23,10 @@ import type {
 import type { FlowSnapshot } from "../history/history";
 
 import { addNodeAction } from "../actions/addNode";
+import {
+  addNodeWithLocatorAction,
+} from "../actions/addNodeWithLocator";
+import type { LocatorStrategy } from "../../execution/types/LocatorStrategy";
 import { updateNodeAction } from "../actions/updateNode";
 import { updateNodeDataAction } from "../actions/updateNodeData";
 import { deleteNodeAction } from "../actions/deleteNode";
@@ -64,6 +68,13 @@ interface FlowStore {
   ) => void;
 
   addNode: (type: NodeType) => void;
+
+  addNodeWithLocator: (
+    type: NodeType,
+    locatorStrategy: LocatorStrategy,
+    locator: string,
+    text?: string,
+  ) => void;
 
   updateNode: (
     id: string,
@@ -174,6 +185,46 @@ export const useFlowStore =
         ),
 
         future: [],
+      });
+
+      markProjectModified();
+    },
+
+    addNodeWithLocator: (
+      type,
+      locatorStrategy,
+      locator,
+      text,
+    ) => {
+      set((state) => {
+        const result =
+          addNodeWithLocatorAction(
+            state.nodes,
+            state.edges,
+            type,
+            {
+              locatorStrategy,
+              locator,
+              text,
+            },
+          );
+
+        return {
+          nodes: result.nodes,
+
+          edges: result.edges,
+
+          selectedNodeId:
+            result.node.id,
+
+          history: pushHistory(
+            state.history,
+            state.nodes,
+            state.edges,
+          ),
+
+          future: [],
+        };
       });
 
       markProjectModified();

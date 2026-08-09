@@ -1,37 +1,30 @@
-<div align="center">
-
 # 🚀 FlowTest Studio
 
 ### Visual Mobile Automation Testing IDE
 
-Design • Execute • Generate • Manage Mobile Automation Tests
+**Design • Inspect • Execute • Generate • Manage Mobile Automation Tests**
 
 Built with **React**, **TypeScript**, **React Flow**, **Appium**, **Monaco Editor**, and **Vite**.
 
 ---
 
-FlowTest Studio is an open-source visual IDE for building, executing, and generating Appium-based mobile automation tests through an interactive workflow designer.
+FlowTest Studio is an open-source visual IDE for building, inspecting, executing, and generating Appium-based mobile automation tests through an interactive workflow designer.
 
-Instead of manually writing automation scripts, QA Engineers can create automation scenarios visually using drag-and-drop nodes, validate workflows, execute them with the built-in execution engine, and generate production-ready automation projects.
+Instead of manually writing automation scripts, QA Engineers can create automation scenarios visually using drag-and-drop nodes, inspect mobile application elements, generate reliable locators, validate workflows, execute them with the built-in execution engine, and generate production-ready automation projects.
 
-</div>
-
----
-
-# 📖 Overview
+## 📖 Overview
 
 FlowTest Studio is designed to modernize the way mobile automation tests are created.
 
-Traditional Appium automation requires engineers to manually develop and maintain large amounts of source code.
+Traditional Appium automation requires engineers to manually develop and maintain large amounts of source code and manually identify mobile element locators.
 
 FlowTest Studio introduces a visual workflow approach where automation scenarios are represented as connected nodes inside an interactive canvas.
 
-Behind the visual interface, multiple engines work together to validate, execute, and generate automation projects.
-
-The platform is currently composed of four major subsystems:
+The platform is currently composed of five major subsystems:
 
 - 🎨 Visual Flow Designer
-- ⚙ Execution Engine
+- 🔍 Mobile Element Inspector
+- ⚙️ Execution Engine
 - 🤖 Code Generator
 - 📂 Project Management
 
@@ -43,7 +36,7 @@ The platform is currently composed of four major subsystems:
 
 Build automation scenarios visually using drag-and-drop nodes.
 
-Features
+### Features
 
 - Drag & Drop Workflow
 - Smart Node Connections
@@ -57,14 +50,121 @@ Features
 - History (Undo / Redo)
 - Dynamic Inspector
 - Plugin-based Nodes
+- Add Locator to Flow
+- Runtime Node Status
+
+## 🔍 Mobile Element Inspector
+
+Inspect mobile application elements directly through Appium.
+
+The Element Inspector provides a visual representation of the mobile application's element hierarchy and allows QA Engineers to inspect element properties and generate automation locators.
+
+### Features
+
+- Mobile Element Tree
+- Element Selection
+- Element Properties
+- Element Attribute Inspection
+- Locator Generation
+- Locator Recommendation
+- Locator Copy
+- Locator Testing
+- Add Locator to Flow
+- Android Locator Support
+- iOS Locator Support
+- XCUITest Locator Support
+
+### Android Locator Strategies
+
+Supported Android locator strategies include:
+
+- Accessibility ID
+- Resource ID
+- Class Name
+- XPath
+- Android UiAutomator
+
+### iOS Locator Strategies
+
+Supported iOS locator strategies include:
+
+- Class Name
+- iOS Predicate
+- iOS Class Chain
+- XPath
+- Accessibility ID
+
+The iOS locator generator uses available element attributes to create more specific selectors.
+
+For example, an iOS button with:
+
+```text
+className = XCUIElementTypeButton
+name = Login
+```
+
+can generate:
+
+#### iOS Predicate
+
+```text
+name == "Login"
+```
+
+#### iOS Class Chain
+
+```text
+**/XCUIElementTypeButton[name == "Login"]
+```
+
+#### XPath
+
+```text
+//XCUIElementTypeButton[@name="Login"]
+```
+
+#### Class Name
+
+```text
+XCUIElementTypeButton
+```
+
+The locator generator can also fall back to the element type when additional attributes are unavailable.
+
+Accessibility ID is not automatically generated from the iOS `name` attribute unless the element exposes a meaningful accessibility identifier. This prevents generic or invalid accessibility selectors from being generated.
+
+### Locator to Flow
+
+Generated locators can be directly added to the visual workflow.
+
+```text
+Element Inspector
+      │
+      ▼
+Select Element
+      │
+      ▼
+Generate Locator
+      │
+      ▼
+Select Locator Strategy
+      │
+      ▼
+Add to Flow
+      │
+      ▼
+Create Element Action Node
+```
+
+The selected locator strategy and locator value are preserved when creating the flow node.
 
 ---
 
-## ⚙ Execution Engine
+## ⚙️ Execution Engine
 
 Execute automation flows directly from the visual designer.
 
-Features
+### Features
 
 - Graph Traversal
 - Sequential Execution
@@ -77,6 +177,9 @@ Features
 - Node Status Tracking
 - Edge Status Tracking
 - Runtime Statistics
+- Appium Session Management
+- Android Execution
+- iOS Execution
 
 ---
 
@@ -84,7 +187,7 @@ Features
 
 Automatically generate production-ready Appium automation projects.
 
-Features
+### Features
 
 - Python Generator
 - Modular Emitters
@@ -102,7 +205,7 @@ Features
 
 Integrated Appium runtime for Android and iOS automation.
 
-Features
+### Features
 
 - Appium Session
 - Driver Factory
@@ -112,6 +215,57 @@ Features
 - Element Service
 - Connection Manager
 - Capability Builder
+- Mobile Element Inspector
+- Locator Generation
+- Locator Testing
+
+Supported locator strategies include:
+
+```text
+id
+xpath
+accessibilityId
+className
+androidUiAutomator
+iOSPredicateString
+iOSClassChain
+```
+
+---
+
+## ⌨️ iOS Keyboard Automation
+
+FlowTest Studio provides dedicated keyboard automation nodes for mobile automation.
+
+### Press Return
+
+The **Press Return** node is particularly useful for iOS applications where the software keyboard remains visible after entering text.
+
+For example:
+
+```text
+Tap Username
+      ↓
+Input Username
+      ↓
+Tap Password
+      ↓
+Input Password
+      ↓
+Press Return
+      ↓
+Tap Login
+```
+
+The `Press Return` action triggers the native return action of the active text field before continuing to the next node.
+
+This is useful when an element such as the Login button is located behind the keyboard.
+
+### Hide Keyboard
+
+FlowTest Studio also provides a **Hide Keyboard** node for keyboard dismissal scenarios.
+
+The node is available as a reusable workflow action and can be used independently when the application supports native keyboard dismissal.
 
 ---
 
@@ -119,7 +273,7 @@ Features
 
 Manage automation projects directly inside FlowTest Studio.
 
-Features
+### Features
 
 - Open Project
 - Save Project
@@ -136,8 +290,6 @@ Features
 - Launch App
 - Close App
 
----
-
 ## Element Actions
 
 - Tap
@@ -149,8 +301,8 @@ Features
 - Pinch
 - Zoom
 - Fling
-
----
+- Press Return
+- Hide Keyboard
 
 ## Device Actions
 
@@ -160,8 +312,6 @@ Features
 - Wait
 - Scroll
 - Screenshot
-
----
 
 ## Element Getters
 
@@ -174,8 +324,6 @@ Features
 - Get Size
 - Get Rect
 
----
-
 ## Device Getters
 
 - Get Current Activity
@@ -184,8 +332,6 @@ Features
 - Get Platform Version
 - Get Device Name
 - Get Device Time
-
----
 
 ## Logic
 
@@ -199,90 +345,92 @@ Features
 # 🏗 Architecture
 
 ```text
-                    FlowTest Studio
-
+                     FlowTest Studio
                             │
-
-        ┌───────────────────┼───────────────────┐
-
-        │                   │                   │
-
-   Flow Designer     Execution Engine    Code Generator
-
-        │                   │                   │
-
-        │                   │                   │
-
-        └─────────────── Project Engine ───────────────┘
-
+         ┌──────────────────┼────────────────────────┐
+         │                  │                        │
+         │                  │                        │
+   Flow Designer     Element Inspector       Execution Engine
+         │                  │                        │
+         │                  │                        │
+         └──────────────────┼────────────────────────┘
                             │
-
-                    Appium Integration
-
+                     Project Engine
                             │
-
-                  Android / iOS Devices
+                     Appium Integration
+                            │
+                     Android / iOS Devices
+                            │
+                       Code Generator
 ```
 
 ---
 
-# ⚙ Execution Pipeline
+# 🔍 Element Inspection Pipeline
+
+```text
+Connect to Appium
+      │
+      ▼
+Create Appium Session
+      │
+      ▼
+Retrieve Page Source
+      │
+      ▼
+Parse Element Hierarchy
+      │
+      ▼
+Display Element Tree
+      │
+      ▼
+Select Element
+      │
+      ▼
+Inspect Element Properties
+      │
+      ▼
+Generate Locator Candidates
+      │
+      ▼
+Select / Test Locator
+      │
+      ▼
+Add Locator to Flow
+```
+
+---
+
+# ⚙️ Execution Pipeline
 
 ```text
 Load Flow
-
       │
-
       ▼
-
 Validate Flow
-
       │
-
       ▼
-
 Initialize Execution
-
       │
-
       ▼
-
 Traverse Graph
-
       │
-
       ▼
-
 Execute Current Node
-
       │
-
       ▼
-
 Resolve Variables
-
       │
-
       ▼
-
 Execute Runner
-
       │
-
       ▼
-
 Resolve Transition
-
       │
-
       ▼
-
 Execute Next Node
-
       │
-
       ▼
-
 Finish Execution
 ```
 
@@ -292,15 +440,12 @@ Finish Execution
 
 FlowTest Studio provides runtime variables that can be shared between nodes.
 
-Example
+Example variables:
 
 ```text
 ${username}
-
 ${password}
-
 ${status}
-
 ${price}
 ```
 
@@ -312,7 +457,7 @@ Variables are resolved during execution and can be reused throughout the workflo
 
 Every workflow is validated before execution begins.
 
-Validation includes
+Validation includes:
 
 - Required Fields
 - Locator Validation
@@ -321,6 +466,7 @@ Validation includes
 - Expression Validation
 - Variable Validation
 - Platform Validation
+- Node Action Validation
 
 Invalid workflows cannot be executed.
 
@@ -330,27 +476,19 @@ Invalid workflows cannot be executed.
 
 The generator produces a complete Appium project structure.
 
-Example
+Example:
 
 ```text
 Generated Project
 
 framework/
-
 pages/
-
 tests/
-
 actions.py
-
 driver.py
-
 variables.py
-
 waits.py
-
 pytest.ini
-
 requirements.txt
 ```
 
@@ -360,7 +498,7 @@ requirements.txt
 
 FlowTest Studio uses **Vitest** for unit testing.
 
-Covered modules include
+Covered modules include:
 
 - Execution Engine
 - Graph Navigator
@@ -372,10 +510,10 @@ Covered modules include
 - Utilities
 - Type Guards
 
-Current Coverage
+### Current Coverage
 
 | Module | Coverage |
-|----------|---------:|
+|---|---:|
 | Execution Engine | ✅ 100% |
 | Graph Navigation | ✅ 100% |
 | Validation | ✅ 97%+ |
@@ -383,7 +521,7 @@ Current Coverage
 | Type Guards | ✅ 100% |
 | Utilities | ✅ 100% |
 
-Coverage continues to improve as additional Appium integration tests and generator scenarios are implemented.
+Coverage continues to improve as additional Appium integration tests, mobile inspection scenarios, and generator scenarios are implemented.
 
 ---
 
@@ -400,14 +538,12 @@ Coverage continues to improve as additional Appium integration tests and generat
 - Monaco Editor
 - Lucide React
 
----
-
 ## Mobile Automation
 
 - Appium
 - WebDriver
-
----
+- XCUITest
+- Android Automation
 
 ## Testing
 
@@ -417,25 +553,38 @@ Coverage continues to improve as additional Appium integration tests and generat
 
 # 🚀 Getting Started
 
-Clone repository
+## Prerequisites
+
+Make sure the following tools are installed:
+
+- Node.js
+- npm
+- Appium
+- Android SDK *(for Android automation)*
+- Xcode *(for iOS automation)*
+- iOS Simulator or physical iOS device
+- Android Emulator or physical Android device
+
+## Clone Repository
 
 ```bash
 git clone https://github.com/naufalazhar65/FlowTest-Studio.git
+cd FlowTest-Studio
 ```
 
-Install dependencies
+## Install Dependencies
 
 ```bash
 npm install
 ```
 
-Run development server
+## Run Development Server
 
 ```bash
 npm run dev
 ```
 
-Build production
+## Build Production
 
 ```bash
 npm run build
@@ -447,40 +596,48 @@ npm run build
 
 ## Phase 1 — Core IDE
 
-- [x] Visual Flow Designer
-- [x] Node Plugin Architecture
-- [x] Execution Engine
-- [x] Variable System
-- [x] Validation Engine
-- [x] Appium Runtime
-- [x] Project Management
-- [x] Monaco Code Preview
-- [x] Generator Explorer
-- [x] Unit Testing
-
----
+- Visual Flow Designer
+- Node Plugin Architecture
+- Execution Engine
+- Variable System
+- Validation Engine
+- Appium Runtime
+- Project Management
+- Monaco Code Preview
+- Generator Explorer
+- Unit Testing
 
 ## Phase 2 — Automation Development
 
-- [ ] Python Project Generator
-- [ ] Export ZIP
-- [ ] Import Existing Project
-- [ ] Mobile Element Inspector
-- [ ] Locator Recorder
-- [ ] Device Manager
-- [ ] Project Templates
-
----
+- Python Project Generator
+- Export ZIP
+- Import Existing Project
+- Mobile Element Inspector
+- Element Tree
+- Element Properties Inspector
+- Locator Generation
+- Android Locator Support
+- iOS Locator Support
+- iOS Predicate Support
+- iOS Class Chain Support
+- XPath Locator Generation
+- Locator Testing
+- Add Locator to Flow
+- Press Return Node
+- Hide Keyboard Node
+- Locator Recorder
+- Device Manager
+- Project Templates
 
 ## Phase 3 — Professional Features
 
-- [ ] HTML Test Report
-- [ ] Parallel Execution
-- [ ] Retry Mechanism
-- [ ] AI Flow Generator
-- [ ] Plugin Marketplace
-- [ ] Cloud Device Execution
-- [ ] Team Collaboration
+- HTML Test Report
+- Parallel Execution
+- Retry Mechanism
+- AI Flow Generator
+- Plugin Marketplace
+- Cloud Device Execution
+- Team Collaboration
 
 ---
 
@@ -488,7 +645,7 @@ npm run build
 
 FlowTest Studio aims to become a complete visual IDE for mobile automation testing.
 
-The long-term goal is to provide QA Engineers with an integrated environment where they can design workflows, execute automation, inspect mobile applications, generate production-ready test projects, and manage the entire automation lifecycle without switching between multiple tools.
+The long-term goal is to provide QA Engineers with an integrated environment where they can design workflows, inspect mobile applications, generate reliable automation locators, execute automation, generate production-ready test projects, and manage the entire automation lifecycle without switching between multiple tools.
 
 ---
 
@@ -496,13 +653,13 @@ The long-term goal is to provide QA Engineers with an integrated environment whe
 
 Contributions are welcome.
 
-If you have ideas, improvements, or bug fixes, feel free to open an Issue or submit a Pull Request.
+If you have ideas, improvements, or bug fixes, feel free to open an **Issue** or submit a **Pull Request**.
 
 ---
 
 # 📄 License
 
-This project is licensed under the MIT License.
+This project is licensed under the **MIT License**.
 
 ---
 
@@ -512,15 +669,11 @@ This project is licensed under the MIT License.
 
 Software Quality Assurance Engineer
 
-- GitHub: https://github.com/naufalazhar65
-- LinkedIn: https://www.linkedin.com/in/naufalazhar
+- GitHub: [naufalazhar65](https://github.com/naufalazhar65)
+- LinkedIn: [naufalazhar](https://www.linkedin.com/in/naufalazhar)
 
 ---
 
-<div align="center">
-
 ### ⭐ If you find FlowTest Studio useful, consider giving this repository a star.
 
-Made with ❤️ using React, TypeScript, React Flow, Monaco Editor, and Appium.
-
-</div>
+Made with ❤️ using React, TypeScript, React Flow, and Appium.

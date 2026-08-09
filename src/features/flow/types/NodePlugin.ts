@@ -42,6 +42,9 @@ export type NodeDefaults =
     locator: string;
   }
   | {
+    action: "pressReturn";
+  }
+  | {
     action: "input";
     locatorStrategy: LocatorStrategy;
     locator: string;
@@ -196,6 +199,9 @@ export type NodeDefaults =
   }
   | {
     action: "home";
+  }
+  | {
+    action: "hideKeyboard";
   }
   | {
     action: "screenshot";

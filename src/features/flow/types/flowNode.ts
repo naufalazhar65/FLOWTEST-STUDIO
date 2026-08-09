@@ -54,6 +54,8 @@ export type NodeAction =
   | "pinch"
   | "zoom"
   | "fling"
+  | "hideKeyboard"
+  | "pressReturn"
 
 
 export interface NodeDebug {
@@ -375,6 +377,15 @@ export interface GetRectNodeData
   action: "getRect";
 }
 
+export interface HideKeyboardNodeData
+  extends BaseNodeData {
+  action: "hideKeyboard";
+}
+
+export interface PressReturnNodeData
+  extends BaseNodeData {
+  action: "pressReturn";
+}
 
 
 export type FlowNodeData =
@@ -413,6 +424,8 @@ export type FlowNodeData =
   | PinchNodeData
   | ZoomNodeData
   | FlingNodeData
+  | HideKeyboardNodeData
+  | PressReturnNodeData
 
 
 export type FlowNode = Node<FlowNodeData>;

@@ -31,7 +31,8 @@ import type {
   DragNodeData,
   PinchNodeData,
   ZoomNodeData,
-  FlingNodeData
+  FlingNodeData,
+  HideKeyboardNodeData,
 } from "./flowNode";
 
 export type NodeFieldKey =
@@ -68,6 +69,7 @@ export type NodeFieldKey =
   | keyof PinchNodeData
   | keyof ZoomNodeData
   | keyof FlingNodeData
+  | keyof HideKeyboardNodeData
 
 export interface NodeField {
   key: NodeFieldKey;
