@@ -203,24 +203,21 @@ export function generateLocators(
         }
 
         /*
-  * iOS Class Chain
-  *
-  * Prefer name when available.
-  *
-  * The selector uses the element type
-  * together with the element name.
-  */
+ * iOS Class Chain
+ *
+ * Prefer name when available.
+ *
+ * The selector uses the element type
+ * together with the element name.
+ */
         if (element.name) {
             candidates.push({
-                strategy:
-                    "iosClassChain",
+                strategy: "iosClassChain",
 
                 value:
-                    `**/${iosClassName}[` +
-                    `name == ${quotePredicate(
+                    `**/${iosClassName}[\`name == ${quotePredicate(
                         element.name,
-                    )}` +
-                    `]`,
+                    )}\`]`,
 
                 score: 90,
 
@@ -231,8 +228,7 @@ export function generateLocators(
             });
         } else {
             candidates.push({
-                strategy:
-                    "iosClassChain",
+                strategy: "iosClassChain",
 
                 value:
                     `**/${iosClassName}`,

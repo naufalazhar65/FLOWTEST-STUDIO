@@ -5,6 +5,7 @@ import {
 import { useState } from "react";
 
 import { ElementProperties } from "./ElementProperties";
+import { ElementHighlight } from "./ElementHighlight";
 import { ElementTree } from "./ElementTree";
 import { LocatorList } from "./LocatorList";
 
@@ -313,6 +314,10 @@ export function ElementInspector() {
                                 locators={
                                     locators
                                 }
+                            />
+                            
+                            <ElementHighlight
+                                element={selectedElement}
                             />
                         </div>
                     )}

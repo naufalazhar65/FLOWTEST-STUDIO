@@ -651,6 +651,9 @@ function formatStrategy(
         case "iosPredicate":
             return "iOS Predicate";
 
+        case "iosClassChain":
+            return "iOS Class Chain";
+
         case "className":
             return "Class Name";
 

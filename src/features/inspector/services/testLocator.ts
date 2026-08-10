@@ -32,6 +32,9 @@ function toExecutionStrategy(
         case "iosPredicate":
             return "iOSPredicateString";
 
+        case "iosClassChain":
+            return "iOSClassChain";
+
         default:
             throw new Error(
                 `Unsupported locator strategy: ${strategy}`,

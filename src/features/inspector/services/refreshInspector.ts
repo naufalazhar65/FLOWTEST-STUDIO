@@ -3,6 +3,8 @@ import { parsePageSource } from "./parsePageSource";
 
 import { useInspectorStore } from "../store/useInspectorStore";
 
+const REFRESH_TIMEOUT = 10000;
+
 export async function refreshInspector() {
     const store =
         useInspectorStore.getState();
@@ -12,7 +14,21 @@ export async function refreshInspector() {
 
     try {
         const source =
-            await getPageSource();
+            await Promise.race([
+                getPageSource(),
+
+                new Promise<never>(
+                    (_, reject) => {
+                        setTimeout(() => {
+                            reject(
+                                new Error(
+                                    "Timeout while retrieving Appium page source.",
+                                ),
+                            );
+                        }, REFRESH_TIMEOUT);
+                    },
+                ),
+            ]);
 
         const elements =
             parsePageSource(source);
@@ -28,6 +44,7 @@ export async function refreshInspector() {
                 ? error.message
                 : "Failed to inspect Appium page.";
 
+        store.setElements([]);
         store.setError(message);
 
         return [];
