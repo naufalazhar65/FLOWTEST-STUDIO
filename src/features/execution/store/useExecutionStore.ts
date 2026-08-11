@@ -2,304 +2,389 @@ import { create } from "zustand";
 
 import type { FlowExecutionStatus } from "../types/FlowExecutionStatus";
 import type { NodeExecutionStatus } from "../types/NodeExecutionStatus";
+import type { NodeExecutionResult } from "../types/NodeExecutionResult";
 
 export type AppiumConnectionStatus =
-  | "checking"
-  | "connected"
-  | "offline";
-
-
+    | "checking"
+    | "connected"
+    | "offline";
 
 interface ExecutionStore {
-  // =====================================
-  // Global Status
-  // =====================================
+    // =====================================
+    // Global Status
+    // =====================================
 
-  status: FlowExecutionStatus;
+    status: FlowExecutionStatus;
 
-  appiumConnection: AppiumConnectionStatus;
+    appiumConnection: AppiumConnectionStatus;
 
-  isPaused: boolean;
+    isPaused: boolean;
 
-  isStopped: boolean;
+    isStopped: boolean;
 
-  currentNodeId: string | null;
+    currentNodeId: string | null;
 
-  nodeStatus: Record<string, NodeExecutionStatus>;
+    nodeStatus: Record<
+        string,
+        NodeExecutionStatus
+    >;
 
-  edgeStatus: Record<string, NodeExecutionStatus>;
+    edgeStatus: Record<
+        string,
+        NodeExecutionStatus
+    >;
 
-  // =====================================
-  // Statistics
-  // =====================================
+    // =====================================
+    // Node Execution History
+    // =====================================
 
-  totalNodes: number;
+    nodeResults: Record<
+        string,
+        NodeExecutionResult
+    >;
 
-  executedNodes: number;
+    setNodeResult(
+        result: NodeExecutionResult,
+    ): void;
 
-  passedNodes: number;
+    // =====================================
+    // Statistics
+    // =====================================
 
-  failedNodes: number;
+    totalNodes: number;
 
-  progress: number;
+    executedNodes: number;
 
-  startedAt: number | null;
+    passedNodes: number;
 
-  finishedAt: number | null;
+    failedNodes: number;
 
-  duration: number;
+    progress: number;
 
-  // =====================================
-  // Actions
-  // =====================================
+    startedAt: number | null;
 
-  setStatus(status: FlowExecutionStatus): void;
-  setAppiumConnection(
-    status: AppiumConnectionStatus,
-  ): void;
+    finishedAt: number | null;
 
-  setCurrentNode(id: string | null): void;
+    duration: number;
 
-  setNodeStatus(
-    id: string,
-    status: NodeExecutionStatus
-  ): void;
+    // =====================================
+    // Actions
+    // =====================================
 
-  setEdgeStatus(
-    id: string,
-    status: NodeExecutionStatus
-  ): void;
+    setStatus(
+        status: FlowExecutionStatus,
+    ): void;
 
-  startExecution(
-    totalNodes: number
-  ): void;
+    setAppiumConnection(
+        status: AppiumConnectionStatus,
+    ): void;
 
-  completeNode(
-    passed: boolean
-  ): void;
+    setCurrentNode(
+        id: string | null,
+    ): void;
 
-  finishExecution(): void;
+    setNodeStatus(
+        id: string,
+        status: NodeExecutionStatus,
+    ): void;
 
-  pauseExecution(): void;
+    setEdgeStatus(
+        id: string,
+        status: NodeExecutionStatus,
+    ): void;
 
-  resumeExecution(): void;
+    startExecution(
+        totalNodes: number,
+    ): void;
 
-  stopExecution(): void;
+    completeNode(
+        passed: boolean,
+    ): void;
 
-  reset(): void;
+    finishExecution(): void;
+
+    pauseExecution(): void;
+
+    resumeExecution(): void;
+
+    stopExecution(): void;
+
+    reset(): void;
 }
 
 export const useExecutionStore =
-  create<ExecutionStore>((set, get) => ({
-    // =====================================
-    // Initial State
-    // =====================================
+    create<ExecutionStore>(
+        (set, get) => ({
+            // =====================================
+            // Initial State
+            // =====================================
+
+            status: "idle",
+
+            appiumConnection:
+                "checking",
+
+            isPaused: false,
+
+            isStopped: false,
+
+            currentNodeId: null,
 
-    status: "idle",
+            nodeStatus: {},
 
-    appiumConnection: "checking",
+            edgeStatus: {},
 
+            nodeResults: {},
 
-    isPaused: false,
+            totalNodes: 0,
 
-    isStopped: false,
+            executedNodes: 0,
 
-    currentNodeId: null,
+            passedNodes: 0,
 
-    nodeStatus: {},
+            failedNodes: 0,
 
-    edgeStatus: {},
+            progress: 0,
 
-    totalNodes: 0,
+            startedAt: null,
 
-    executedNodes: 0,
+            finishedAt: null,
 
-    passedNodes: 0,
+            duration: 0,
 
-    failedNodes: 0,
+            // =====================================
+            // Basic Actions
+            // =====================================
 
-    progress: 0,
+            setStatus(status) {
+                set({
+                    status,
+                });
+            },
 
-    startedAt: null,
+            setAppiumConnection(
+                status,
+            ) {
+                set({
+                    appiumConnection:
+                        status,
+                });
+            },
 
-    finishedAt: null,
+            setCurrentNode(id) {
+                set({
+                    currentNodeId:
+                        id,
+                });
+            },
 
-    duration: 0,
+            setNodeStatus(
+                id,
+                status,
+            ) {
+                set((state) => ({
+                    nodeStatus: {
+                        ...state.nodeStatus,
+                        [id]: status,
+                    },
+                }));
+            },
 
-    // =====================================
-    // Basic Actions
-    // =====================================
+            setEdgeStatus(
+                id,
+                status,
+            ) {
+                set((state) => ({
+                    edgeStatus: {
+                        ...state.edgeStatus,
+                        [id]: status,
+                    },
+                }));
+            },
 
-    setStatus(status) {
-      set({
-        status,
-      });
-    },
+            // =====================================
+            // Node Execution History
+            // =====================================
 
-    setAppiumConnection(status) {
-      set({
-        appiumConnection: status,
-      });
-    },
+            setNodeResult(result) {
+                set((state) => ({
+                    nodeResults: {
+                        ...state.nodeResults,
 
-    setCurrentNode(id) {
-      set({
-        currentNodeId: id,
-      });
-    },
+                        [result.nodeId]:
+                            result,
+                    },
+                }));
+            },
 
-    setNodeStatus(id, status) {
-      set((state) => ({
-        nodeStatus: {
-          ...state.nodeStatus,
-          [id]: status,
-        },
-      }));
-    },
+            // =====================================
+            // Execution
+            // =====================================
 
-    setEdgeStatus(id, status) {
-      set((state) => ({
-        edgeStatus: {
-          ...state.edgeStatus,
-          [id]: status,
-        },
-      }));
-    },
+            startExecution(
+                totalNodes,
+            ) {
+                set({
+                    status: "running",
 
-    // =====================================
-    // Execution
-    // =====================================
+                    isPaused: false,
 
-    startExecution(totalNodes) {
-      set({
-        status: "running",
+                    isStopped: false,
 
-        isPaused: false,
+                    totalNodes,
 
-        isStopped: false,
+                    executedNodes: 0,
 
-        totalNodes,
+                    passedNodes: 0,
 
-        executedNodes: 0,
+                    failedNodes: 0,
 
-        passedNodes: 0,
+                    progress: 0,
 
-        failedNodes: 0,
+                    startedAt:
+                        performance.now(),
 
-        progress: 0,
+                    finishedAt:
+                        null,
 
-        startedAt: performance.now(),
+                    duration: 0,
 
-        finishedAt: null,
+                    currentNodeId:
+                        null,
 
-        duration: 0,
+                    nodeStatus: {},
 
-        currentNodeId: null,
+                    edgeStatus: {},
 
-        nodeStatus: {},
+                    nodeResults: {},
+                });
+            },
 
-        edgeStatus: {},
-      });
-    },
+            completeNode(passed) {
+                const state =
+                    get();
 
-    completeNode(passed) {
-      const state = get();
+                const executed =
+                    state.executedNodes +
+                    1;
 
-      const executed =
-        state.executedNodes + 1;
+                const progress =
+                    state.totalNodes ===
+                    0
+                        ? 0
+                        : Math.round(
+                              (executed /
+                                  state.totalNodes) *
+                                  100,
+                          );
 
-      const progress =
-        state.totalNodes === 0
-          ? 0
-          : Math.round(
-            (executed / state.totalNodes) * 100
-          );
+                set({
+                    executedNodes:
+                        executed,
 
-      set({
-        executedNodes: executed,
+                    progress,
 
-        progress,
+                    passedNodes:
+                        passed
+                            ? state.passedNodes +
+                              1
+                            : state.passedNodes,
 
-        passedNodes: passed
-          ? state.passedNodes + 1
-          : state.passedNodes,
+                    failedNodes:
+                        passed
+                            ? state.failedNodes
+                            : state.failedNodes +
+                              1,
+                });
+            },
 
-        failedNodes: passed
-          ? state.failedNodes
-          : state.failedNodes + 1,
-      });
-    },
+            finishExecution() {
+                const finished =
+                    performance.now();
 
-    finishExecution() {
-      const finished = performance.now();
+                const started =
+                    get().startedAt ??
+                    finished;
 
-      const started =
-        get().startedAt ?? finished;
+                set({
+                    finishedAt:
+                        finished,
 
-      set({
-        finishedAt: finished,
-        duration: finished - started,
-        progress: 100,
-        currentNodeId: null, // opsional, agar highlight node hilang
-      });
-    },
+                    duration:
+                        finished -
+                        started,
 
-    pauseExecution() {
-      set({
-        isPaused: true,
-        status: "paused",
-      });
-    },
+                    progress: 100,
 
-    resumeExecution() {
-      set({
-        isPaused: false,
-        status: "running",
-      });
-    },
+                    currentNodeId:
+                        null,
+                });
+            },
 
-    stopExecution() {
-      set({
-        isStopped: true,
-        status: "stopped",
-      });
-    },
+            pauseExecution() {
+                set({
+                    isPaused: true,
 
-    // =====================================
-    // Reset
-    // =====================================
+                    status: "paused",
+                });
+            },
 
-    reset() {
-      set({
-        appiumConnection: "checking",
+            resumeExecution() {
+                set({
+                    isPaused: false,
 
-        status: "idle",
+                    status: "running",
+                });
+            },
 
-        isPaused: false,
+            stopExecution() {
+                set({
+                    isStopped: true,
 
-        isStopped: false,
+                    status: "stopped",
+                });
+            },
 
-        currentNodeId: null,
+            // =====================================
+            // Reset
+            // =====================================
 
-        nodeStatus: {},
+            reset() {
+                set({
+                    appiumConnection:
+                        "checking",
 
-        edgeStatus: {},
+                    status: "idle",
 
-        totalNodes: 0,
+                    isPaused: false,
 
-        executedNodes: 0,
+                    isStopped: false,
 
-        passedNodes: 0,
+                    currentNodeId:
+                        null,
 
-        failedNodes: 0,
+                    nodeStatus: {},
 
-        progress: 0,
+                    edgeStatus: {},
 
-        startedAt: null,
+                    nodeResults: {},
 
-        finishedAt: null,
+                    totalNodes: 0,
 
-        duration: 0,
-      });
-    },
-  }));
+                    executedNodes: 0,
+
+                    passedNodes: 0,
+
+                    failedNodes: 0,
+
+                    progress: 0,
+
+                    startedAt: null,
+
+                    finishedAt: null,
+
+                    duration: 0,
+                });
+            },
+        }),
+    );

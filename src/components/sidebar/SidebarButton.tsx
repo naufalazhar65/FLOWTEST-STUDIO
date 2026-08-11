@@ -6,15 +6,10 @@ import {
 
 interface SidebarButtonProps {
     icon: ReactNode;
-
     label: string;
-
     subtitle?: string;
-
     color?: string;
-
     onClick?: () => void;
-
     disabled?: boolean;
 }
 
@@ -28,54 +23,59 @@ export function SidebarButton({
 }: SidebarButtonProps) {
     const iconRef =
         useRef<HTMLDivElement>(null);
+
     return (
         <button
+            type="button"
             onClick={onClick}
             disabled={disabled}
-            style={buttonStyle(disabled)}
+            style={buttonStyle(
+                disabled,
+            )}
             onMouseEnter={(e) => {
                 if (disabled) return;
 
-                const glow = `${color}55`;
+                const glow =
+                    `${color}35`;
 
                 e.currentTarget.style.background =
                     "#161B22";
 
                 e.currentTarget.style.borderColor =
-                    color;
+                    `${color}88`;
 
                 e.currentTarget.style.transform =
-                    "translateY(-2px)";
+                    "translateY(-1px)";
 
                 e.currentTarget.style.boxShadow =
-                    `0 2px 10px ${glow}`;
+                    `0 4px 14px ${glow}`;
 
                 if (iconRef.current) {
                     iconRef.current.style.transform =
-                        "scale(1.08) rotate(-2deg)";
+                        "scale(1.05)";
 
                     iconRef.current.style.boxShadow =
-                        `0 0 10px ${glow}`;
+                        `0 0 8px ${glow}`;
                 }
             }}
-
             onMouseLeave={(e) => {
                 if (disabled) return;
 
                 e.currentTarget.style.background =
-                    "#0D1117";
+                    "#11161D";
 
-                e.currentTarget.style.borderColor = `${color}BB`;
+                e.currentTarget.style.borderColor =
+                    "#30363D";
 
                 e.currentTarget.style.transform =
-                    "translateY(0px)";
+                    "translateY(0)";
 
                 e.currentTarget.style.boxShadow =
                     "none";
 
                 if (iconRef.current) {
                     iconRef.current.style.transform =
-                        "scale(1) rotate(0deg)";
+                        "scale(1)";
 
                     iconRef.current.style.boxShadow =
                         "none";
@@ -84,7 +84,9 @@ export function SidebarButton({
         >
             <div
                 ref={iconRef}
-                style={iconContainer(color)}
+                style={iconContainer(
+                    color,
+                )}
             >
                 {icon}
             </div>
@@ -114,17 +116,19 @@ function buttonStyle(
 
         gap: 14,
 
-        padding: "12px",
+        padding:
+            "12px",
 
         marginBottom: 10,
 
         borderRadius: 12,
 
-        border: "1px solid #30363D",
+        border:
+            "1px solid #30363D",
 
         background: disabled
-            ? "#1A1F27"
-            : "#0D1117",
+            ? "#161B22"
+            : "#11161D",
 
         color: disabled
             ? "#555"
@@ -134,9 +138,13 @@ function buttonStyle(
             ? "not-allowed"
             : "pointer",
 
-        transition: "all .18s ease",
+        transition:
+            "all .16s ease",
 
         textAlign: "left",
+
+        boxSizing:
+            "border-box",
     };
 }
 
@@ -168,6 +176,7 @@ function iconContainer(
             "transform .18s ease, box-shadow .18s ease",
     };
 }
+
 
 const content: CSSProperties = {
     flex: 1,

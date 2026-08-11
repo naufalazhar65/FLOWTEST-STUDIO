@@ -13,17 +13,26 @@ import { executeNode } from "./executeNode";
 import { executionLogger } from "../services/executionLogger";
 import { waitWhilePaused } from "../utils/waitWhilePaused";
 
+import {
+    recordExecutionReport,
+} from "../../reports/services/reportRecorder";
+
 export async function executeFlow(
     nodes: FlowNode[],
     context: ExecutionContext,
 ) {
-    const execution = useExecutionStore.getState();
+    const execution =
+        useExecutionStore.getState();
+
+    const reportStartedAt =
+        Date.now();
 
     // ---------------------------------------
     // Reset
     // ---------------------------------------
 
     executionLogger.clear();
+
     execution.reset();
 
     const graph = new GraphNavigator(
@@ -38,29 +47,43 @@ export async function executeFlow(
     );
 
     executionLogger.info({
-        message: "Starting execution...",
+        message:
+            "Starting execution...",
     });
 
-    const startedAt = performance.now();
+    const startedAt =
+        performance.now();
 
     // ---------------------------------------
     // Validation
     // ---------------------------------------
 
-    const validation = validateFlow(nodes);
+    const validation =
+        validateFlow(nodes);
 
     if (!validation.valid) {
-        execution.setStatus("failed");
-        execution.setCurrentNode(null);
+        execution.setStatus(
+            "failed",
+        );
+
+        execution.setCurrentNode(
+            null,
+        );
 
         executionLogger.error({
-            message: "Flow validation failed.",
+            message:
+                "Flow validation failed.",
+
             details: {
-                errors: validation.errors.length,
+                errors:
+                    validation.errors
+                        .length,
             },
         });
 
-        console.group("Flow validation failed");
+        console.group(
+            "Flow validation failed",
+        );
 
         validation.errors.forEach(
             (nodeError, index) => {
@@ -68,15 +91,37 @@ export async function executeFlow(
                     `${index + 1}. ${nodeError.nodeTitle} (${nodeError.nodeId})`,
                 );
 
-                nodeError.errors.forEach((error) => {
-                    console.error(error);
-                });
+                nodeError.errors.forEach(
+                    (error) => {
+                        console.error(
+                            error,
+                        );
+                    },
+                );
 
                 console.groupEnd();
             },
         );
 
         console.groupEnd();
+
+        const finishedAt =
+            Date.now();
+
+        const duration =
+            performance.now() -
+            startedAt;
+
+        recordExecutionReport({
+            status: "failed",
+
+            startedAt:
+                reportStartedAt,
+
+            finishedAt,
+
+            duration,
+        });
 
         throw new Error(
             "Flow contains validation errors.",
@@ -91,24 +136,35 @@ export async function executeFlow(
         let currentNode =
             graph.getStartNode();
 
-        let activeEdgeId: string | null =
-            null;
+        let activeEdgeId:
+            string | null = null;
 
         while (currentNode) {
-            const node = currentNode;
+            const node =
+                currentNode;
 
             await waitWhilePaused();
 
-            execution.setCurrentNode(node.id);
+            execution.setCurrentNode(
+                node.id,
+            );
 
             if (
-                node.data.debug.breakpoint
+                node.data.debug
+                    .breakpoint
             ) {
                 executionLogger.info({
-                    message: "Breakpoint reached",
-                    nodeId: node.id,
-                    nodeType: node.data.action,
-                    nodeTitle: node.data.title,
+                    message:
+                        "Breakpoint reached",
+
+                    nodeId:
+                        node.id,
+
+                    nodeType:
+                        node.data.action,
+
+                    nodeTitle:
+                        node.data.title,
                 });
 
                 execution.pauseExecution();
@@ -165,7 +221,10 @@ export async function executeFlow(
         // ---------------------------------------
 
         execution.finishExecution();
-        execution.setStatus("passed");
+
+        execution.setStatus(
+            "passed",
+        );
 
         const duration =
             performance.now() -
@@ -174,16 +233,43 @@ export async function executeFlow(
         executionLogger.success({
             message:
                 "Execution finished",
+
             duration,
+
             details: {
                 formattedDuration:
-                    formatDuration(duration),
+                    formatDuration(
+                        duration,
+                    ),
+
                 totalNodes:
                     nodes.length,
             },
         });
+
+        // ---------------------------------------
+        // Create Report
+        // ---------------------------------------
+
+        recordExecutionReport({
+            status: "passed",
+
+            startedAt:
+                reportStartedAt,
+
+            finishedAt:
+                Date.now(),
+
+            duration,
+        });
     } catch (error) {
-        execution.setStatus("failed");
+        // ---------------------------------------
+        // Execution Failed
+        // ---------------------------------------
+
+        execution.setStatus(
+            "failed",
+        );
 
         const duration =
             performance.now() -
@@ -192,15 +278,36 @@ export async function executeFlow(
         executionLogger.error({
             message:
                 "Execution failed",
+
             duration,
+
             details: {
                 formattedDuration:
-                    formatDuration(duration),
+                    formatDuration(
+                        duration,
+                    ),
+
                 reason:
                     error instanceof Error
                         ? error.message
                         : String(error),
             },
+        });
+
+        // ---------------------------------------
+        // Create Failed Report
+        // ---------------------------------------
+
+        recordExecutionReport({
+            status: "failed",
+
+            startedAt:
+                reportStartedAt,
+
+            finishedAt:
+                Date.now(),
+
+            duration,
         });
 
         throw error;

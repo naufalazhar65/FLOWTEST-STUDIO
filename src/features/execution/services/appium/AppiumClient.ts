@@ -429,8 +429,17 @@ export class AppiumClient {
         keys: [
           "\uE006",
         ],
-      },
+      },  
     );
+  }
+
+  async takeScreenshot(): Promise<string> {
+    const response =
+      await this.sessionGet<string>(
+        "/screenshot",
+      );
+
+    return response;
   }
 
   async screenshot(

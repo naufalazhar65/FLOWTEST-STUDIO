@@ -1,11 +1,11 @@
-import { getVariable } from "./VariableStore";
 import { executionLogger } from "../services/executionLogger";
+import { getVariable } from "./VariableStore";
 
 const variablePattern = /\$\{([^}]+)\}/g;
 
 function getNestedValue(
   value: unknown,
-  path: string
+  path: string,
 ): unknown {
   if (!path) {
     return value;
@@ -13,12 +13,14 @@ function getNestedValue(
 
   return path
     .split(".")
-    .reduce<unknown>((current, key) => {
+    .reduce((current, key) => {
       if (
         current !== null &&
         typeof current === "object"
       ) {
-        return (current as Record<string, unknown>)[key];
+        return (
+          current as Record<string, unknown>
+        )[key];
       }
 
       return undefined;
@@ -26,12 +28,14 @@ function getNestedValue(
 }
 
 export function resolveVariables(
-  value: string
+  value: string,
 ): string {
   return value.replace(
     variablePattern,
     (_, expression: string) => {
-      const parts = expression.trim().split(".");
+      const parts = expression
+        .trim()
+        .split(".");
 
       const variableName = parts.shift();
 
@@ -39,30 +43,31 @@ export function resolveVariables(
         return "";
       }
 
-      const variable = getVariable(variableName);
+      const variable =
+        getVariable(variableName);
 
       if (variable === undefined) {
-        executionLogger.warning(
-          `Variable "${variableName}" not found`
-        );
+        executionLogger.warning({
+          message: `Variable "${variableName}" not found`,
+        });
 
         return `\${${expression}}`;
       }
 
       const resolved = getNestedValue(
         variable,
-        parts.join(".")
+        parts.join("."),
       );
 
       if (resolved === undefined) {
-        executionLogger.warning(
-          `Property "${expression}" not found`
-        );
+        executionLogger.warning({
+          message: `Property "${expression}" not found`,
+        });
 
         return `\${${expression}}`;
       }
 
       return String(resolved);
-    }
+    },
   );
 }

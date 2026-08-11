@@ -1,15 +1,20 @@
 import { create } from "zustand";
 
 import type { WorkspaceMode } from "../types/WorkspaceMode";
+import type { WorkspaceView } from "../types/WorkspaceView";
 
 interface WorkspaceStore {
     mode: WorkspaceMode;
 
-    createProjectOpen: boolean;
+    view: WorkspaceView;
 
     openWorkspace(): void;
 
     showWelcome(): void;
+
+    setView(view: WorkspaceView): void;
+
+    createProjectOpen: boolean;
 
     openCreateProject(): void;
 
@@ -20,17 +25,26 @@ export const useWorkspaceStore =
     create<WorkspaceStore>((set) => ({
         mode: "welcome",
 
+        view: "flow",
+
         createProjectOpen: false,
 
         openWorkspace() {
             set({
                 mode: "workspace",
+                view: "flow",
             });
         },
 
         showWelcome() {
             set({
                 mode: "welcome",
+            });
+        },
+
+        setView(view) {
+            set({
+                view,
             });
         },
 

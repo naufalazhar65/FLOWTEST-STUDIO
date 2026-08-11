@@ -7,6 +7,7 @@ import { useFlowStore } from "../../features/flow/store/useFlowStore";
 import { SidebarButton } from "./SidebarButton";
 import { SidebarSection } from "./SidebarSection";
 import { SidebarCategory } from "./SidebarCategory";
+import { WorkspaceNavigation } from "./WorkspaceNavigation";
 
 import {
     platformMetadata,
@@ -190,13 +191,15 @@ export function Sidebar() {
                 </div>
             </div>
 
+            <WorkspaceNavigation />
+
             <div style={styles.content}>
                 {[...grouped.entries()].map(
                     ([platform, categoryMap]) => {
                         const platformInfo =
                             platformMetadata[
                             platform
-                            ];
+                            ];  
 
                         const PlatformIcon =
                             platformInfo.icon;

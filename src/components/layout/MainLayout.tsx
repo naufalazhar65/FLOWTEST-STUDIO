@@ -12,118 +12,146 @@ import { ExecutionBar } from "../../features/execution/components/ExecutionBar";
 
 import { appiumConnectionService } from "../../features/execution/services/appium/AppiumConnectionService";
 
+import { useWorkspaceStore } from "../../features/workspace/store/useWorkspaceStore";
+
+import { ReportsPage } from "../../features/reports/components/ReportsPage";
+
 export function MainLayout() {
-  useEffect(() => {
-    appiumConnectionService.start();
+    useEffect(() => {
+        appiumConnectionService.start();
 
-    return () => appiumConnectionService.stop();
-  }, []);
+        return () => {
+            appiumConnectionService.stop();
+        };
+    }, []);
 
-  const [consoleExpanded, setConsoleExpanded] =
-    useState(false);
+    const [consoleExpanded, setConsoleExpanded] =
+        useState(false);
 
-  return (
-    <div
-      style={{
-        height: "100vh",
+    const view = useWorkspaceStore(
+        (state) => state.view,
+    );
 
-        display: "grid",
-
-        gridTemplateRows: `auto 1fr ${consoleExpanded
-          ? "220px"
-          : "48px"
-          } 32px`,
-
-        background: "#0D1117",
-
-        overflow: "hidden",
-      }}
-    >
-      <TopBar />
-
-      {/* Main Area */}
-      <div
-        style={{
-          display: "grid",
-
-          gridTemplateColumns:
-            "300px minmax(0,1fr) 420px",
-
-          minHeight: 0,
-
-          overflow: "hidden",
-        }}
-      >
-        {/* Sidebar */}
+    return (
         <div
-          style={{
-            minHeight: 0,
-
-            display: "flex",
-
-            flexDirection: "column",
-
-            overflow: "hidden",
-          }}
-        >
-          <Sidebar />
-        </div>
-
-        {/* Canvas */}
-        <div
-          style={{
-            display: "flex",
-
-            flexDirection: "column",
-
-            minHeight: 0,
-
-            overflow: "hidden",
-          }}
-        >
-          <ExecutionBar />
-
-          <Toolbar />
-
-          <div
             style={{
-              flex: 1,
+                height: "100vh",
 
-              minHeight: 0,
+                display: "grid",
 
-              overflow: "hidden",
+                gridTemplateRows: `auto 1fr ${
+                    consoleExpanded
+                        ? "220px"
+                        : "48px"
+                } 32px`,
+
+                background: "#0D1117",
+
+                overflow: "hidden",
             }}
-          >
-            <FlowCanvas />
-          </div>
+        >
+            <TopBar />
+
+            {/* Main Area */}
+            <div
+                style={{
+                    display: "grid",
+
+                    gridTemplateColumns:
+                        view === "reports"
+                            ? "300px minmax(0, 1fr)"
+                            : "300px minmax(0, 1fr) 420px",
+
+                    minHeight: 0,
+
+                    overflow: "hidden",
+                }}
+            >
+                {/* Sidebar */}
+                <div
+                    style={{
+                        minHeight: 0,
+
+                        display: "flex",
+
+                        flexDirection: "column",
+
+                        overflow: "hidden",
+                    }}
+                >
+                    <Sidebar />
+                </div>
+
+                {/* Workspace Content */}
+                <div
+                    style={{
+                        display: "flex",
+
+                        flexDirection: "column",
+
+                        minHeight: 0,
+
+                        overflow: "hidden",
+
+                        background: "#0D1117",
+                    }}
+                >
+                    {view === "reports" ? (
+                        <ReportsPage />
+                    ) : (
+                        <>
+                            <ExecutionBar />
+
+                            <Toolbar />
+
+                            <div
+                                style={{
+                                    flex: 1,
+
+                                    minHeight: 0,
+
+                                    overflow: "hidden",
+                                }}
+                            >
+                                <FlowCanvas />
+                            </div>
+                        </>
+                    )}
+                </div>
+
+                {/* Inspector */}
+                {view === "flow" && (
+                    <div
+                        style={{
+                            display: "flex",
+
+                            flexDirection: "column",
+
+                            minHeight: 0,
+
+                            overflow: "hidden",
+
+                            borderLeft:
+                                "1px solid #30363D",
+
+                            background: "#0D1117",
+                        }}
+                    >
+                        <RightPanel />
+                    </div>
+                )}
+            </div>
+
+            <ConsolePanel
+                expanded={consoleExpanded}
+                onToggle={() =>
+                    setConsoleExpanded(
+                        (value) => !value,
+                    )
+                }
+            />
+
+            <StatusBar />
         </div>
-
-        {/* Inspector */}
-       <div
-    style={{
-        display: "flex",
-        flexDirection: "column",
-        flex: 1,
-        minHeight: 0,
-        overflow: "hidden",
-        borderLeft: "1px solid #30363D",
-        background: "#0D1117",
-    }}
->
-    <RightPanel />
-</div>
-      </div>
-
-      <ConsolePanel
-        expanded={consoleExpanded}
-        onToggle={() =>
-          setConsoleExpanded(
-            (v) => !v,
-          )
-        }
-      />
-
-      <StatusBar />
-    </div>
-  );
+    );
 }

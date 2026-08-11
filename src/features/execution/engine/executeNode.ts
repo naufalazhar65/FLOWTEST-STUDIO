@@ -10,13 +10,18 @@ export async function executeNode(
     node: FlowNode,
     context: ExecutionContext,
 ): Promise<RunnerResult> {
-    const execution = useExecutionStore.getState();
+    const execution =
+        useExecutionStore.getState();
 
-    const runner = getRunner(node.data.action);
+    const runner =
+        getRunner(node.data.action);
 
-    const startedAt = performance.now();
+    const startedAt =
+        Date.now();
 
-    execution.setCurrentNode(node.id);
+    execution.setCurrentNode(
+        node.id,
+    );
 
     execution.setNodeStatus(
         node.id,
@@ -24,55 +29,130 @@ export async function executeNode(
     );
 
     executionLogger.info({
-        message: "Executing node",
+        message:
+            "Executing node",
+
         nodeId: node.id,
-        nodeType: node.data.action,
-        nodeTitle: node.data.title,
+
+        nodeType:
+            node.data.action,
+
+        nodeTitle:
+            node.data.title,
     });
 
     try {
-        const result = await runner.run(
-            node,
-            context,
-        );
+        const result =
+            await runner.run(
+                node,
+                context,
+            );
+
+        const finishedAt =
+            Date.now();
+
+        const duration =
+            finishedAt -
+            startedAt;
 
         execution.setNodeStatus(
             node.id,
             "passed",
         );
 
-        execution.completeNode(true);
+        execution.setNodeResult({
+            nodeId: node.id,
 
-        return result ?? {
-            outputs: ["next"],
-        };
+            nodeType:
+                node.data.action,
+
+            nodeTitle:
+                node.data.title,
+
+            status: "passed",
+
+            startedAt,
+
+            finishedAt,
+
+            duration,
+        });
+
+        execution.completeNode(
+            true,
+        );
+
+        return (
+            result ?? {
+                outputs: ["next"],
+            }
+        );
     } catch (error) {
+        const finishedAt =
+            Date.now();
+
         const duration =
-            performance.now() - startedAt;
+            finishedAt -
+            startedAt;
+
+        const errorMessage =
+            error instanceof Error
+                ? error.message
+                : String(error);
 
         execution.setNodeStatus(
             node.id,
             "failed",
         );
 
-        execution.completeNode(false);
+        execution.setNodeResult({
+            nodeId: node.id,
+
+            nodeType:
+                node.data.action,
+
+            nodeTitle:
+                node.data.title,
+
+            status: "failed",
+
+            startedAt,
+
+            finishedAt,
+
+            duration,
+
+            error: errorMessage,
+        });
+
+        execution.completeNode(
+            false,
+        );
 
         executionLogger.error({
-            message: "Node execution failed",
+            message:
+                "Node execution failed",
+
             nodeId: node.id,
-            nodeType: node.data.action,
-            nodeTitle: node.data.title,
+
+            nodeType:
+                node.data.action,
+
+            nodeTitle:
+                node.data.title,
+
             duration,
+
             details: {
                 reason:
-                    error instanceof Error
-                        ? error.message
-                        : String(error),
+                    errorMessage,
             },
         });
 
         throw error;
     } finally {
-        execution.setCurrentNode(null);
+        execution.setCurrentNode(
+            null,
+        );
     }
 }
