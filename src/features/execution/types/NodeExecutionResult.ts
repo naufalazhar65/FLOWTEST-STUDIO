@@ -18,4 +18,6 @@ export interface NodeExecutionResult {
     error?: string;
 
     screenshot?: string;
+
+    pageSource?: string;
 }

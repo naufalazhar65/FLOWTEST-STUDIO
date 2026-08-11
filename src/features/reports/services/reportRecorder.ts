@@ -38,6 +38,47 @@ export function recordExecutionReport({
             .getState()
             .logs;
 
+    /*
+     * Snapshot execution environment
+     * into the persisted test report.
+     *
+     * ExecutionStore:
+     *
+     * platform
+     * osVersion
+     * device
+     * automation
+     * sessionId
+     *
+     * TestReport:
+     *
+     * platform
+     * platformVersion
+     * deviceName
+     * automationName
+     * sessionId
+     */
+    const environment = {
+        platform:
+            execution.environment.platform ??
+            "",
+
+        platformVersion:
+            execution.environment.osVersion ??
+            "",
+
+        deviceName:
+            execution.environment.device ??
+            "",
+
+        automationName:
+            execution.environment.automation ??
+            "",
+
+        sessionId:
+            execution.environment.sessionId,
+    };
+
     const nodes = Object.values(
         execution.nodeResults,
     )
@@ -50,37 +91,46 @@ export function recordExecutionReport({
             ...node,
         }));
 
+    const report = {
+        id: crypto.randomUUID(),
+
+        status,
+
+        startedAt,
+
+        finishedAt,
+
+        duration,
+
+        totalNodes:
+            execution.totalNodes,
+
+        executedNodes:
+            execution.executedNodes,
+
+        passedNodes:
+            execution.passedNodes,
+
+        failedNodes:
+            execution.failedNodes,
+
+        environment,
+
+        nodes,
+
+        logs: logs.map(
+            (log) => ({
+                ...log,
+            }),
+        ),
+    };
+
+    console.log(
+        "[Report Environment]",
+        environment,
+    );
+
     useReportStore
         .getState()
-        .addReport({
-            id: crypto.randomUUID(),
-
-            status,
-
-            startedAt,
-
-            finishedAt,
-
-            duration,
-
-            totalNodes:
-                execution.totalNodes,
-
-            executedNodes:
-                execution.executedNodes,
-
-            passedNodes:
-                execution.passedNodes,
-
-            failedNodes:
-                execution.failedNodes,
-
-            nodes,
-
-            logs: logs.map(
-                (log) => ({
-                    ...log,
-                }),
-            ),
-        });
+        .addReport(report);
 }

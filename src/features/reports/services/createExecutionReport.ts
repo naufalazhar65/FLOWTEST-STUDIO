@@ -17,34 +17,85 @@ export function createExecutionReport(): TestReport {
     const logStore =
         useExecutionLogStore.getState();
 
-    const nodes = Object.values(
-        execution.nodeResults,
-    )
-        .sort(
-            (a, b) =>
-                a.startedAt -
-                b.startedAt,
+    /*
+     * ExecutionEnvironment uses:
+     *
+     * platform
+     * osVersion
+     * device
+     * automation
+     * sessionId
+     *
+     * TestReport uses:
+     *
+     * platform
+     * platformVersion
+     * deviceName
+     * automationName
+     * sessionId
+     */
+    const environment = {
+        platform:
+            execution.environment.platform ?? "",
+
+        platformVersion:
+            execution.environment.osVersion ?? "",
+
+        deviceName:
+            execution.environment.device ?? "",
+
+        automationName:
+            execution.environment.automation ?? "",
+
+        sessionId:
+            execution.environment.sessionId,
+    };
+
+    console.log(
+        "[Report Environment]",
+        environment,
+    );
+
+    const nodes =
+        Object.values(
+            execution.nodeResults,
         )
-        .map((node) => ({
-            nodeId: node.nodeId,
+            .sort(
+                (a, b) =>
+                    a.startedAt -
+                    b.startedAt,
+            )
+            .map((node) => ({
+                nodeId:
+                    node.nodeId,
 
-            nodeType: node.nodeType,
+                nodeType:
+                    node.nodeType,
 
-            nodeTitle: node.nodeTitle,
+                nodeTitle:
+                    node.nodeTitle,
 
-            status: node.status,
+                status:
+                    node.status,
 
-            startedAt: node.startedAt,
+                startedAt:
+                    node.startedAt,
 
-            finishedAt: node.finishedAt,
+                finishedAt:
+                    node.finishedAt,
 
-            duration: node.duration,
+                duration:
+                    node.duration,
 
-            error: node.error,
+                error:
+                    node.error,
 
-            screenshot:
-                node.screenshot,
-        }));
+                screenshot:
+                    node.screenshot,
+
+                pageSource:
+                    node.pageSource,
+            }));
 
     return {
         id: crypto.randomUUID(),
@@ -81,35 +132,39 @@ export function createExecutionReport(): TestReport {
         failedNodes:
             execution.failedNodes,
 
+        environment,
+
         nodes,
 
-        logs: logStore.logs.map(
-            (log) => ({
-                id: log.id,
+        logs:
+            logStore.logs.map(
+                (log) => ({
+                    id: log.id,
 
-                level: log.level,
+                    level:
+                        log.level,
 
-                message:
-                    log.message,
+                    message:
+                        log.message,
 
-                timestamp:
-                    log.timestamp,
+                    timestamp:
+                        log.timestamp,
 
-                duration:
-                    log.duration,
+                    duration:
+                        log.duration,
 
-                nodeId:
-                    log.nodeId,
+                    nodeId:
+                        log.nodeId,
 
-                nodeType:
-                    log.nodeType,
+                    nodeType:
+                        log.nodeType,
 
-                nodeTitle:
-                    log.nodeTitle,
+                    nodeTitle:
+                        log.nodeTitle,
 
-                details:
-                    log.details,
-            }),
-        ),
+                    details:
+                        log.details,
+                }),
+            ),
     };
 }

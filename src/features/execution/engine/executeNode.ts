@@ -33,7 +33,8 @@ export async function executeNode(
         message:
             "Executing node",
 
-        nodeId: node.id,
+        nodeId:
+            node.id,
 
         nodeType:
             node.data.action,
@@ -62,7 +63,8 @@ export async function executeNode(
         );
 
         execution.setNodeResult({
-            nodeId: node.id,
+            nodeId:
+                node.id,
 
             nodeType:
                 node.data.action,
@@ -105,6 +107,10 @@ export async function executeNode(
             | string
             | undefined;
 
+        let pageSource:
+            | string
+            | undefined;
+
         try {
             screenshot =
                 await appiumClient.takeScreenshot();
@@ -115,13 +121,24 @@ export async function executeNode(
             );
         }
 
+        try {
+            pageSource =
+                await appiumClient.getPageSource();
+        } catch (pageSourceError) {
+            console.warn(
+                "Failed to capture failure page source.",
+                pageSourceError,
+            );
+        }
+
         execution.setNodeStatus(
             node.id,
             "failed",
         );
 
         execution.setNodeResult({
-            nodeId: node.id,
+            nodeId:
+                node.id,
 
             nodeType:
                 node.data.action,
@@ -137,9 +154,12 @@ export async function executeNode(
 
             duration,
 
-            error: errorMessage,
+            error:
+                errorMessage,
 
             screenshot,
+
+            pageSource,
         });
 
         execution.completeNode(
@@ -150,7 +170,8 @@ export async function executeNode(
             message:
                 "Node execution failed",
 
-            nodeId: node.id,
+            nodeId:
+                node.id,
 
             nodeType:
                 node.data.action,

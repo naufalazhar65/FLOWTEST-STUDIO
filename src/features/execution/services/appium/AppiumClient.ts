@@ -2,7 +2,9 @@ import { webDriverClient } from "./WebDriverClient";
 import {
   buildCapabilities,
   type LaunchCapabilities,
-} from "./buildCapabilities"; import {
+} from "./buildCapabilities";
+
+import {
   elementService,
   type Rect,
 } from "./ElementService";
@@ -14,6 +16,7 @@ import {
 } from "./AppiumSession";
 import { createDriver } from "./driver/DriverFactory";
 import { gestureService } from "./GestureService";
+import { useExecutionStore } from "../../store/useExecutionStore";
 
 
 
@@ -35,6 +38,129 @@ export class AppiumClient {
   ): string {
     return `/session/${appiumSession.getSessionId()
       }${path}`;
+  }
+
+
+
+  private async ensureSession(
+    capabilities: AppiumCapabilities,
+  ): Promise<void> {
+    if (appiumSession.hasSession()) {
+      const existingCapabilities =
+        appiumSession.getCapabilities();
+
+      this.updateExecutionEnvironment(
+        existingCapabilities,
+        appiumSession.getSessionId(),
+      );
+
+      return;
+    }
+
+    const response =
+      await webDriverClient.post<{
+        value: {
+          sessionId: string;
+          capabilities: AppiumCapabilities;
+        };
+      }>("/session", {
+        capabilities: {
+          alwaysMatch: capabilities,
+        },
+      });
+
+    const sessionId =
+      response.value.sessionId;
+
+    const sessionCapabilities =
+      response.value.capabilities;
+
+    appiumSession.setSessionId(
+      sessionId,
+    );
+
+    appiumSession.setCapabilities(
+      sessionCapabilities,
+    );
+
+    this.updateExecutionEnvironment(
+      sessionCapabilities,
+      sessionId,
+    );
+  }
+
+  private updateExecutionEnvironment(
+    capabilities: AppiumCapabilities,
+    sessionId: string | null,
+  ): void {
+    const raw =
+      capabilities as Record<
+        string,
+        unknown
+      >;
+
+    const platformName =
+      String(
+        raw.platformName ??
+        raw["appium:platformName"] ??
+        "",
+      ).toLowerCase();
+
+    const platform =
+      platformName === "android"
+        ? "Android"
+        : platformName === "ios"
+          ? "iOS"
+          : null;
+
+    const osVersion =
+      String(
+        raw.platformVersion ??
+        raw["appium:platformVersion"] ??
+        "",
+      ) || null;
+
+    const device =
+      String(
+        raw.deviceName ??
+        raw["appium:deviceName"] ??
+        "",
+      ) || null;
+
+    const automationName =
+      String(
+        raw.automationName ??
+        raw["appium:automationName"] ??
+        "",
+      ) || null;
+
+    useExecutionStore
+      .getState()
+      .setEnvironment({
+        platform,
+
+        osVersion,
+
+        device,
+
+        automation:
+          automationName
+            ? "Appium"
+            : null,
+
+        sessionId,
+      });
+
+    console.log(
+      "[FlowTest Environment]",
+      {
+        platform,
+        osVersion,
+        device,
+        automationName,
+        sessionId,
+      },
+    );
   }
 
   private async sessionGet<T>(
@@ -81,37 +207,6 @@ export class AppiumClient {
         script: `mobile: ${command}`,
         args: [args],
       },
-    );
-  }
-
-  private async ensureSession(
-    capabilities: AppiumCapabilities,
-  ): Promise<void> {
-    if (appiumSession.hasSession()) {
-      return;
-    }
-
-    const response =
-      await webDriverClient.post<{
-        value: {
-          sessionId: string;
-          capabilities: AppiumCapabilities;
-        };
-      }>(
-        "/session",
-        {
-          capabilities: {
-            alwaysMatch: capabilities,
-          },
-        },
-      );
-
-    appiumSession.setSessionId(
-      response.value.sessionId,
-    );
-
-    appiumSession.setCapabilities(
-      response.value.capabilities,
     );
   }
 
@@ -429,7 +524,7 @@ export class AppiumClient {
         keys: [
           "\uE006",
         ],
-      },  
+      },
     );
   }
 
@@ -440,6 +535,10 @@ export class AppiumClient {
       );
 
     return response;
+  }
+
+  async getPageSource(): Promise<string> {
+    return this.sessionGet<string>("/source");
   }
 
   async screenshot(
@@ -547,19 +646,35 @@ export class AppiumClient {
     const capabilities =
       appiumSession.getCapabilities();
 
+    const raw =
+      capabilities as Record<
+        string,
+        unknown
+      >;
+
     return String(
-      capabilities.platformVersion ?? "",
+      raw.platformVersion ??
+      raw["appium:platformVersion"] ??
+      "",
     );
   }
 
   async getDeviceName(): Promise<string> {
-    const capabilities =
-      appiumSession.getCapabilities();
+  const capabilities =
+    appiumSession.getCapabilities();
 
-    return String(
-      capabilities.deviceName ?? "",
-    );
-  }
+  const raw =
+    capabilities as Record<
+      string,
+      unknown
+    >;
+
+  return String(
+    raw.deviceName ??
+      raw["appium:deviceName"] ??
+      "",
+  );
+}
 
   async getDeviceTime(): Promise<string> {
     const sessionId =

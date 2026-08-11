@@ -47,12 +47,26 @@ export interface ReportNode {
     error?: string;
 
     screenshot?: string;
+
+    pageSource?: string;
 }
 
 export type TestReportStatus =
     | "passed"
     | "failed"
     | "stopped";
+
+export interface ReportEnvironment {
+    platform: string;
+
+    platformVersion: string;
+
+    deviceName: string;
+
+    automationName: string;
+
+    sessionId: string | null;
+}
 
 export interface TestReport {
     id: string;
@@ -72,6 +86,8 @@ export interface TestReport {
     passedNodes: number;
 
     failedNodes: number;
+
+    environment: ReportEnvironment;
 
     nodes: ReportNode[];
 

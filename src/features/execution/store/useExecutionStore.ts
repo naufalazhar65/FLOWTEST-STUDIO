@@ -9,6 +9,14 @@ export type AppiumConnectionStatus =
     | "connected"
     | "offline";
 
+export interface ExecutionEnvironment {
+    platform: "Android" | "iOS" | null;
+    osVersion: string | null;
+    device: string | null;
+    automation: "Appium" | null;
+    sessionId: string | null;
+}
+
 interface ExecutionStore {
     // =====================================
     // Global Status
@@ -33,6 +41,12 @@ interface ExecutionStore {
         string,
         NodeExecutionStatus
     >;
+
+    // =====================================
+    // Environment
+    // =====================================
+
+    environment: ExecutionEnvironment;
 
     // =====================================
     // Node Execution History
@@ -77,6 +91,10 @@ interface ExecutionStore {
 
     setAppiumConnection(
         status: AppiumConnectionStatus,
+    ): void;
+
+    setEnvironment(
+        environment: Partial<ExecutionEnvironment>,
     ): void;
 
     setCurrentNode(
@@ -134,7 +152,27 @@ export const useExecutionStore =
 
             edgeStatus: {},
 
+            // =====================================
+            // Environment
+            // =====================================
+
+            environment: {
+                platform: null,
+                osVersion: null,
+                device: null,
+                automation: null,
+                sessionId: null,
+            },
+
+            // =====================================
+            // Node Execution History
+            // =====================================
+
             nodeResults: {},
+
+            // =====================================
+            // Statistics
+            // =====================================
 
             totalNodes: 0,
 
@@ -169,6 +207,17 @@ export const useExecutionStore =
                     appiumConnection:
                         status,
                 });
+            },
+
+            setEnvironment(
+                environment,
+            ) {
+                set((state) => ({
+                    environment: {
+                        ...state.environment,
+                        ...environment,
+                    },
+                }));
             },
 
             setCurrentNode(id) {
@@ -270,13 +319,13 @@ export const useExecutionStore =
 
                 const progress =
                     state.totalNodes ===
-                    0
+                        0
                         ? 0
                         : Math.round(
-                              (executed /
-                                  state.totalNodes) *
-                                  100,
-                          );
+                            (executed /
+                                state.totalNodes) *
+                            100,
+                        );
 
                 set({
                     executedNodes:
@@ -287,14 +336,14 @@ export const useExecutionStore =
                     passedNodes:
                         passed
                             ? state.passedNodes +
-                              1
+                            1
                             : state.passedNodes,
 
                     failedNodes:
                         passed
                             ? state.failedNodes
                             : state.failedNodes +
-                              1,
+                            1,
                 });
             },
 
@@ -384,6 +433,14 @@ export const useExecutionStore =
                     finishedAt: null,
 
                     duration: 0,
+
+                    // Keep the last device
+                    // information, but clear
+                    // the active session.
+                    environment: {
+                        ...get().environment,
+                        sessionId: null,
+                    },
                 });
             },
         }),

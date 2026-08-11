@@ -35,10 +35,11 @@ export async function executeFlow(
 
     execution.reset();
 
-    const graph = new GraphNavigator(
-        nodes,
-        context.edges,
-    );
+    const graph =
+        new GraphNavigator(
+            nodes,
+            context.edges,
+        );
 
     clearVariables();
 
@@ -143,11 +144,32 @@ export async function executeFlow(
             const node =
                 currentNode;
 
+            // ---------------------------------------
+            // Pause
+            // ---------------------------------------
+
             await waitWhilePaused();
+
+            // ---------------------------------------
+            // Check Stop Before Node
+            // ---------------------------------------
+
+            if (
+                useExecutionStore
+                    .getState()
+                    .status ===
+                "stopped"
+            ) {
+                break;
+            }
 
             execution.setCurrentNode(
                 node.id,
             );
+
+            // ---------------------------------------
+            // Breakpoint
+            // ---------------------------------------
 
             if (
                 node.data.debug
@@ -170,7 +192,22 @@ export async function executeFlow(
                 execution.pauseExecution();
 
                 await waitWhilePaused();
+
+                // Stop may have been
+                // pressed while paused.
+                if (
+                    useExecutionStore
+                        .getState()
+                        .status ===
+                    "stopped"
+                ) {
+                    break;
+                }
             }
+
+            // ---------------------------------------
+            // Execute Node
+            // ---------------------------------------
 
             const result =
                 await executeNode(
@@ -178,8 +215,32 @@ export async function executeFlow(
                     context,
                 );
 
-            // Node selesai dieksekusi,
-            // maka edge yang menuju node ini juga selesai.
+            // ---------------------------------------
+            // Check Stop After Node
+            // ---------------------------------------
+
+            if (
+                useExecutionStore
+                    .getState()
+                    .status ===
+                "stopped"
+            ) {
+                if (activeEdgeId) {
+                    execution.setEdgeStatus(
+                        activeEdgeId,
+                        "passed",
+                    );
+
+                    activeEdgeId =
+                        null;
+                }
+
+                break;
+            }
+
+            // ---------------------------------------
+            // Complete Active Edge
+            // ---------------------------------------
 
             if (activeEdgeId) {
                 execution.setEdgeStatus(
@@ -187,8 +248,13 @@ export async function executeFlow(
                     "passed",
                 );
 
-                activeEdgeId = null;
+                activeEdgeId =
+                    null;
             }
+
+            // ---------------------------------------
+            // Resolve Transition
+            // ---------------------------------------
 
             const output =
                 result.outputs[0] ??
@@ -212,12 +278,77 @@ export async function executeFlow(
                 currentNode =
                     transition.nextNode;
             } else {
-                currentNode = null;
+                currentNode =
+                    null;
             }
         }
 
         // ---------------------------------------
-        // Finish
+        // Check Final Status
+        // ---------------------------------------
+
+        const finalStatus =
+            useExecutionStore
+                .getState()
+                .status;
+
+        // ---------------------------------------
+        // Execution Stopped
+        // ---------------------------------------
+
+        if (
+            finalStatus ===
+            "stopped"
+        ) {
+            execution.finishExecution();
+
+            execution.setStatus(
+                "stopped",
+            );
+
+            const duration =
+                performance.now() -
+                startedAt;
+
+            executionLogger.info({
+                message:
+                    "Execution stopped by user.",
+
+                duration,
+
+                details: {
+                    formattedDuration:
+                        formatDuration(
+                            duration,
+                        ),
+
+                    executedNodes:
+                        useExecutionStore
+                            .getState()
+                            .executedNodes,
+
+                    totalNodes:
+                        nodes.length,
+                },
+            });
+
+            recordExecutionReport({
+                status: "stopped",
+
+                startedAt:
+                    reportStartedAt,
+
+                finishedAt:
+                    Date.now(),
+
+                duration,
+            });
+
+            return;
+        }
+
+        // ---------------------------------------
+        // Finish Successful Execution
         // ---------------------------------------
 
         execution.finishExecution();
@@ -248,7 +379,7 @@ export async function executeFlow(
         });
 
         // ---------------------------------------
-        // Create Report
+        // Create Passed Report
         // ---------------------------------------
 
         recordExecutionReport({
@@ -264,6 +395,70 @@ export async function executeFlow(
         });
     } catch (error) {
         // ---------------------------------------
+        // Check Whether Execution Was Stopped
+        // ---------------------------------------
+
+        const currentStatus =
+            useExecutionStore
+                .getState()
+                .status;
+
+        const duration =
+            performance.now() -
+            startedAt;
+
+        // ---------------------------------------
+        // Execution Stopped
+        // ---------------------------------------
+
+        if (
+            currentStatus ===
+            "stopped"
+        ) {
+            execution.finishExecution();
+
+            execution.setStatus(
+                "stopped",
+            );
+
+            executionLogger.info({
+                message:
+                    "Execution stopped by user.",
+
+                duration,
+
+                details: {
+                    formattedDuration:
+                        formatDuration(
+                            duration,
+                        ),
+
+                    executedNodes:
+                        useExecutionStore
+                            .getState()
+                            .executedNodes,
+
+                    totalNodes:
+                        nodes.length,
+                },
+            });
+
+            recordExecutionReport({
+                status: "stopped",
+
+                startedAt:
+                    reportStartedAt,
+
+                finishedAt:
+                    Date.now(),
+
+                duration,
+            });
+
+            return;
+        }
+
+        // ---------------------------------------
         // Execution Failed
         // ---------------------------------------
 
@@ -271,9 +466,9 @@ export async function executeFlow(
             "failed",
         );
 
-        const duration =
-            performance.now() -
-            startedAt;
+        execution.setCurrentNode(
+            null,
+        );
 
         executionLogger.error({
             message:
