@@ -16,4 +16,6 @@ export interface NodeExecutionResult {
     duration: number;
 
     error?: string;
+
+    screenshot?: string;
 }

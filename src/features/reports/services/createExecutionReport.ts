@@ -41,6 +41,9 @@ export function createExecutionReport(): TestReport {
             duration: node.duration,
 
             error: node.error,
+
+            screenshot:
+                node.screenshot,
         }));
 
     return {
@@ -86,7 +89,8 @@ export function createExecutionReport(): TestReport {
 
                 level: log.level,
 
-                message: log.message,
+                message:
+                    log.message,
 
                 timestamp:
                     log.timestamp,

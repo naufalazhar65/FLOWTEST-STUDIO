@@ -4,6 +4,7 @@ import type { RunnerResult } from "../types/RunnerResult";
 
 import { getRunner } from "../services/runnerRegistry";
 import { executionLogger } from "../services/executionLogger";
+import { appiumClient } from "../services/appium/AppiumClient";
 import { useExecutionStore } from "../store/useExecutionStore";
 
 export async function executeNode(
@@ -100,6 +101,20 @@ export async function executeNode(
                 ? error.message
                 : String(error);
 
+        let screenshot:
+            | string
+            | undefined;
+
+        try {
+            screenshot =
+                await appiumClient.takeScreenshot();
+        } catch (screenshotError) {
+            console.warn(
+                "Failed to capture failure screenshot.",
+                screenshotError,
+            );
+        }
+
         execution.setNodeStatus(
             node.id,
             "failed",
@@ -123,6 +138,8 @@ export async function executeNode(
             duration,
 
             error: errorMessage,
+
+            screenshot,
         });
 
         execution.completeNode(

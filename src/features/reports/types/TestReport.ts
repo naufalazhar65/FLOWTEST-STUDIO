@@ -45,6 +45,8 @@ export interface ReportNode {
     duration: number;
 
     error?: string;
+
+    screenshot?: string;
 }
 
 export type TestReportStatus =
