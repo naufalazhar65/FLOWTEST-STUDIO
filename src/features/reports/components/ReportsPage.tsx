@@ -9,6 +9,7 @@ import {
     Clock3,
     FileText,
     XCircle,
+    Trash2,
 } from "lucide-react";
 
 import {
@@ -33,6 +34,10 @@ import {
     ReportComparison,
 } from "./ReportComparison";
 
+import {
+    ConfirmDialog,
+} from "../../../components/ui/ConfirmDialog";
+
 export function ReportsPage() {
     const reports =
         useReportStore(
@@ -49,6 +54,16 @@ export function ReportsPage() {
     const [
         comparisonOpen,
         setComparisonOpen,
+    ] = useState(false);
+
+    const [
+        deleteReportId,
+        setDeleteReportId,
+    ] = useState<string | null>(null);
+
+    const [
+        clearReportsOpen,
+        setClearReportsOpen,
     ] = useState(false);
 
     const [
@@ -75,6 +90,16 @@ export function ReportsPage() {
             (report) =>
                 report.id ===
                 selectedReportId,
+        );
+
+    const removeReport =
+        useReportStore(
+            (state) => state.removeReport,
+        );
+
+    const clearReports =
+        useReportStore(
+            (state) => state.clearReports,
         );
 
     const totalRuns =
@@ -288,17 +313,60 @@ export function ReportsPage() {
                             gap: 16,
                         }}
                     >
-                        <p
+                        <div
                             style={{
-                                margin:
-                                    "8px 0 0 32px",
-                                color: "#8B949E",
-                                fontSize: 13,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "space-between",
+                                gap: 16,
+                                width: "100%",
                             }}
                         >
-                            Execution history and
-                            test results.
-                        </p>
+                            <p
+                                style={{
+                                    margin:
+                                        "8px 0 0 32px",
+                                    color: "#8B949E",
+                                    fontSize: 13,
+                                }}
+                            >
+                                Execution history and
+                                test results.
+                            </p>
+
+                            <button
+                                type="button"
+                                disabled={
+                                    reports.length === 0
+                                }
+                                onClick={() =>
+                                    setClearReportsOpen(true)
+                                }
+                                style={{
+                                    height: 34,
+                                    padding: "0 12px",
+                                    border:
+                                        "1px solid #30363D",
+                                    borderRadius: 7,
+                                    background:
+                                        reports.length === 0
+                                            ? "#161B22"
+                                            : "#21262D",
+                                    color:
+                                        reports.length === 0
+                                            ? "#6E7681"
+                                            : "#F85149",
+                                    fontSize: 10,
+                                    fontWeight: 600,
+                                    cursor:
+                                        reports.length === 0
+                                            ? "not-allowed"
+                                            : "pointer",
+                                }}
+                            >
+                                Clear Reports
+                            </button>
+                        </div>
 
                         <button
                             type="button"
@@ -474,6 +542,11 @@ export function ReportsPage() {
                                                 report.id,
                                             )
                                         }
+                                        onDelete={() =>
+                                            setDeleteReportId(
+                                                report.id,
+                                            )
+                                        }
                                     />
                                 ),
                             )}
@@ -481,6 +554,40 @@ export function ReportsPage() {
                     )}
                 </div>
             </div>
+
+            <ConfirmDialog
+                open={deleteReportId !== null}
+                title="Delete Report"
+                message="Are you sure you want to delete this report? This action cannot be undone."
+                confirmLabel="Delete"
+                cancelLabel="Cancel"
+                onCancel={() =>
+                    setDeleteReportId(null)
+                }
+                onConfirm={() => {
+                    if (deleteReportId) {
+                        removeReport(deleteReportId);
+                    }
+
+                    setDeleteReportId(null);
+                }}
+            />
+
+            <ConfirmDialog
+                open={clearReportsOpen}
+                title="Clear Reports"
+                message="Are you sure you want to delete all saved reports? This action cannot be undone."
+                confirmLabel="Clear All"
+                cancelLabel="Cancel"
+                onCancel={() =>
+                    setClearReportsOpen(false)
+                }
+                onConfirm={() => {
+                    clearReports();
+                    setClearReportsOpen(false);
+                    setSelectedReportId(null);
+                }}
+            />
         </div>
     );
 }
@@ -542,12 +649,15 @@ function StatCard({
 function ReportRow({
     report,
     onClick,
+    onDelete,
 }: {
     report: ReturnType<
         typeof useReportStore.getState
     >["reports"][number];
 
     onClick: () => void;
+
+    onDelete: () => void;
 }) {
     const passed =
         report.status ===
@@ -565,135 +675,163 @@ function ReportRow({
                 : "#F85149";
 
     return (
-        <button
-            type="button"
-            onClick={onClick}
+        <div
             style={{
                 width: "100%",
                 display: "flex",
-                alignItems:
-                    "center",
-                justifyContent:
-                    "space-between",
-                gap: 16,
-                padding:
-                    "14px 16px",
-                border: "none",
+                alignItems: "center",
                 borderBottom:
                     "1px solid #21262D",
-                background:
-                    "transparent",
-                color: "#E6EDF3",
-                cursor: "pointer",
-                textAlign: "left",
-                transition:
-                    "background .15s ease",
-            }}
-            onMouseEnter={(event) => {
-                event.currentTarget.style.background =
-                    "#1C2128";
-            }}
-            onMouseLeave={(event) => {
-                event.currentTarget.style.background =
-                    "transparent";
             }}
         >
-            <div
+            <button
+                type="button"
+                onClick={onClick}
                 style={{
-                    display: "flex",
-                    alignItems:
-                        "center",
-                    gap: 12,
+                    flex: 1,
                     minWidth: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 16,
+                    padding: "14px 16px",
+                    border: "none",
+                    background: "transparent",
+                    color: "#E6EDF3",
+                    cursor: "pointer",
+                    textAlign: "left",
+                    transition: "background .15s ease",
+                }}
+                onMouseEnter={(event) => {
+                    event.currentTarget.style.background =
+                        "#1C2128";
+                }}
+                onMouseLeave={(event) => {
+                    event.currentTarget.style.background =
+                        "transparent";
                 }}
             >
-                {passed ? (
-                    <CheckCircle2
-                        size={18}
-                        color="#3FB950"
-                    />
-                ) : stopped ? (
-                    <Clock3
-                        size={18}
-                        color="#D29922"
-                    />
-                ) : (
-                    <XCircle
-                        size={18}
-                        color="#F85149"
-                    />
-                )}
-
                 <div
                     style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 12,
                         minWidth: 0,
                     }}
                 >
-                    <div
-                        style={{
-                            fontSize: 13,
-                            fontWeight: 600,
-                        }}
-                    >
-                        Execution
-                    </div>
+                    {passed ? (
+                        <CheckCircle2
+                            size={18}
+                            color="#3FB950"
+                        />
+                    ) : stopped ? (
+                        <Clock3
+                            size={18}
+                            color="#D29922"
+                        />
+                    ) : (
+                        <XCircle
+                            size={18}
+                            color="#F85149"
+                        />
+                    )}
 
-                    <div
-                        style={{
-                            marginTop: 4,
-                            color: "#8B949E",
-                            fontSize: 11,
-                        }}
-                    >
-                        {
-                            report.executedNodes
-                        }
-                        /
-                        {
-                            report.totalNodes
-                        }{" "}
-                        nodes
-                        {" · "}
-                        {formatDate(
-                            report.startedAt,
-                        )}
+                    <div style={{ minWidth: 0 }}>
+                        <div
+                            style={{
+                                fontSize: 13,
+                                fontWeight: 600,
+                            }}
+                        >
+                            Execution
+                        </div>
+
+                        <div
+                            style={{
+                                marginTop: 4,
+                                color: "#8B949E",
+                                fontSize: 11,
+                            }}
+                        >
+                            {report.executedNodes}
+                            /
+                            {report.totalNodes}{" "}
+                            nodes
+                            {" · "}
+                            {formatDate(
+                                report.startedAt,
+                            )}
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div
-                style={{
-                    display: "flex",
-                    alignItems:
-                        "center",
-                    gap: 20,
-                    flexShrink: 0,
-                }}
-            >
-                <StatusBadge
-                    status={
-                        report.status
-                    }
-                    color={
-                        statusColor
-                    }
-                />
-
-                <span
+                <div
                     style={{
-                        color: "#8B949E",
-                        fontSize: 12,
-                        minWidth: 60,
-                        textAlign:
-                            "right",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 20,
+                        flexShrink: 0,
                     }}
                 >
-                    {formatDuration(
-                        report.duration,
-                    )}
-                </span>
-            </div>
-        </button>
+                    <StatusBadge
+                        status={report.status}
+                        color={statusColor}
+                    />
+
+                    <span
+                        style={{
+                            color: "#8B949E",
+                            fontSize: 12,
+                            minWidth: 60,
+                            textAlign: "right",
+                        }}
+                    >
+                        {formatDuration(
+                            report.duration,
+                        )}
+                    </span>
+                </div>
+            </button>
+
+            <button
+                type="button"
+                aria-label="Delete report"
+                title="Delete report"
+                onClick={onDelete}
+                style={{
+                    width: 34,
+                    height: 34,
+                    marginRight: 10,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    border: "1px solid transparent",
+                    borderRadius: 7,
+                    background: "transparent",
+                    color: "#6E7681",
+                    cursor: "pointer",
+                    flexShrink: 0,
+                }}
+                onMouseEnter={(event) => {
+                    event.currentTarget.style.color =
+                        "#F85149";
+                    event.currentTarget.style.background =
+                        "#F8514915";
+                    event.currentTarget.style.borderColor =
+                        "#F8514933";
+                }}
+                onMouseLeave={(event) => {
+                    event.currentTarget.style.color =
+                        "#6E7681";
+                    event.currentTarget.style.background =
+                        "transparent";
+                    event.currentTarget.style.borderColor =
+                        "transparent";
+                }}
+            >
+                <Trash2 size={15} />
+            </button>
+        </div>
     );
 }
 
