@@ -41,16 +41,20 @@ export function AddTestCaseDialog({
     const recentProjects =
         useRecentProjects();
 
-    const addTestCase =
+    const addTestCases =
         useSuiteStore(
-            (state) => state.addTestCase,
+            (state) => state.addTestCases,
         );
 
     const [search, setSearch] =
         useState("");
 
-    const [selectedProjectId, setSelectedProjectId] =
-        useState<string | null>(null);
+    const [
+        selectedProjectIds,
+        setSelectedProjectIds,
+    ] = useState<Set<string>>(
+        () => new Set(),
+    );
 
     const [loading, setLoading] =
         useState(false);
@@ -64,7 +68,9 @@ export function AddTestCaseDialog({
         }
 
         setSearch("");
-        setSelectedProjectId(null);
+        setSelectedProjectIds(
+            new Set(),
+        );
         setLoading(false);
         setError("");
     }, [open, suite.id]);
@@ -127,96 +133,155 @@ export function AddTestCaseDialog({
             );
         }, [recentProjects, search]);
 
-    const selectedProject =
-        recentProjects.find(
+    const selectedProjects =
+        recentProjects.filter(
             (project) =>
-                project.id ===
-                selectedProjectId,
-        ) ?? null;
+                selectedProjectIds.has(
+                    project.id,
+                ) &&
+                !existingProjectIds.has(
+                    project.id,
+                ),
+        );
+
+    const toggleProjectSelection = (
+        projectId: string,
+    ) => {
+        setSelectedProjectIds(
+            (current) => {
+                const next =
+                    new Set(current);
+
+                if (
+                    next.has(projectId)
+                ) {
+                    next.delete(projectId);
+                } else {
+                    next.add(projectId);
+                }
+
+                return next;
+            },
+        );
+
+        setError("");
+    };
 
     const handleAdd = async () => {
-        if (!selectedProject) {
-            setError(
-                "Select a project first.",
-            );
-            return;
-        }
-
         if (
-            existingProjectIds.has(
-                selectedProject.id,
-            )
+            selectedProjects.length ===
+            0
         ) {
             setError(
-                "This project is already in the suite.",
+                "Select at least one project.",
             );
+
             return;
         }
 
         setLoading(true);
         setError("");
 
+        const testCases:
+            SuiteTestCase[] = [];
+
+        const failedProjects:
+            string[] = [];
+
         try {
-            const handle =
-                selectedProject.handle;
+            for (
+                const selectedProject of
+                    selectedProjects
+            ) {
+                try {
+                    const handle =
+                        selectedProject.handle;
 
-            const permission =
-                await handle.queryPermission({
-                    mode: "read",
-                });
+                    const permission =
+                        await handle.queryPermission({
+                            mode: "read",
+                        });
 
-            if (permission !== "granted") {
-                const requested =
-                    await handle.requestPermission({
-                        mode: "read",
+                    if (
+                        permission !==
+                        "granted"
+                    ) {
+                        const requested =
+                            await handle.requestPermission({
+                                mode: "read",
+                            });
+
+                        if (
+                            requested !==
+                            "granted"
+                        ) {
+                            failedProjects.push(
+                                selectedProject.name,
+                            );
+
+                            continue;
+                        }
+                    }
+
+                    const file =
+                        await handle.getFile();
+
+                    const project =
+                        await importProject(
+                            file,
+                        );
+
+                    if (!project) {
+                        failedProjects.push(
+                            selectedProject.name,
+                        );
+
+                        continue;
+                    }
+
+                    testCases.push({
+                        id: crypto.randomUUID(),
+                        projectId:
+                            selectedProject.id,
+                        projectName:
+                            selectedProject.name,
+                        enabled: true,
+                        project,
                     });
-
-                if (
-                    requested !== "granted"
-                ) {
-                    setError(
-                        "Read permission was not granted for this project.",
+                } catch (cause) {
+                    console.error(
+                        `Failed to prepare test case "${selectedProject.name}":`,
+                        cause,
                     );
-                    return;
+
+                    failedProjects.push(
+                        selectedProject.name,
+                    );
                 }
             }
 
-            const file =
-                await handle.getFile();
-
-            const project =
-                await importProject(file);
-
-            if (!project) {
-                setError(
-                    "Failed to load the selected project.",
+            if (
+                testCases.length > 0
+            ) {
+                addTestCases(
+                    suite.id,
+                    testCases,
                 );
+            }
+
+            if (
+                failedProjects.length > 0
+            ) {
+                setError(
+                    `Failed to add: ${failedProjects.join(
+                        ", ",
+                    )}.`,
+                );
+
                 return;
             }
 
-            const testCase: SuiteTestCase = {
-                id: crypto.randomUUID(),
-                projectId: project.id,
-                projectName: project.name,
-                enabled: true,
-                project,
-            };
-
-            addTestCase(
-                suite.id,
-                testCase,
-            );
-
             onClose();
-        } catch (cause) {
-            console.error(
-                "Failed to add test case:",
-                cause,
-            );
-
-            setError(
-                "Failed to load the selected project. Make sure the project file is still accessible.",
-            );
         } finally {
             setLoading(false);
         }
@@ -232,7 +297,7 @@ export function AddTestCaseDialog({
             onMouseDown={(event) => {
                 if (
                     event.target ===
-                    event.currentTarget &&
+                        event.currentTarget &&
                     !loading
                 ) {
                     onClose();
@@ -439,7 +504,7 @@ export function AddTestCaseDialog({
                     }}
                 >
                     {filteredProjects.length >
-                        0 ? (
+                    0 ? (
                         <div
                             style={{
                                 display: "flex",
@@ -456,8 +521,9 @@ export function AddTestCaseDialog({
                                         );
 
                                     const selected =
-                                        project.id ===
-                                        selectedProjectId;
+                                        selectedProjectIds.has(
+                                            project.id,
+                                        );
 
                                     return (
                                         <button
@@ -469,31 +535,27 @@ export function AddTestCaseDialog({
                                             }
                                             onClick={() => {
                                                 if (
-                                                    alreadyAdded
+                                                    alreadyAdded ||
+                                                    loading
                                                 ) {
                                                     return;
                                                 }
 
-                                                setSelectedProjectId(
+                                                toggleProjectSelection(
                                                     project.id,
-                                                );
-                                                setError(
-                                                    "",
                                                 );
                                             }}
                                             style={{
                                                 width: "100%",
-                                                display:
-                                                    "flex",
-                                                alignItems:
-                                                    "center",
+                                                display: "flex",
+                                                alignItems: "center",
                                                 gap: 10,
-                                                padding:
-                                                    "10px 11px",
+                                                padding: "10px 11px",
                                                 border:
-                                                    `1px solid ${selected
-                                                        ? colors.accent
-                                                        : colors.border
+                                                    `1px solid ${
+                                                        selected
+                                                            ? colors.accent
+                                                            : colors.border
                                                     }`,
                                                 borderRadius:
                                                     radius.md,
@@ -505,7 +567,7 @@ export function AddTestCaseDialog({
                                                     colors.text,
                                                 cursor:
                                                     alreadyAdded ||
-                                                        loading
+                                                    loading
                                                         ? "not-allowed"
                                                         : "pointer",
                                                 opacity:
@@ -514,43 +576,46 @@ export function AddTestCaseDialog({
                                                         : 1,
                                                 textAlign:
                                                     "left",
-                                                transition:
-                                                    "background .15s ease, border-color .15s ease",
                                             }}
                                         >
                                             <div
                                                 style={{
-                                                    width: 28,
-                                                    height: 28,
-                                                    display:
-                                                        "flex",
-                                                    alignItems:
-                                                        "center",
-                                                    justifyContent:
-                                                        "center",
-                                                    borderRadius:
-                                                        7,
+                                                    width: 22,
+                                                    height: 22,
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    justifyContent: "center",
+                                                    borderRadius: 6,
+                                                    border:
+                                                        `1px solid ${
+                                                            selected
+                                                                ? colors.accent
+                                                                : colors.border
+                                                        }`,
                                                     background:
                                                         selected
                                                             ? colors.accent
                                                             : colors.background,
-                                                    color:
-                                                        selected
-                                                            ? "#FFFFFF"
-                                                            : colors.textSecondary,
+                                                    color: "#FFFFFF",
                                                     flexShrink: 0,
                                                 }}
                                             >
-                                                {selected ? (
+                                                {selected && (
                                                     <Check
-                                                        size={14}
-                                                    />
-                                                ) : (
-                                                    <FileText
-                                                        size={14}
+                                                        size={13}
                                                     />
                                                 )}
                                             </div>
+
+                                            <FileText
+                                                size={14}
+                                                color={
+                                                    colors.textMuted
+                                                }
+                                                style={{
+                                                    flexShrink: 0,
+                                                }}
+                                            />
 
                                             <div
                                                 style={{
@@ -573,9 +638,7 @@ export function AddTestCaseDialog({
                                                             600,
                                                     }}
                                                 >
-                                                    {
-                                                        project.name
-                                                    }
+                                                    {project.name}
                                                 </div>
 
                                                 <div
@@ -605,8 +668,7 @@ export function AddTestCaseDialog({
                                                         color:
                                                             colors.textMuted,
                                                         fontSize: 10,
-                                                        fontWeight:
-                                                            600,
+                                                        fontWeight: 600,
                                                     }}
                                                 >
                                                     Added
@@ -666,7 +728,7 @@ export function AddTestCaseDialog({
                                 }}
                             >
                                 {recentProjects.length >
-                                    0
+                                0
                                     ? "No projects found"
                                     : "No recent projects"}
                             </div>
@@ -682,7 +744,7 @@ export function AddTestCaseDialog({
                                 }}
                             >
                                 {recentProjects.length >
-                                    0
+                                0
                                     ? "Try a different search."
                                     : "Open a .flow project first, then it will appear here."}
                             </div>
@@ -759,7 +821,8 @@ export function AddTestCaseDialog({
                             void handleAdd();
                         }}
                         disabled={
-                            !selectedProject ||
+                            selectedProjects.length ===
+                                0 ||
                             loading
                         }
                         style={{
@@ -776,18 +839,21 @@ export function AddTestCaseDialog({
                             borderRadius:
                                 radius.md,
                             background:
-                                selectedProject &&
-                                    !loading
+                                selectedProjects.length >
+                                    0 &&
+                                !loading
                                     ? colors.accent
                                     : colors.panelHover,
                             color:
-                                selectedProject &&
-                                    !loading
+                                selectedProjects.length >
+                                    0 &&
+                                !loading
                                     ? "#FFFFFF"
                                     : colors.textMuted,
                             cursor:
-                                selectedProject &&
-                                    !loading
+                                selectedProjects.length >
+                                    0 &&
+                                !loading
                                     ? "pointer"
                                     : "not-allowed",
                             fontSize: 11,
@@ -806,7 +872,12 @@ export function AddTestCaseDialog({
                                 Loading...
                             </>
                         ) : (
-                            "Add Test Case"
+                            <>
+                                Add{" "}
+                                {selectedProjects.length > 0
+                                    ? `${selectedProjects.length} Test Cases`
+                                    : "Test Cases"}
+                            </>
                         )}
                     </button>
                 </footer>

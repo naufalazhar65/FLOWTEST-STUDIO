@@ -29,6 +29,11 @@ interface SuiteStore {
         testCase: SuiteTestCase,
     ): void;
 
+    addTestCases(
+        suiteId: string,
+        testCases: SuiteTestCase[],
+    ): void;
+
     removeTestCase(
         suiteId: string,
         testCaseId: string,
@@ -139,6 +144,76 @@ export const useSuiteStore =
                     }));
                 },
 
+                addTestCases(
+                    suiteId,
+                    testCases,
+                ) {
+                    if (
+                        testCases.length ===
+                        0
+                    ) {
+                        return;
+                    }
+
+                    set((state) => ({
+                        suites:
+                            state.suites.map(
+                                (suite) => {
+                                    if (
+                                        suite.id !==
+                                        suiteId
+                                    ) {
+                                        return suite;
+                                    }
+
+                                    const existingIds =
+                                        new Set(
+                                            suite.testCases.map(
+                                                (test) =>
+                                                    test.projectId,
+                                            ),
+                                        );
+
+                                    const uniqueNewTestCases =
+                                        testCases.filter(
+                                            (testCase) => {
+                                                if (
+                                                    existingIds.has(
+                                                        testCase.projectId,
+                                                    )
+                                                ) {
+                                                    return false;
+                                                }
+
+                                                existingIds.add(
+                                                    testCase.projectId,
+                                                );
+
+                                                return true;
+                                            },
+                                        );
+
+                                    if (
+                                        uniqueNewTestCases.length ===
+                                        0
+                                    ) {
+                                        return suite;
+                                    }
+
+                                    return {
+                                        ...suite,
+                                        testCases: [
+                                            ...suite.testCases,
+                                            ...uniqueNewTestCases,
+                                        ],
+                                        updatedAt:
+                                            new Date().toISOString(),
+                                    };
+                                },
+                            ),
+                    }));
+                },
+
                 removeTestCase(
                     suiteId,
                     testCaseId,
@@ -148,7 +223,7 @@ export const useSuiteStore =
                             state.suites.map(
                                 (suite) =>
                                     suite.id ===
-                                        suiteId
+                                    suiteId
                                         ? {
                                             ...suite,
                                             testCases:
@@ -174,14 +249,14 @@ export const useSuiteStore =
                             state.suites.map(
                                 (suite) =>
                                     suite.id ===
-                                        suiteId
+                                    suiteId
                                         ? {
                                             ...suite,
                                             testCases:
                                                 suite.testCases.map(
                                                     (test) =>
                                                         test.id ===
-                                                            testCaseId
+                                                        testCaseId
                                                             ? {
                                                                 ...test,
                                                                 enabled:

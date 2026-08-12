@@ -72,6 +72,7 @@ import type {
 
 interface Props {
     suite: TestSuite;
+    onEdit?(): void;
     onDelete?(): void;
     onAddTest?(): void;
     onToggleTestCase?(
@@ -801,6 +802,7 @@ function exportSuiteRunAsJson(
 
 export function TestSuiteDetail({
     suite,
+    onEdit,
     onDelete,
     onAddTest,
     onToggleTestCase,
@@ -813,6 +815,11 @@ export function TestSuiteDetail({
 
     const [suiteMenuOpen, setSuiteMenuOpen] =
         useState(false);
+
+    const [deleteTestCase, setDeleteTestCase] =
+        useState<SuiteTestCase | null>(
+            null,
+        );
 
     const [isRunning, setIsRunning] =
         useState(false);
@@ -900,6 +907,19 @@ export function TestSuiteDetail({
         useSuiteStore(
             (state) => state.updateSuite,
         );
+
+    const handleConfirmDeleteTestCase =
+        () => {
+            if (!deleteTestCase) {
+                return;
+            }
+
+            onRemoveTestCase?.(
+                deleteTestCase.id,
+            );
+
+            setDeleteTestCase(null);
+        };
 
     const handleRunSuite = async () => {
         if (
@@ -1344,6 +1364,17 @@ export function TestSuiteDetail({
                                             "0 14px 35px rgba(0,0,0,.35)",
                                     }}
                                 >
+                                    <MenuButton
+                                        icon={Settings2}
+                                        label="Edit suite"
+                                        onClick={() => {
+                                            setSuiteMenuOpen(
+                                                false,
+                                            );
+                                            onEdit?.();
+                                        }}
+                                    />
+
                                     <MenuButton
                                         icon={Trash2}
                                         label="Delete suite"
@@ -1877,6 +1908,184 @@ export function TestSuiteDetail({
                             )}
                         </div>
                     )}
+                </div>
+            )}
+
+            {deleteTestCase && (
+                <div
+                    role="presentation"
+                    onMouseDown={(event) => {
+                        if (
+                            event.target ===
+                            event.currentTarget
+                        ) {
+                            setDeleteTestCase(
+                                null,
+                            );
+                        }
+                    }}
+                    style={{
+                        position:
+                            "absolute",
+                        inset: 0,
+                        zIndex: 50,
+                        display:
+                            "flex",
+                        alignItems:
+                            "center",
+                        justifyContent:
+                            "center",
+                        padding: 24,
+                        background:
+                            "rgba(0, 0, 0, 0.55)",
+                        backdropFilter:
+                            "blur(4px)",
+                    }}
+                >
+                    <div
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="delete-test-case-title"
+                        style={{
+                            width:
+                                "min(420px, 100%)",
+                            border:
+                                `1px solid ${colors.border}`,
+                            borderRadius:
+                                radius.lg,
+                            background:
+                                colors.background,
+                            boxShadow:
+                                "0 24px 80px rgba(0, 0, 0, 0.5)",
+                            overflow:
+                                "hidden",
+                        }}
+                    >
+                        <div
+                            style={{
+                                padding:
+                                    "18px 18px 14px",
+                            }}
+                        >
+                            <div
+                                style={{
+                                    color:
+                                        colors.text,
+                                    fontSize:
+                                        13,
+                                    fontWeight:
+                                        700,
+                                }}
+                                id="delete-test-case-title"
+                            >
+                                Remove Test Case?
+                            </div>
+
+                            <div
+                                style={{
+                                    marginTop:
+                                        7,
+                                    color:
+                                        colors.textMuted,
+                                    fontSize:
+                                        11,
+                                    lineHeight:
+                                        1.5,
+                                }}
+                            >
+                                Are you sure you want
+                                to remove{" "}
+                                <strong
+                                    style={{
+                                        color:
+                                            colors.text,
+                                    }}
+                                >
+                                    {deleteTestCase.projectName}
+                                </strong>{" "}
+                                from this test suite?
+                                <br />
+                                The original Flow Project
+                                will not be deleted.
+                            </div>
+                        </div>
+
+                        <div
+                            style={{
+                                display:
+                                    "flex",
+                                justifyContent:
+                                    "flex-end",
+                                gap: 8,
+                                padding:
+                                    "12px 18px",
+                                borderTop:
+                                    `1px solid ${colors.border}`,
+                                background:
+                                    colors.panel,
+                            }}
+                        >
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    setDeleteTestCase(
+                                        null,
+                                    )
+                                }
+                                style={{
+                                    height:
+                                        32,
+                                    padding:
+                                        "0 12px",
+                                    border:
+                                        `1px solid ${colors.border}`,
+                                    borderRadius:
+                                        radius.sm,
+                                    background:
+                                        colors.background,
+                                    color:
+                                        colors.text,
+                                    cursor:
+                                        "pointer",
+                                    fontSize:
+                                        11,
+                                    fontWeight:
+                                        650,
+                                }}
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={
+                                    handleConfirmDeleteTestCase
+                                }
+                                style={{
+                                    height:
+                                        32,
+                                    padding:
+                                        "0 12px",
+                                    border:
+                                        "1px solid transparent",
+                                    borderRadius:
+                                        radius.sm,
+                                    background:
+                                        "#F85149",
+                                    color:
+                                        "#FFFFFF",
+                                    cursor:
+                                        "pointer",
+                                    fontSize:
+                                        11,
+                                    fontWeight:
+                                        650,
+                                }}
+                            >
+                                Remove Test Case
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
 
@@ -2716,8 +2925,8 @@ export function TestSuiteDetail({
                                         )
                                     }
                                     onRemove={() =>
-                                        onRemoveTestCase?.(
-                                            test.id,
+                                        setDeleteTestCase(
+                                            test,
                                         )
                                     }
                                 />

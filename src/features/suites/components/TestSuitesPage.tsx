@@ -13,6 +13,7 @@ import {
 import { useSuiteStore } from "../store/useSuiteStore";
 import { AddTestCaseDialog } from "./AddTestCaseDialog";
 import { CreateSuiteDialog } from "./CreateSuiteDialog";
+import { EditSuiteDialog } from "./EditSuiteDialog";
 import { TestSuiteCard } from "./TestSuiteCard";
 import { TestSuiteDetail } from "./TestSuiteDetail";
 
@@ -57,6 +58,8 @@ export function TestSuitesPage() {
     const [createSuiteOpen, setCreateSuiteOpen] =
         useState(false);
     const [addTestCaseOpen, setAddTestCaseOpen] =
+        useState(false);
+    const [editSuiteOpen, setEditSuiteOpen] =
         useState(false);
     const [deleteSuiteOpen, setDeleteSuiteOpen] =
         useState(false);
@@ -337,7 +340,7 @@ export function TestSuitesPage() {
                         }}
                     >
                         {filteredSuites.length >
-                            0 ? (
+                        0 ? (
                             <div
                                 style={{
                                     display:
@@ -443,7 +446,7 @@ export function TestSuitesPage() {
                         <span>
                             {suites.length}{" "}
                             {suites.length ===
-                                1
+                            1
                                 ? "suite"
                                 : "suites"}
                         </span>
@@ -451,7 +454,7 @@ export function TestSuitesPage() {
                         <span>
                             {totalTestCases}{" "}
                             {totalTestCases ===
-                                1
+                            1
                                 ? "test"
                                 : "tests"}
                         </span>
@@ -469,6 +472,11 @@ export function TestSuitesPage() {
                         <TestSuiteDetail
                             suite={
                                 selectedSuite
+                            }
+                            onEdit={() =>
+                                setEditSuiteOpen(
+                                    true,
+                                )
                             }
                             onAddTest={() =>
                                 setAddTestCaseOpen(
@@ -583,6 +591,16 @@ export function TestSuitesPage() {
                         setAddTestCaseOpen(
                             false,
                         )
+                    }
+                />
+            )}
+
+            {selectedSuite && (
+                <EditSuiteDialog
+                    suite={selectedSuite}
+                    open={editSuiteOpen}
+                    onClose={() =>
+                        setEditSuiteOpen(false)
                     }
                 />
             )}
