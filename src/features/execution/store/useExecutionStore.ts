@@ -11,9 +11,13 @@ export type AppiumConnectionStatus =
 
 export interface ExecutionEnvironment {
     platform: "Android" | "iOS" | null;
+
     osVersion: string | null;
+
     device: string | null;
-    automation: "Appium" | null;
+
+    automation: string | null;
+
     sessionId: string | null;
 }
 

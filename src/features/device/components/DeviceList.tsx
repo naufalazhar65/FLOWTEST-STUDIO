@@ -2,6 +2,10 @@ import { DeviceCard } from "./DeviceCard";
 
 import { useDeviceStore } from "../store/useDeviceStore";
 
+import {
+    useAppiumConfigStore,
+} from "../../execution/store/useAppiumConfigStore";
+
 export function DeviceList() {
     const devices =
         useDeviceStore(
@@ -20,12 +24,58 @@ export function DeviceList() {
                 state.selectDevice,
         );
 
+    const updateConfig =
+        useAppiumConfigStore(
+            (state) =>
+                state.updateConfig,
+        );
+
+    const updateDevice =
+        useAppiumConfigStore(
+            (state) =>
+                state.updateDevice,
+        );
+
+    const handleSelectDevice = (
+        device: (typeof devices)[number],
+    ) => {
+        const platform =
+            device.platform ===
+            "android"
+                ? "Android"
+                : "iOS";
+
+        selectDevice(device.id);
+
+        updateConfig({
+            platformName:
+                platform,
+        });
+
+        updateDevice(
+            device.platform,
+            {
+                deviceName:
+                    device.name,
+
+                platformVersion:
+                    device.version ===
+                    "Unknown"
+                        ? ""
+                        : device.version,
+
+                udid: device.udid,
+            },
+        );
+    };
+
     return (
         <div
             style={{
                 display: "flex",
 
-                flexDirection: "column",
+                flexDirection:
+                    "column",
 
                 gap: 12,
             }}
@@ -39,8 +89,8 @@ export function DeviceList() {
                         selectedDeviceId
                     }
                     onClick={() =>
-                        selectDevice(
-                            device.id,
+                        handleSelectDevice(
+                            device,
                         )
                     }
                 />

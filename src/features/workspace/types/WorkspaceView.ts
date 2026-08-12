@@ -1,3 +1,4 @@
 export type WorkspaceView =
     | "flow"
-    | "reports";
+    | "reports"
+    | "devices";

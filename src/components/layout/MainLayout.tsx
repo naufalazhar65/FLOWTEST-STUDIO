@@ -15,6 +15,7 @@ import { appiumConnectionService } from "../../features/execution/services/appiu
 import { useWorkspaceStore } from "../../features/workspace/store/useWorkspaceStore";
 
 import { ReportsPage } from "../../features/reports/components/ReportsPage";
+import { DeviceManager } from "../../features/device/components/DeviceManager";
 
 export function MainLayout() {
     useEffect(() => {
@@ -39,11 +40,10 @@ export function MainLayout() {
 
                 display: "grid",
 
-                gridTemplateRows: `auto 1fr ${
-                    consoleExpanded
-                        ? "220px"
-                        : "48px"
-                } 32px`,
+                gridTemplateRows: `auto 1fr ${consoleExpanded
+                    ? "220px"
+                    : "48px"
+                    } 32px`,
 
                 background: "#0D1117",
 
@@ -58,7 +58,8 @@ export function MainLayout() {
                     display: "grid",
 
                     gridTemplateColumns:
-                        view === "reports"
+                        view === "reports" ||
+                            view === "devices"
                             ? "300px minmax(0, 1fr)"
                             : "300px minmax(0, 1fr) 420px",
 
@@ -98,6 +99,8 @@ export function MainLayout() {
                 >
                     {view === "reports" ? (
                         <ReportsPage />
+                    ) : view === "devices" ? (
+                        <DeviceManager />
                     ) : (
                         <>
                             <ExecutionBar />

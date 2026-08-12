@@ -17,6 +17,9 @@ import {
 import { createDriver } from "./driver/DriverFactory";
 import { gestureService } from "./GestureService";
 import { useExecutionStore } from "../../store/useExecutionStore";
+import {
+  useAppiumConfigStore,
+} from "../../store/useAppiumConfigStore";
 
 
 
@@ -144,9 +147,7 @@ export class AppiumClient {
         device,
 
         automation:
-          automationName
-            ? "Appium"
-            : null,
+          automationName,
 
         sessionId,
       });
@@ -209,6 +210,84 @@ export class AppiumClient {
       },
     );
   }
+
+  async connectDevice(): Promise<void> {
+    const config =
+      useAppiumConfigStore
+        .getState()
+        .config;
+
+    const device =
+      config.platformName ===
+        "Android"
+        ? config.android
+        : config.ios;
+
+    const capabilities: AppiumCapabilities =
+    {
+      platformName:
+        config.platformName,
+
+      "appium:automationName":
+        config.platformName ===
+          "Android"
+          ? "UiAutomator2"
+          : "XCUITest",
+
+      "appium:deviceName":
+        device.deviceName,
+
+      "appium:noReset":
+        false,
+    };
+
+    if (device.platformVersion) {
+      capabilities[
+        "appium:platformVersion"
+      ] =
+        device.platformVersion;
+    }
+
+    if (device.udid) {
+      capabilities[
+        "appium:udid"
+      ] = device.udid;
+    }
+
+    await this.ensureSession(
+      capabilities,
+    );
+  }
+
+  async refreshSession(): Promise<void> {
+    if (!appiumSession.hasSession()) {
+        throw new Error(
+            "No active Appium session.",
+        );
+    }
+
+    const sessionId =
+        appiumSession.getSessionId();
+
+    const response =
+        await webDriverClient.get<{
+            value: AppiumCapabilities;
+        }>(
+            `/session/${sessionId}`,
+        );
+
+    const capabilities =
+        response.value;
+
+    appiumSession.setCapabilities(
+        capabilities,
+    );
+
+    this.updateExecutionEnvironment(
+        capabilities,
+        sessionId,
+    );
+}
 
   async deleteSession(): Promise<void> {
     if (!appiumSession.hasSession()) {
@@ -660,21 +739,21 @@ export class AppiumClient {
   }
 
   async getDeviceName(): Promise<string> {
-  const capabilities =
-    appiumSession.getCapabilities();
+    const capabilities =
+      appiumSession.getCapabilities();
 
-  const raw =
-    capabilities as Record<
-      string,
-      unknown
-    >;
+    const raw =
+      capabilities as Record<
+        string,
+        unknown
+      >;
 
-  return String(
-    raw.deviceName ??
+    return String(
+      raw.deviceName ??
       raw["appium:deviceName"] ??
       "",
-  );
-}
+    );
+  }
 
   async getDeviceTime(): Promise<string> {
     const sessionId =
