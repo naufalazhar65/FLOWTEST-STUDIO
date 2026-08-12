@@ -10,13 +10,7 @@ import type { FlowNode } from "../../flow/types/flowNode";
 const validateFlowMock = vi.mocked(validateFlow);
 const executeNodeMock = vi.mocked(executeNode);
 
-
-
-
-
-
 const context: ExecutionContext = {
-    device: "Android",
     edges: [],
 };
 
@@ -67,6 +61,7 @@ vi.mock("../store/useExecutionStore", () => ({
         getState: vi.fn(() => executionStore),
     },
 }));
+
 
 vi.mock("../../flow/validation/validateFlow", () => ({
     validateFlow: vi.fn(),
@@ -259,7 +254,6 @@ describe("executeFlow", () => {
         await executeFlow(
             [nodeA, nodeB] as FlowNode[],
             {
-                device: "Android",
                 edges: [
                     {
                         id: "edge-1",
@@ -315,7 +309,6 @@ describe("executeFlow", () => {
             executeFlow(
                 [nodeA, nodeB] as FlowNode[],
                 {
-                    device: "Android",
                     edges: [
                         {
                             id: "edge-1",

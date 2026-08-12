@@ -1187,8 +1187,6 @@ function PageSourceEvidence({
 
         // If the match is outside the preview,
         // expand the source before scrolling.
-        const matchLine =
-            sourceLines[firstMatch] ?? "";
 
         const previewLines =
             visibleSource.split("\n").length;

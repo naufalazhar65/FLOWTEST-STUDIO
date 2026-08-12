@@ -1,7 +1,7 @@
 import type { FlowNode } from "../../features/flow/types/flowNode";
 
 export function createIfNode(
-    condition: string
+    condition: string,
 ): FlowNode {
     return {
         id: "if-node",
@@ -24,7 +24,11 @@ export function createIfNode(
                 breakpoint: false,
             },
 
-            condition,
+            actual: condition,
+
+            expected: "",
+
+            operator: "equals",
         },
     } as FlowNode;
 }

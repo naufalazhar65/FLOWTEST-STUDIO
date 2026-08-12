@@ -12,11 +12,14 @@ import {
 interface Props {
     children: ReactNode;
 
+    title?: ReactNode;
+
     style?: CSSProperties;
 }
 
 export function Panel({
     children,
+    title,
     style,
 }: Props) {
     return (
@@ -39,6 +42,26 @@ export function Panel({
                 ...style,
             }}
         >
+            {title && (
+                <div
+                    style={{
+                        padding: "10px 14px",
+
+                        borderBottom:
+                            `1px solid ${colors.border}`,
+
+                        color:
+                            colors.text,
+
+                        fontSize: 12,
+
+                        fontWeight: 600,
+                    }}
+                >
+                    {title}
+                </div>
+            )}
+
             {children}
         </div>
     );

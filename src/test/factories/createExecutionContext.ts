@@ -2,7 +2,6 @@ import type { ExecutionContext } from "../../features/execution/types/ExecutionC
 
 export function createExecutionContext(): ExecutionContext {
     return {
-        device: "Android",
         edges: [],
     };
 }

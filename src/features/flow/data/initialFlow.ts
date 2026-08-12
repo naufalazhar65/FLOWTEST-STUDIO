@@ -1,4 +1,5 @@
 import type { Edge } from "reactflow";
+
 import type { FlowNode } from "../types/flowNode";
 
 export const initialNodes: FlowNode[] = [
@@ -33,7 +34,8 @@ export const initialNodes: FlowNode[] = [
     data: {
       action: "input",
       title: "Input",
-      subtitle: "Type text into element",
+      subtitle:
+        "Type text into element",
 
       locatorStrategy: "id",
       locator: "",
@@ -56,11 +58,10 @@ export const initialNodes: FlowNode[] = [
     data: {
       action: "assert",
       title: "Assert",
-      subtitle: "Verify element exists",
+      subtitle: "Verify value",
 
-      locatorStrategy: "id",
-      locator: "",
-
+      actual: "",
+      operator: "equals",
       expected: "",
 
       debug: {

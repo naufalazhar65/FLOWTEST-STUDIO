@@ -5,18 +5,18 @@ export function useCopyCode() {
         (state) => state.project,
     );
 
-    const selectedFile = useGeneratorStore(
-        (state) => state.selectedFile,
+    const activeFile = useGeneratorStore(
+        (state) => state.activeFile,
     );
 
     return async () => {
-        if (!project || !selectedFile) {
+        if (!project || !activeFile) {
             return false;
         }
 
         const file = project.files.find(
             (file) =>
-                file.path === selectedFile,
+                file.path === activeFile,
         );
 
         if (!file) {
