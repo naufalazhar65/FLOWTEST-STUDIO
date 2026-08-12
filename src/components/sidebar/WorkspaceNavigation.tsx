@@ -1,5 +1,6 @@
 import {
     BarChart3,
+    Layers3,
     Workflow,
     Smartphone,
 } from "lucide-react";
@@ -53,6 +54,19 @@ export function WorkspaceNavigation() {
                 }
                 onClick={() =>
                     setView("flow")
+                }
+            />
+
+            <NavigationButton
+                icon={
+                    <Layers3 size={16} />
+                }
+                label="Test Suites"
+                active={
+                    view === "suites"
+                }
+                onClick={() =>
+                    setView("suites")
                 }
             />
 

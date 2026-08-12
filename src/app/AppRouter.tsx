@@ -1,6 +1,5 @@
-import { MainLayout } from "../components/layout/MainLayout";
-
 import { WelcomeScreen } from "../features/workspace/components/WelcomeScreen";
+import { WorkspaceView } from "../features/workspace/components/WorkspaceView";
 
 import { useWorkspaceStore } from "../features/workspace/store/useWorkspaceStore";
 
@@ -11,7 +10,7 @@ export function AppRouter() {
 
     switch (mode) {
         case "workspace":
-            return <MainLayout />;
+            return <WorkspaceView />;
 
         case "welcome":
         default:

@@ -16,6 +16,7 @@ import { useWorkspaceStore } from "../../features/workspace/store/useWorkspaceSt
 
 import { ReportsPage } from "../../features/reports/components/ReportsPage";
 import { DeviceManager } from "../../features/device/components/DeviceManager";
+import { TestSuitesPage } from "../../features/suites/components/TestSuitesPage";
 
 export function MainLayout() {
     useEffect(() => {
@@ -33,6 +34,13 @@ export function MainLayout() {
         (state) => state.view,
     );
 
+    const isFlowView = view === "flow";
+
+    const isFullWorkspaceView =
+        view === "reports" ||
+        view === "devices" ||
+        view === "suites";
+
     return (
         <div
             style={{
@@ -40,10 +48,11 @@ export function MainLayout() {
 
                 display: "grid",
 
-                gridTemplateRows: `auto 1fr ${consoleExpanded
-                    ? "220px"
-                    : "48px"
-                    } 32px`,
+                gridTemplateRows: `auto 1fr ${
+                    consoleExpanded
+                        ? "220px"
+                        : "48px"
+                } 32px`,
 
                 background: "#0D1117",
 
@@ -58,8 +67,7 @@ export function MainLayout() {
                     display: "grid",
 
                     gridTemplateColumns:
-                        view === "reports" ||
-                            view === "devices"
+                        isFullWorkspaceView
                             ? "300px minmax(0, 1fr)"
                             : "300px minmax(0, 1fr) 420px",
 
@@ -97,7 +105,9 @@ export function MainLayout() {
                         background: "#0D1117",
                     }}
                 >
-                    {view === "reports" ? (
+                    {view === "suites" ? (
+                        <TestSuitesPage />
+                    ) : view === "reports" ? (
                         <ReportsPage />
                     ) : view === "devices" ? (
                         <DeviceManager />
@@ -123,7 +133,7 @@ export function MainLayout() {
                 </div>
 
                 {/* Inspector */}
-                {view === "flow" && (
+                {isFlowView && (
                     <div
                         style={{
                             display: "flex",
