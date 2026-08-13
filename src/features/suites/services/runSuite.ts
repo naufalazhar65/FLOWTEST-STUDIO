@@ -1,7 +1,12 @@
 import type { TestSuite } from "../types/TestSuite";
 
+import {
+    useExecutionStore,
+} from "../../execution/store/useExecutionStore";
+
 import type {
     SuiteRunResult,
+    SuiteTestCaseResult,
 } from "../types/SuiteRunResult";
 
 import {
@@ -59,10 +64,18 @@ function getExecutionProject(
     };
 }
 
-function isSuiteStopped(
+function isSuiteAborted(
     signal?: AbortSignal,
 ): boolean {
     return signal?.aborted === true;
+}
+
+function isExecutionStopped(): boolean {
+    return (
+        useExecutionStore
+            .getState()
+            .status === "stopped"
+    );
 }
 
 export function stopSuite(): void {
@@ -97,8 +110,12 @@ export async function runSuite(
     for (
         const testCase of enabledTestCases
     ) {
+        // ---------------------------------------
+        // Check Abort Before Test Case
+        // ---------------------------------------
+
         if (
-            isSuiteStopped(signal)
+            isSuiteAborted(signal)
         ) {
             suiteStopped = true;
             break;
@@ -112,12 +129,20 @@ export async function runSuite(
             Date.now();
 
         try {
+            // ---------------------------------------
+            // Get Project Graph
+            // ---------------------------------------
+
             const {
                 nodes,
                 edges,
             } = getExecutionProject(
                 testCase,
             );
+
+            // ---------------------------------------
+            // Execute Test Case
+            // ---------------------------------------
 
             await ExecutionController.run(
                 nodes,
@@ -129,7 +154,18 @@ export async function runSuite(
             const finishedAt =
                 Date.now();
 
-            results.push({
+            // ---------------------------------------
+            // Check Stop After Execution
+            // ---------------------------------------
+
+            const wasStopped =
+                isSuiteAborted(
+                    signal,
+                ) ||
+                isExecutionStopped();
+
+            const testCaseResult:
+                SuiteTestCaseResult = {
                 testCaseId:
                     testCase.id,
 
@@ -139,7 +175,10 @@ export async function runSuite(
                 projectName:
                     testCase.projectName,
 
-                status: "passed",
+                status:
+                    wasStopped
+                        ? "stopped"
+                        : "passed",
 
                 startedAt,
 
@@ -148,20 +187,41 @@ export async function runSuite(
                 duration:
                     finishedAt -
                     startedAt,
-            });
+            };
+
+            results.push(
+                testCaseResult,
+            );
 
             onTestCaseComplete?.(
-                results[results.length - 1],
+                testCaseResult,
                 [...results],
             );
+
+            // ---------------------------------------
+            // Stop Suite
+            // ---------------------------------------
+
+            if (wasStopped) {
+                suiteStopped = true;
+                break;
+            }
         } catch (error) {
             const finishedAt =
                 Date.now();
 
-            const wasStopped =
-                isSuiteStopped(signal);
+            // ---------------------------------------
+            // Check Stop After Error
+            // ---------------------------------------
 
-            results.push({
+            const wasStopped =
+                isSuiteAborted(
+                    signal,
+                ) ||
+                isExecutionStopped();
+
+            const testCaseResult:
+                SuiteTestCaseResult = {
                 testCaseId:
                     testCase.id,
 
@@ -188,12 +248,20 @@ export async function runSuite(
                     error instanceof Error
                         ? error.message
                         : String(error),
-            });
+            };
+
+            results.push(
+                testCaseResult,
+            );
 
             onTestCaseComplete?.(
-                results[results.length - 1],
+                testCaseResult,
                 [...results],
             );
+
+            // ---------------------------------------
+            // Stop Suite
+            // ---------------------------------------
 
             if (wasStopped) {
                 suiteStopped = true;
@@ -227,13 +295,15 @@ export async function runSuite(
         ).length;
 
     return {
-        suiteId: suite.id,
+        suiteId:
+            suite.id,
 
-        suiteName: suite.name,
+        suiteName:
+            suite.name,
 
         status:
             suiteStopped ||
-                stopped > 0
+            stopped > 0
                 ? "stopped"
                 : failed > 0
                     ? "failed"
