@@ -10,6 +10,9 @@ import { putRecentProject } from "../storage/db/projects";
 import {
     setActiveProject,
 } from "../storage/activeProject";
+import {
+    notifyRecentProjectsUpdated,
+} from "./recentProjectsEvents";
 
 export async function openProjectWorkflow() {
     const result =
@@ -64,6 +67,8 @@ export async function openProjectWorkflow() {
 
         handle: result.handle,
     });
+
+    notifyRecentProjectsUpdated();
 
     // Masuk ke Workspace
     useWorkspaceStore

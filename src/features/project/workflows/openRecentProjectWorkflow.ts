@@ -14,6 +14,10 @@ import type {
     RecentProject,
 } from "../types/RecentProject";
 
+import {
+    notifyRecentProjectsUpdated,
+} from "../services/recentProjectsEvents";
+
 export async function openRecentProjectWorkflow(
     recentProject: RecentProject,
 ) {
@@ -76,6 +80,8 @@ export async function openRecentProjectWorkflow(
             lastOpened:
                 new Date().toISOString(),
         });
+
+        notifyRecentProjectsUpdated();
 
         // Open workspace
         useWorkspaceStore

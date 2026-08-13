@@ -16,25 +16,17 @@ import {
 } from "../services/commandRegistry";
 
 import {
-    useWorkspaceStore,
-} from "../../workspace/store/useWorkspaceStore";
+    useFlowStore,
+} from "../../flow/store/useFlowStore";
 
 import {
-    openProjectWorkflow,
-} from "../../project/services/openProjectWorkflow";
+    requestProjectTransition,
+} from "../../project/services/projectTransition";
 
 import {
     saveProjectWorkflow,
     saveProjectAsWorkflow,
 } from "../../project/workflows/saveProjectWorkflow";
-
-import {
-    closeProject,
-} from "../../project/services/closeProject";
-
-import {
-    useFlowStore,
-} from "../../flow/store/useFlowStore";
 
 registerCommand({
     id: "project.new",
@@ -53,9 +45,9 @@ registerCommand({
     shortcut: "⌘N",
 
     run() {
-        useWorkspaceStore
-            .getState()
-            .openCreateProject();
+        requestProjectTransition(
+            "new",
+        );
     },
 });
 
@@ -75,8 +67,10 @@ registerCommand({
 
     shortcut: "⌘O",
 
-    async run() {
-        await openProjectWorkflow();
+    run() {
+        requestProjectTransition(
+            "open",
+        );
     },
 });
 
@@ -139,7 +133,9 @@ registerCommand({
     shortcut: "⇧⌘W",
 
     run() {
-        closeProject();
+        requestProjectTransition(
+            "close",
+        );
     },
 });
 

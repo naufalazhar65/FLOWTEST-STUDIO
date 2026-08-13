@@ -5,8 +5,20 @@ import "./index.css";
 import App from "./App";
 import "./features/command";
 
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>
-);
+import {
+  runRecentProjectsMigration,
+} from "./features/project/services/runRecentProjectsMigration";
+
+async function bootstrap() {
+  await runRecentProjectsMigration();
+
+  createRoot(
+    document.getElementById("root")!,
+  ).render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  );
+}
+
+void bootstrap();

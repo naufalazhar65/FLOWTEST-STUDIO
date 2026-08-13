@@ -7,9 +7,13 @@ import {
     X,
 } from "lucide-react";
 
-import { useState } from "react";
+import {
+    useState,
+} from "react";
 
-import type { ReactNode } from "react";
+import type {
+    ReactNode,
+} from "react";
 
 import {
     colors,
@@ -18,177 +22,45 @@ import {
 } from "../../themes";
 
 import {
-    useWorkspaceStore,
-} from "../../features/workspace/store/useWorkspaceStore";
+    useProjectTransitionStore,
+} from "../../features/project/store/useProjectTransitionStore";
 
 import {
-    useProjectStore,
-} from "../../features/project/store/useProjectStore";
+    requestProjectTransition,
+    cancelProjectTransition,
+    discardProjectTransition,
+    saveAndContinueProjectTransition,
+} from "../../features/project/services/projectTransition";
 
 import {
     executeCommand,
 } from "../../features/command/services/commandRegistry";
 
-import { ProjectBadge } from "./ProjectBadge";
+import {
+    ProjectBadge,
+} from "./ProjectBadge";
 
-import { ConfirmDialog } from "../ui/ConfirmDialog";
+import {
+    ConfirmDialog,
+} from "../ui/ConfirmDialog";
 
 interface Props {
     name: string;
     modified: boolean;
 }
 
-type ProjectTransition =
-    | "new"
-    | "open"
-    | "close";
-
 export function ProjectMenu({
     name,
-    modified,
+    modified: _modified,
 }: Props) {
     const [open, setOpen] =
         useState(false);
 
-    const [
-        confirmTransition,
-        setConfirmTransition,
-    ] = useState<ProjectTransition | null>(
-        null,
-    );
-
-    const openCreateProject =
-        useWorkspaceStore(
+    const pendingAction =
+        useProjectTransitionStore(
             (state) =>
-                state.openCreateProject,
+                state.pendingAction,
         );
-
-    const projectModified =
-        useProjectStore(
-            (state) =>
-                state.isModified,
-        );
-
-    /**
-     * Execute the actual project action.
-     */
-    async function executeTransition(
-        action: ProjectTransition,
-    ) {
-        switch (action) {
-            case "new":
-                openCreateProject();
-                break;
-
-            case "open":
-                await executeCommand(
-                    "project.open",
-                );
-                break;
-
-            case "close":
-                await executeCommand(
-                    "project.close",
-                );
-                break;
-        }
-    }
-
-    /**
-     * Ask for confirmation when the
-     * current project has unsaved changes.
-     */
-    function requestTransition(
-        action: ProjectTransition,
-    ) {
-        setOpen(false);
-
-        const hasUnsavedChanges =
-            projectModified || modified;
-
-        if (hasUnsavedChanges) {
-            setConfirmTransition(action);
-            return;
-        }
-
-        void executeTransition(action);
-    }
-
-    /**
-     * Cancel the pending transition.
-     */
-    function handleCancelTransition() {
-        setConfirmTransition(null);
-    }
-
-    /**
-     * Save the current project first,
-     * then continue with the requested action.
-     */
-    async function handleSaveAndContinue() {
-        const action =
-            confirmTransition;
-
-        if (!action) {
-            return;
-        }
-
-        try {
-            await executeCommand(
-                "project.save",
-            );
-
-            const stillModified =
-                useProjectStore
-                    .getState()
-                    .isModified;
-
-            /*
-             * Save was cancelled or failed.
-             * Keep the confirmation dialog open.
-             */
-            if (stillModified) {
-                return;
-            }
-
-            setConfirmTransition(null);
-
-            await executeTransition(
-                action,
-            );
-        } catch (error) {
-            console.error(
-                "Failed to save project:",
-                error,
-            );
-        }
-    }
-
-    /**
-     * Discard current changes and
-     * continue with the requested action.
-     */
-    async function handleDiscardAndContinue() {
-        const action =
-            confirmTransition;
-
-        if (!action) {
-            return;
-        }
-
-        try {
-            setConfirmTransition(null);
-
-            await executeTransition(
-                action,
-            );
-        } catch (error) {
-            console.error(
-                "Failed to continue project transition:",
-                error,
-            );
-        }
-    }
 
     return (
         <>
@@ -207,26 +79,17 @@ export function ProjectMenu({
                     }
                     style={{
                         display: "flex",
-                        alignItems:
-                            "center",
-
+                        alignItems: "center",
                         gap: 6,
-
-                        background:
-                            "transparent",
-
+                        background: "transparent",
                         border: "none",
-
                         padding: 0,
-
                         cursor: "pointer",
                     }}
                 >
                     <ProjectBadge
                         name={name}
-                        modified={
-                            modified
-                        }
+                        modified={_modified}
                     />
 
                     <ChevronDown
@@ -237,7 +100,6 @@ export function ProjectMenu({
                         style={{
                             transition:
                                 "transform .18s ease",
-
                             transform:
                                 open
                                     ? "rotate(180deg)"
@@ -251,28 +113,19 @@ export function ProjectMenu({
                         style={{
                             position:
                                 "absolute",
-
                             top:
                                 "calc(100% + 8px)",
-
                             left: 0,
-
                             width: 240,
-
                             padding: 6,
-
                             background:
                                 colors.panel,
-
                             border:
                                 `1px solid ${colors.border}`,
-
                             borderRadius:
                                 radius.md,
-
                             boxShadow:
                                 shadow.floating,
-
                             zIndex: 1000,
                         }}
                     >
@@ -284,11 +137,13 @@ export function ProjectMenu({
                             }
                             label="New Project"
                             shortcut="⌘N"
-                            onClick={() =>
-                                requestTransition(
+                            onClick={() => {
+                                setOpen(false);
+
+                                requestProjectTransition(
                                     "new",
-                                )
-                            }
+                                );
+                            }}
                         />
 
                         <MenuItem
@@ -299,11 +154,13 @@ export function ProjectMenu({
                             }
                             label="Open Project"
                             shortcut="⌘O"
-                            onClick={() =>
-                                requestTransition(
+                            onClick={() => {
+                                setOpen(false);
+
+                                requestProjectTransition(
                                     "open",
-                                )
-                            }
+                                );
+                            }}
                         />
 
                         <MenuDivider />
@@ -317,9 +174,7 @@ export function ProjectMenu({
                             label="Save"
                             shortcut="⌘S"
                             onClick={() => {
-                                setOpen(
-                                    false,
-                                );
+                                setOpen(false);
 
                                 void executeCommand(
                                     "project.save",
@@ -336,9 +191,7 @@ export function ProjectMenu({
                             label="Save As"
                             shortcut="⇧⌘S"
                             onClick={() => {
-                                setOpen(
-                                    false,
-                                );
+                                setOpen(false);
 
                                 void executeCommand(
                                     "project.saveAs",
@@ -355,11 +208,13 @@ export function ProjectMenu({
                             label="Close Project"
                             shortcut="⇧⌘W"
                             danger
-                            onClick={() =>
-                                requestTransition(
+                            onClick={() => {
+                                setOpen(false);
+
+                                requestProjectTransition(
                                     "close",
-                                )
-                            }
+                                );
+                            }}
                         />
                     </div>
                 )}
@@ -367,8 +222,7 @@ export function ProjectMenu({
 
             <ConfirmDialog
                 open={
-                    confirmTransition !==
-                    null
+                    pendingAction !== null
                 }
                 title="Unsaved Changes"
                 message={
@@ -390,13 +244,13 @@ export function ProjectMenu({
                 secondaryLabel="Don't Save"
                 confirmLabel="Save"
                 onCancel={
-                    handleCancelTransition
+                    cancelProjectTransition
                 }
                 onSecondary={() => {
-                    void handleDiscardAndContinue();
+                    void discardProjectTransition();
                 }}
                 onConfirm={() => {
-                    void handleSaveAndContinue();
+                    void saveAndContinueProjectTransition();
                 }}
             />
         </>
@@ -428,32 +282,19 @@ function MenuItem({
             onClick={onClick}
             style={{
                 width: "100%",
-
                 display: "flex",
-
-                alignItems:
-                    "center",
-
+                alignItems: "center",
                 gap: 10,
-
                 padding: "9px 10px",
-
-                background:
-                    "transparent",
-
+                background: "transparent",
                 border: "none",
-
                 borderRadius:
                     radius.sm,
-
                 color: danger
                     ? colors.danger
                     : colors.text,
-
                 cursor: "pointer",
-
                 textAlign: "left",
-
                 fontSize: 13,
             }}
             onMouseEnter={(
@@ -484,7 +325,6 @@ function MenuItem({
                     style={{
                         color:
                             colors.textMuted,
-
                         fontSize: 11,
                     }}
                 >
@@ -500,9 +340,7 @@ function MenuDivider() {
         <div
             style={{
                 height: 1,
-
                 margin: "6px 4px",
-
                 background:
                     colors.border,
             }}

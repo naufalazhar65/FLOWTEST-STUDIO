@@ -101,7 +101,11 @@ interface FlowStore {
     id: string | null
   ) => void;
   saveProject: (
-    name?: string
+    name?: string,
+    options?: {
+      id?: string;
+      createdAt?: string;
+    },
   ) => FlowProject;
 
   loadProject: (
@@ -447,14 +451,17 @@ export const useFlowStore =
     },
 
     saveProject: (
-      name = "Untitled"
+      name = "Untitled",
+      options,
     ) => {
-      const { nodes, edges } = get();
+      const { nodes, edges } =
+        get();
 
       return createProject(
         name,
         nodes,
-        edges
+        edges,
+        options,
       );
     },
 

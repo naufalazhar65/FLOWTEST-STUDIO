@@ -4,7 +4,9 @@ import type {
 
 import {
     put,
+    get,
     getAll,
+    remove,
 } from "./indexedDb";
 
 import {
@@ -20,8 +22,26 @@ export function putRecentProject(
     );
 }
 
+export function getRecentProject(
+    id: string,
+) {
+    return get<RecentProject>(
+        STORES.recentProjects,
+        id,
+    );
+}
+
 export function getRecentProjects() {
     return getAll<RecentProject>(
         STORES.recentProjects,
+    );
+}
+
+export function removeRecentProject(
+    id: string,
+) {
+    return remove(
+        STORES.recentProjects,
+        id,
     );
 }
