@@ -2,7 +2,7 @@ import { useEffect } from "react";
 
 import { useFlowStore } from "../store/useFlowStore";
 
-export function useHistoryShortcuts() {
+export function useClipboardShortcuts() {
   const {
     undo,
     redo,

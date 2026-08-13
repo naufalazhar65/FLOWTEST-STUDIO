@@ -2,6 +2,7 @@ import type { Edge } from "reactflow";
 
 import type { FlowNode } from "../types/flowNode";
 import type { NodeType } from "../types/NodePlugin";
+
 import { createNode } from "../factories/nodeFactory";
 import { createEdge } from "../factories/edgeFactory";
 
@@ -14,10 +15,10 @@ export function insertNodeAction(
   nodes: FlowNode[],
   edges: Edge[],
   edgeId: string,
-  type: NodeType
+  type: NodeType,
 ): InsertNodeResult {
   const edge = edges.find(
-    (edge) => edge.id === edgeId
+    (item) => item.id === edgeId,
   );
 
   if (!edge) {
@@ -27,11 +28,58 @@ export function insertNodeAction(
     };
   }
 
-  const node = createNode(type);
+  const sourceNode =
+    nodes.find(
+      (node) =>
+        node.id === edge.source,
+    );
 
-  const remainingEdges = edges.filter(
-    (edge) => edge.id !== edgeId
+  const targetNode =
+    nodes.find(
+      (node) =>
+        node.id === edge.target,
+    );
+
+  const position = {
+    x:
+      sourceNode &&
+        targetNode
+        ? (
+          sourceNode.position.x +
+          targetNode.position.x
+        ) / 2
+        : sourceNode
+          ? sourceNode.position.x
+          : targetNode
+            ? targetNode.position.x
+            : 250,
+
+    y:
+      sourceNode &&
+        targetNode
+        ? (
+          sourceNode.position.y +
+          targetNode.position.y
+        ) / 2
+        : sourceNode
+          ? sourceNode.position.y +
+          180
+          : targetNode
+            ? targetNode.position.y -
+            180
+            : 80,
+  };
+
+  const node = createNode(
+    type,
+    undefined,
+    position,
   );
+
+  const remainingEdges =
+    edges.filter(
+      (item) => item.id !== edgeId,
+    );
 
   return {
     nodes: [
@@ -44,12 +92,15 @@ export function insertNodeAction(
 
       createEdge(
         edge.source,
-        node.id
+        node.id,
+        edge.sourceHandle ?? undefined,
       ),
 
       createEdge(
         node.id,
-        edge.target
+        edge.target,
+        undefined,
+        edge.targetHandle ?? undefined,
       ),
     ],
   };

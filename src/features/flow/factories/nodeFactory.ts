@@ -18,11 +18,15 @@ interface NodeOverrides {
   text?: string;
 }
 
-let currentY = 80;
+interface NodePosition {
+  x: number;
+  y: number;
+}
 
 export function createNode(
   action: NodeType,
   overrides?: NodeOverrides,
+  position?: NodePosition,
 ): FlowNode {
   const plugin = plugins.find(
     (plugin): plugin is NodePlugin =>
@@ -35,7 +39,7 @@ export function createNode(
     );
   }
 
-  const data = {
+  const data: FlowNodeData = {
     ...plugin.defaults,
 
     title: plugin.title,
@@ -46,22 +50,18 @@ export function createNode(
     debug: {
       breakpoint: false,
     },
-  } as FlowNodeData;
+  };
 
-  const node: FlowNode = {
+  return {
     id: crypto.randomUUID(),
 
     type: "flow",
 
-    position: {
+    position: position ?? {
       x: 250,
-      y: currentY,
+      y: 80,
     },
 
     data,
   };
-
-  currentY += 180;
-
-  return node;
 }

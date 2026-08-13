@@ -428,4 +428,11 @@ export type FlowNodeData =
   | PressReturnNodeData
 
 
+export type FlowNodeDataPatch =
+  FlowNodeData extends infer T
+  ? T extends FlowNodeData
+  ? Partial<Omit<T, "action">>
+  : never
+  : never;
+
 export type FlowNode = Node<FlowNodeData>;

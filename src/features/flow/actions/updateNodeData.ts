@@ -1,13 +1,13 @@
 import type {
   FlowNode,
   FlowNodeData,
+  FlowNodeDataPatch,
 } from "../types/flowNode";
 
 export function updateNodeDataAction(
-  
   nodes: FlowNode[],
   id: string,
-  data: Partial<FlowNodeData>
+  data: FlowNodeDataPatch,
 ): FlowNode[] {
   return nodes.map((node) => {
     if (node.id !== id) {
@@ -16,6 +16,7 @@ export function updateNodeDataAction(
 
     return {
       ...node,
+
       data: {
         ...node.data,
         ...data,

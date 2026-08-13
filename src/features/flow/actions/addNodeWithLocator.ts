@@ -22,6 +22,8 @@ export function addNodeWithLocatorAction(
     type: NodeType,
     locator: LocatorOverride,
 ) {
+    const lastNode = nodes.at(-1);
+
     const node = createNode(
         type,
         {
@@ -36,10 +38,13 @@ export function addNodeWithLocatorAction(
                 text: locator.text,
             }),
         },
+        {
+            x: 250,
+            y: lastNode
+                ? lastNode.position.y + 180
+                : 80,
+        },
     );
-
-    const lastNode =
-        nodes.at(-1);
 
     return {
         nodes: [

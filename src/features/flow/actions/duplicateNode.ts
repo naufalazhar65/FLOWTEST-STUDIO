@@ -3,14 +3,15 @@ import type { Edge } from "reactflow";
 import type { FlowNode } from "../types/flowNode";
 
 import { createEdge } from "../factories/edgeFactory";
+import { getNodePlugin } from "../services/pluginRegistry";
 
 export function duplicateNodeAction(
   nodes: FlowNode[],
   edges: Edge[],
-  nodeId: string
+  nodeId: string,
 ) {
   const node = nodes.find(
-    (node) => node.id === nodeId
+    (item) => item.id === nodeId,
   );
 
   if (!node) {
@@ -21,7 +22,7 @@ export function duplicateNodeAction(
   }
 
   const duplicatedNode: FlowNode = {
-    ...node,
+    ...structuredClone(node),
 
     id: crypto.randomUUID(),
 
@@ -33,19 +34,32 @@ export function duplicateNodeAction(
     selected: false,
   };
 
+  const plugin =
+    getNodePlugin(node.data.action);
+
+  const outputs =
+    plugin.handles?.outputs ?? [];
+
+  const duplicateEdge =
+    outputs.length === 1
+      ? createEdge(
+        node.id,
+        duplicatedNode.id,
+        outputs[0],
+      )
+      : null;
+
   return {
     nodes: [
       ...nodes,
       duplicatedNode,
     ],
 
-    edges: [
-      ...edges,
-
-      createEdge(
-        node.id,
-        duplicatedNode.id
-      ),
-    ],
+    edges: duplicateEdge
+      ? [
+        ...edges,
+        duplicateEdge,
+      ]
+      : edges,
   };
 }

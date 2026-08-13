@@ -45,6 +45,7 @@ const context: ExecutionContext = {
 const executionStore = {
     setCurrentNode: vi.fn(),
     setNodeStatus: vi.fn(),
+    setNodeResult: vi.fn(),
     completeNode: vi.fn(),
 };
 
@@ -117,6 +118,10 @@ describe("executeNode", () => {
         });
 
         expect(
+            executionStore.setNodeResult,
+        ).toHaveBeenCalledTimes(1);
+
+        expect(
             executionStore.setCurrentNode,
         ).toHaveBeenNthCalledWith(
             1,
@@ -173,6 +178,10 @@ describe("executeNode", () => {
         expect(result).toEqual({
             outputs: ["next"],
         });
+
+        expect(
+            executionStore.setNodeResult,
+        ).toHaveBeenCalledTimes(1);
     });
 
     it("marks node as failed when runner throws Error", async () => {

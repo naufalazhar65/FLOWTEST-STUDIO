@@ -1,6 +1,16 @@
 import { create } from "zustand";
-import type { Edge } from "reactflow";
+
+import type {
+  Connection,
+  Edge,
+} from "reactflow";
+
 import type { FlowProject } from "../types/FlowProject";
+
+import {
+  connectNodesAction,
+} from "../actions/connectNodes";
+
 import {
   markProjectModified,
 } from "../../project/services/projectState";
@@ -15,129 +25,151 @@ import {
 } from "../data/initialFlow";
 
 import type { NodeType } from "../types/NodePlugin";
+
 import type {
   FlowNode,
-  FlowNodeData,
+  FlowNodeDataPatch,
 } from "../types/flowNode";
 
-import type { FlowSnapshot } from "../history/history";
+import type { FlowSnapshot } from "../types/FlowSnapshot";
 
-import { addNodeAction } from "../actions/addNode";
+import {
+  addNodeAction,
+} from "../actions/addNode";
+
 import {
   addNodeWithLocatorAction,
 } from "../actions/addNodeWithLocator";
-import type { LocatorStrategy } from "../../execution/types/LocatorStrategy";
-import { updateNodeAction } from "../actions/updateNode";
-import { updateNodeDataAction } from "../actions/updateNodeData";
-import { deleteNodeAction } from "../actions/deleteNode";
-import { insertNodeAction } from "../actions/insertNode";
-import { duplicateNodeAction } from "../actions/duplicateNode";
-import { pushHistory } from "./historyHelpers";
 
+import type { LocatorStrategy } from "../../execution/types/LocatorStrategy";
+
+import {
+  updateNodeAction,
+} from "../actions/updateNode";
+
+import {
+  updateNodeDataAction,
+} from "../actions/updateNodeData";
+
+import {
+  deleteNodeAction,
+} from "../actions/deleteNode";
+
+import {
+  insertNodeAction,
+} from "../actions/insertNode";
+
+import {
+  duplicateNodeAction,
+} from "../actions/duplicateNode";
+
+import {
+  pushHistory,
+} from "./historyHelpers";
 
 interface FlowStore {
   nodes: FlowNode[];
+
   edges: Edge[];
 
   history: FlowSnapshot[];
+
   future: FlowSnapshot[];
 
   selectedNodeId: string | null;
+
   clipboard: FlowNode | null;
+
   resetFlow(): void;
 
+  undo(): void;
 
-  saveHistory: () => void;
+  redo(): void;
 
-  undo: () => void;
-  redo: () => void;
-  copyNode: () => void;
+  copyNode(): void;
 
-  pasteNode: () => void;
+  pasteNode(): void;
 
-  setNodes: (
+  setNodes(
     updater:
       | FlowNode[]
       | ((nodes: FlowNode[]) => FlowNode[])
-  ) => void;
+  ): void;
 
-  setEdges: (
+  setEdges(
     updater:
       | Edge[]
       | ((edges: Edge[]) => Edge[])
-  ) => void;
+  ): void;
 
-  addNode: (type: NodeType) => void;
+  connectNodes(
+    connection: Connection,
+  ): void;
 
-  addNodeWithLocator: (
+  addNode(
+    type: NodeType,
+  ): void;
+
+  addNodeWithLocator(
     type: NodeType,
     locatorStrategy: LocatorStrategy,
     locator: string,
     text?: string,
-  ) => void;
+  ): void;
 
-  updateNode: (
+  updateNode(
     id: string,
-    data: Partial<FlowNode>
-  ) => void;
+    data: Partial<FlowNode>,
+  ): void;
 
-  updateNodeData: (
+  updateNodeData(
     id: string,
-    data: Partial<FlowNodeData>
-  ) => void;
+    data: FlowNodeDataPatch,
+  ): void;
 
-  removeNode: (id: string) => void;
+  removeNode(
+    id: string,
+  ): void;
 
-  insertNode: (
+  insertNode(
     edgeId: string,
-    type: NodeType
-  ) => void;
+    type: NodeType,
+  ): void;
 
-  duplicateNode: (
-    id: string
-  ) => void;
+  duplicateNode(
+    id: string,
+  ): void;
 
-  setSelectedNode: (
-    id: string | null
-  ) => void;
-  saveProject: (
+  setSelectedNode(
+    id: string | null,
+  ): void;
+
+  saveProject(
     name?: string,
     options?: {
       id?: string;
       createdAt?: string;
     },
-  ) => FlowProject;
+  ): FlowProject;
 
-  loadProject: (
-    project: FlowProject
-  ) => void;
+  loadProject(
+    project: FlowProject,
+  ): void;
 }
 
 export const useFlowStore =
   create<FlowStore>((set, get) => ({
-    clipboard: null,
     nodes: initialNodes,
+
     edges: initialEdges,
 
     history: [],
+
     future: [],
 
     selectedNodeId: null,
 
-    saveHistory: () => {
-      const { nodes, edges, history } = get();
-
-      set({
-        history: [
-          ...history,
-          {
-            nodes: structuredClone(nodes),
-            edges: structuredClone(edges),
-          },
-        ],
-        future: [],
-      });
-    },
+    clipboard: null,
 
     copyNode: () => {
       const {
@@ -146,13 +178,17 @@ export const useFlowStore =
       } = get();
 
       const node = nodes.find(
-        (node) => node.id === selectedNodeId
+        (node) =>
+          node.id === selectedNodeId,
       );
 
-      if (!node) return;
+      if (!node) {
+        return;
+      }
 
       set({
-        clipboard: structuredClone(node),
+        clipboard:
+          structuredClone(node),
       });
     },
 
@@ -164,7 +200,9 @@ export const useFlowStore =
         history,
       } = get();
 
-      if (!clipboard) return;
+      if (!clipboard) {
+        return;
+      }
 
       const newNode: FlowNode = {
         ...structuredClone(clipboard),
@@ -172,15 +210,24 @@ export const useFlowStore =
         id: crypto.randomUUID(),
 
         position: {
-          x: clipboard.position.x + 40,
-          y: clipboard.position.y + 40,
+          x:
+            clipboard.position.x +
+            40,
+
+          y:
+            clipboard.position.y +
+            40,
         },
       };
 
       set({
-        nodes: [...nodes, newNode],
+        nodes: [
+          ...nodes,
+          newNode,
+        ],
 
-        selectedNodeId: newNode.id,
+        selectedNodeId:
+          newNode.id,
 
         history: pushHistory(
           history,
@@ -189,6 +236,144 @@ export const useFlowStore =
         ),
 
         future: [],
+      });
+
+      markProjectModified();
+    },
+
+    undo: () => {
+      const {
+        history,
+        future,
+        nodes,
+        edges,
+      } = get();
+
+      if (history.length === 0) {
+        return;
+      }
+
+      const previous =
+        history[
+        history.length - 1
+        ];
+
+      set({
+        nodes: previous.nodes,
+
+        edges: previous.edges,
+
+        history:
+          history.slice(0, -1),
+
+        future: [
+          {
+            nodes,
+            edges,
+          },
+          ...future,
+        ],
+      });
+    },
+
+    redo: () => {
+      const {
+        history,
+        future,
+        nodes,
+        edges,
+      } = get();
+
+      if (future.length === 0) {
+        return;
+      }
+
+      const next = future[0];
+
+      set({
+        nodes: next.nodes,
+
+        edges: next.edges,
+
+        history: [
+          ...history,
+          {
+            nodes,
+            edges,
+          },
+        ],
+
+        future:
+          future.slice(1),
+      });
+    },
+
+    setNodes: (updater) => {
+      set((state) => ({
+        nodes:
+          typeof updater ===
+            "function"
+            ? updater(state.nodes)
+            : updater,
+      }));
+
+      markProjectModified();
+    },
+
+    setEdges: (updater) => {
+      set((state) => ({
+        edges:
+          typeof updater ===
+            "function"
+            ? updater(state.edges)
+            : updater,
+      }));
+
+      markProjectModified();
+    },
+
+    connectNodes: (
+      connection,
+    ) => {
+      set((state) => ({
+        edges:
+          connectNodesAction(
+            state.edges,
+            connection,
+          ),
+
+        history: pushHistory(
+          state.history,
+          state.nodes,
+          state.edges,
+        ),
+
+        future: [],
+      }));
+
+      markProjectModified();
+    },
+
+    addNode: (type) => {
+      set((state) => {
+        const result =
+          addNodeAction(
+            state.nodes,
+            state.edges,
+            type,
+          );
+
+        return {
+          ...result,
+
+          history: pushHistory(
+            state.history,
+            state.nodes,
+            state.edges,
+          ),
+
+          future: [],
+        };
       });
 
       markProjectModified();
@@ -234,116 +419,17 @@ export const useFlowStore =
       markProjectModified();
     },
 
-    undo: () => {
-      const {
-        history,
-        future,
-        nodes,
-        edges,
-      } = get();
-
-      if (history.length === 0) return;
-
-      const previous =
-        history[history.length - 1];
-
-      set({
-        nodes: previous.nodes,
-        edges: previous.edges,
-
-        history: history.slice(0, -1),
-
-        future: [
-          {
-            nodes,
-            edges,
-          },
-          ...future,
-        ],
-      });
-    },
-
-    redo: () => {
-      const {
-        history,
-        future,
-        nodes,
-        edges,
-      } = get();
-
-      if (future.length === 0) return;
-
-      const next = future[0];
-
-      set({
-        nodes: next.nodes,
-        edges: next.edges,
-
-        history: [
-          ...history,
-          {
-            nodes,
-            edges,
-          },
-        ],
-
-        future: future.slice(1),
-      });
-    },
-
-    setNodes: (updater) => {
+    updateNode: (
+      id,
+      data,
+    ) => {
       set((state) => ({
         nodes:
-          typeof updater === "function"
-            ? updater(state.nodes)
-            : updater,
-      }));
-
-      markProjectModified();
-    },
-
-    setEdges: (updater) => {
-      set((state) => ({
-        edges:
-          typeof updater === "function"
-            ? updater(state.edges)
-            : updater,
-      }));
-
-      markProjectModified();
-    },
-
-    addNode: (type) => {
-      set((state) => {
-        const result = addNodeAction(
-          state.nodes,
-          state.edges,
-          type,
-        );
-
-        return {
-          ...result,
-
-          history: pushHistory(
-            state.history,
+          updateNodeAction(
             state.nodes,
-            state.edges,
+            id,
+            data,
           ),
-
-          future: [],
-        };
-      });
-
-      markProjectModified();
-    },
-
-    updateNode: (id, data) => {
-      set((state) => ({
-        nodes: updateNodeAction(
-          state.nodes,
-          id,
-          data,
-        ),
 
         history: pushHistory(
           state.history,
@@ -357,13 +443,17 @@ export const useFlowStore =
       markProjectModified();
     },
 
-    updateNodeData: (id, data) => {
+    updateNodeData: (
+      id,
+      data,
+    ) => {
       set((state) => ({
-        nodes: updateNodeDataAction(
-          state.nodes,
-          id,
-          data,
-        ),
+        nodes:
+          updateNodeDataAction(
+            state.nodes,
+            id,
+            data,
+          ),
 
         history: pushHistory(
           state.history,
@@ -379,11 +469,12 @@ export const useFlowStore =
 
     removeNode: (id) => {
       set((state) => {
-        const result = deleteNodeAction(
-          state.nodes,
-          state.edges,
-          id,
-        );
+        const result =
+          deleteNodeAction(
+            state.nodes,
+            state.edges,
+            id,
+          );
 
         return {
           ...result,
@@ -401,14 +492,18 @@ export const useFlowStore =
       markProjectModified();
     },
 
-    insertNode: (edgeId, type) => {
+    insertNode: (
+      edgeId,
+      type,
+    ) => {
       set((state) => {
-        const result = insertNodeAction(
-          state.nodes,
-          state.edges,
-          edgeId,
-          type,
-        );
+        const result =
+          insertNodeAction(
+            state.nodes,
+            state.edges,
+            edgeId,
+            type,
+          );
 
         return {
           ...result,
@@ -428,11 +523,12 @@ export const useFlowStore =
 
     duplicateNode: (id) => {
       set((state) => {
-        const result = duplicateNodeAction(
-          state.nodes,
-          state.edges,
-          id,
-        );
+        const result =
+          duplicateNodeAction(
+            state.nodes,
+            state.edges,
+            id,
+          );
 
         return {
           ...result,
@@ -454,8 +550,10 @@ export const useFlowStore =
       name = "Untitled",
       options,
     ) => {
-      const { nodes, edges } =
-        get();
+      const {
+        nodes,
+        edges,
+      } = get();
 
       return createProject(
         name,
@@ -466,12 +564,18 @@ export const useFlowStore =
     },
 
     loadProject: (
-      project: FlowProject
-    ) =>
+      project,
+    ) => {
       set({
-        nodes: structuredClone(project.nodes),
+        nodes:
+          structuredClone(
+            project.nodes,
+          ),
 
-        edges: structuredClone(project.edges),
+        edges:
+          structuredClone(
+            project.edges,
+          ),
 
         selectedNodeId: null,
 
@@ -480,22 +584,28 @@ export const useFlowStore =
         history: [],
 
         future: [],
-      }),
+      });
+    },
 
-    setSelectedNode: (id) =>
+    setSelectedNode: (
+      id,
+    ) => {
       set({
         selectedNodeId: id,
-      }),
+      });
+    },
 
-    resetFlow() {
+    resetFlow: () => {
       set({
-        nodes: structuredClone(
-          initialNodes,
-        ),
+        nodes:
+          structuredClone(
+            initialNodes,
+          ),
 
-        edges: structuredClone(
-          initialEdges,
-        ),
+        edges:
+          structuredClone(
+            initialEdges,
+          ),
 
         selectedNodeId: null,
 

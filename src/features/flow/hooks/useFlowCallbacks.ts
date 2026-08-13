@@ -1,5 +1,4 @@
 import {
-  addEdge,
   applyEdgeChanges,
   applyNodeChanges,
 } from "reactflow";
@@ -18,35 +17,40 @@ export function useFlowCallbacks() {
     setNodes,
     setEdges,
     setSelectedNode,
+    connectNodes,
   } = useFlowStore();
 
   const onNodesChange = (
-    changes: NodeChange[]
+    changes: NodeChange[],
   ) => {
     setNodes((nodes) =>
-      applyNodeChanges(changes, nodes)
+      applyNodeChanges(
+        changes,
+        nodes,
+      ),
     );
   };
 
   const onEdgesChange = (
-    changes: EdgeChange[]
+    changes: EdgeChange[],
   ) => {
     setEdges((edges) =>
-      applyEdgeChanges(changes, edges)
+      applyEdgeChanges(
+        changes,
+        edges,
+      ),
     );
   };
 
   const onConnect = (
-    connection: Connection
+    connection: Connection,
   ) => {
-    setEdges((edges) =>
-      addEdge(connection, edges)
-    );
+    connectNodes(connection);
   };
 
   const onNodeClick = (
     _event: React.MouseEvent,
-    node: Node
+    node: Node,
   ) => {
     setSelectedNode(node.id);
   };

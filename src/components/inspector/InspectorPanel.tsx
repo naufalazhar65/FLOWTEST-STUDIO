@@ -6,6 +6,9 @@ import { useAppiumConfigStore } from "../../features/execution/store/useAppiumCo
 import { InspectorField } from "../../features/flow/components/inspector/InspectorField";
 import { getNodePlugin } from "../../features/flow/services/pluginRegistry";
 import { validateNode } from "../../features/flow/validation/validateNode";
+import {
+  createNodeFieldPatch,
+} from "../../features/flow/utils/updateNodeField";
 
 import { Badge } from "../ui/Badge";
 import { Divider } from "../ui/Divider";
@@ -176,9 +179,10 @@ export function InspectorPanel() {
             onChange={(value) =>
               updateNodeData(
                 node.id,
-                {
-                  [field.key]: value,
-                } as Partial<typeof node.data>
+                createNodeFieldPatch(
+                  field.key,
+                  value,
+                ),
               )
             }
           />

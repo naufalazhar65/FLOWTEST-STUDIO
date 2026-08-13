@@ -1,5 +1,4 @@
 import "reactflow/dist/style.css";
-import { useEffect } from "react";
 
 import ReactFlow, {
   Background,
@@ -12,17 +11,12 @@ import { useFlowStore } from "../../store/useFlowStore";
 import { useFlowCallbacks } from "../../hooks/useFlowCallbacks";
 import { useDeleteNode } from "../../hooks/useDeleteNode";
 import { useFlowShortcuts } from "../../hooks/useFlowShortcuts";
+import { useClipboardShortcuts } from "../../hooks/useClipboardShortcuts";
 
 import { FlowNode } from "../nodes/FlowNode";
 import { FlowEdge } from "../edges/FlowEdge";
-import { useHistoryShortcuts } from "../../hooks/useKeyboardShortcuts";
+
 import { useExecutionCamera } from "../../../execution/hooks/useExecutionCamera";
-
-// =========================
-// React Flow Types
-// =========================
-
-
 
 const nodeTypes = {
   flow: FlowNode,
@@ -32,9 +26,6 @@ const edgeTypes = {
   flow: FlowEdge,
 };
 
-// =========================
-// Component
-// =========================
 function ExecutionCamera() {
   useExecutionCamera();
 
@@ -50,16 +41,7 @@ export function FlowCanvas() {
     setSelectedNode,
   } = useFlowStore();
 
-
   const callbacks = useFlowCallbacks();
-
-  console.log(edges);
-
-  useEffect(() => {
-    console.log("Edges:", edges);
-  }, [edges]);
-
-
 
   useDeleteNode({
     selectedNodeId,
@@ -68,7 +50,7 @@ export function FlowCanvas() {
   });
 
   useFlowShortcuts();
-  useHistoryShortcuts();
+  useClipboardShortcuts();
 
   return (
     <div

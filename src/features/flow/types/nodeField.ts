@@ -33,43 +33,50 @@ import type {
   ZoomNodeData,
   FlingNodeData,
   HideKeyboardNodeData,
+  BaseNodeData,
 } from "./flowNode";
 
+type EditableKeys<T> =
+  Exclude<
+    keyof T,
+    keyof BaseNodeData
+  >;
+
 export type NodeFieldKey =
-  | keyof TapNodeData
-  | keyof InputNodeData
-  | keyof AssertNodeData
-  | keyof SetVariableNodeData
-  | keyof DelayNodeData
-  | keyof SwipeNodeData
-  | keyof ScrollNodeData
-  | keyof WaitNodeData
-  | keyof LaunchAppNodeData
-  | keyof CloseAppNodeData
-  | keyof ScreenshotNodeData
-  | keyof IfNodeData
-  | keyof GetTextNodeData
-  | keyof ElementExistsNodeData
-  | keyof GetAttributeNodeData
-  | keyof GetCurrentActivityNodeData
-  | keyof GetCurrentPackageNodeData
-  | keyof GetOrientationNodeData
-  | keyof GetPlatformVersionNodeData
-  | keyof GetDeviceNameNodeData
-  | keyof GetDeviceTimeNodeData
-  | keyof GetDisplayedNodeData
-  | keyof GetEnabledNodeData
-  | keyof GetSelectedNodeData
-  | keyof GetLocationNodeData
-  | keyof GetSizeNodeData
-  | keyof GetRectNodeData
-  | keyof LongPressNodeData
-  | keyof DoubleTapNodeData
-  | keyof DragNodeData
-  | keyof PinchNodeData
-  | keyof ZoomNodeData
-  | keyof FlingNodeData
-  | keyof HideKeyboardNodeData
+  | EditableKeys<TapNodeData>
+  | EditableKeys<InputNodeData>
+  | EditableKeys<AssertNodeData>
+  | EditableKeys<SetVariableNodeData>
+  | EditableKeys<DelayNodeData>
+  | EditableKeys<SwipeNodeData>
+  | EditableKeys<ScrollNodeData>
+  | EditableKeys<WaitNodeData>
+  | EditableKeys<LaunchAppNodeData>
+  | EditableKeys<CloseAppNodeData>
+  | EditableKeys<ScreenshotNodeData>
+  | EditableKeys<IfNodeData>
+  | EditableKeys<GetTextNodeData>
+  | EditableKeys<ElementExistsNodeData>
+  | EditableKeys<GetAttributeNodeData>
+  | EditableKeys<GetCurrentActivityNodeData>
+  | EditableKeys<GetCurrentPackageNodeData>
+  | EditableKeys<GetOrientationNodeData>
+  | EditableKeys<GetPlatformVersionNodeData>
+  | EditableKeys<GetDeviceNameNodeData>
+  | EditableKeys<GetDeviceTimeNodeData>
+  | EditableKeys<GetDisplayedNodeData>
+  | EditableKeys<GetEnabledNodeData>
+  | EditableKeys<GetSelectedNodeData>
+  | EditableKeys<GetLocationNodeData>
+  | EditableKeys<GetSizeNodeData>
+  | EditableKeys<GetRectNodeData>
+  | EditableKeys<LongPressNodeData>
+  | EditableKeys<DoubleTapNodeData>
+  | EditableKeys<DragNodeData>
+  | EditableKeys<PinchNodeData>
+  | EditableKeys<ZoomNodeData>
+  | EditableKeys<FlingNodeData>
+  | EditableKeys<HideKeyboardNodeData>;
 
 export interface NodeField {
   key: NodeFieldKey;
@@ -77,12 +84,12 @@ export interface NodeField {
   label: string;
 
   type:
-    | "text"
-    | "number"
-    | "select"
-    | "checkbox"
-    | "textarea"
-    | "fileName";
+  | "text"
+  | "number"
+  | "select"
+  | "checkbox"
+  | "textarea"
+  | "fileName";
 
   placeholder?: string;
 

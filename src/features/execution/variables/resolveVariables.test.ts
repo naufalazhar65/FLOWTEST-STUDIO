@@ -27,178 +27,194 @@ describe("resolveVariables", () => {
 
     it("returns original string when there are no variables", () => {
         expect(
-            resolveVariables("Hello World")
+            resolveVariables("Hello World"),
         ).toBe("Hello World");
     });
 
     it("resolves a simple variable", () => {
-        vi.mocked(VariableStore.getVariable)
-            .mockReturnValue("Naufal");
+        vi.mocked(
+            VariableStore.getVariable,
+        ).mockReturnValue("Naufal");
 
         expect(
-            resolveVariables("Hello ${name}")
+            resolveVariables("Hello ${name}"),
         ).toBe("Hello Naufal");
 
         expect(
-            VariableStore.getVariable
+            VariableStore.getVariable,
         ).toHaveBeenCalledWith("name");
     });
 
     it("resolves nested object properties", () => {
-        vi.mocked(VariableStore.getVariable)
-            .mockReturnValue({
-                profile: {
-                    name: "Naufal",
-                },
-            });
+        vi.mocked(
+            VariableStore.getVariable,
+        ).mockReturnValue({
+            profile: {
+                name: "Naufal",
+            },
+        });
 
         expect(
             resolveVariables(
-                "Hello ${user.profile.name}"
-            )
+                "Hello ${user.profile.name}",
+            ),
         ).toBe("Hello Naufal");
     });
 
     it("keeps unresolved variables", () => {
-        vi.mocked(VariableStore.getVariable)
-            .mockReturnValue(undefined);
+        vi.mocked(
+            VariableStore.getVariable,
+        ).mockReturnValue(undefined);
 
         expect(
             resolveVariables(
-                "Hello ${unknown}"
-            )
+                "Hello ${unknown}",
+            ),
         ).toBe("Hello ${unknown}");
 
         expect(
-            executionLogger.warning
-        ).toHaveBeenCalledWith(
-            'Variable "unknown" not found'
-        );
+            executionLogger.warning,
+        ).toHaveBeenCalledWith({
+            message:
+                'Variable "unknown" not found',
+        });
     });
 
     it("keeps unresolved nested properties", () => {
-        vi.mocked(VariableStore.getVariable)
-            .mockReturnValue({
-                profile: {},
-            });
+        vi.mocked(
+            VariableStore.getVariable,
+        ).mockReturnValue({
+            profile: {},
+        });
 
         expect(
             resolveVariables(
-                "Hello ${user.profile.name}"
-            )
-        ).toBe("Hello ${user.profile.name}");
+                "Hello ${user.profile.name}",
+            ),
+        ).toBe(
+            "Hello ${user.profile.name}",
+        );
 
         expect(
-            executionLogger.warning
-        ).toHaveBeenCalledWith(
-            'Property "user.profile.name" not found'
-        );
+            executionLogger.warning,
+        ).toHaveBeenCalledWith({
+            message:
+                'Property "user.profile.name" not found',
+        });
     });
 
     it("resolves multiple variables", () => {
-        vi.mocked(VariableStore.getVariable)
-            .mockImplementation((name) => {
-                switch (name) {
-                    case "firstName":
-                        return "Naufal";
+        vi.mocked(
+            VariableStore.getVariable,
+        ).mockImplementation((name) => {
+            switch (name) {
+                case "firstName":
+                    return "Naufal";
 
-                    case "lastName":
-                        return "Azhar";
+                case "lastName":
+                    return "Azhar";
 
-                    default:
-                        return undefined;
-                }
-            });
+                default:
+                    return undefined;
+            }
+        });
 
         expect(
             resolveVariables(
-                "${firstName} ${lastName}"
-            )
+                "${firstName} ${lastName}",
+            ),
         ).toBe("Naufal Azhar");
     });
 
     it("resolves number values", () => {
-        vi.mocked(VariableStore.getVariable)
-            .mockReturnValue(123);
+        vi.mocked(
+            VariableStore.getVariable,
+        ).mockReturnValue(123);
 
         expect(
             resolveVariables(
-                "Value: ${count}"
-            )
+                "Value: ${count}",
+            ),
         ).toBe("Value: 123");
     });
 
     it("resolves boolean values", () => {
-        vi.mocked(VariableStore.getVariable)
-            .mockReturnValue(true);
+        vi.mocked(
+            VariableStore.getVariable,
+        ).mockReturnValue(true);
 
         expect(
             resolveVariables(
-                "Success: ${status}"
-            )
+                "Success: ${status}",
+            ),
         ).toBe("Success: true");
     });
 
     it("ignores whitespace around variable expression", () => {
-        vi.mocked(VariableStore.getVariable)
-            .mockReturnValue({
-                profile: {
-                    name: "Naufal",
-                },
-            });
+        vi.mocked(
+            VariableStore.getVariable,
+        ).mockReturnValue({
+            profile: {
+                name: "Naufal",
+            },
+        });
 
         expect(
             resolveVariables(
-                "Hello ${   user.profile.name   }"
-            )
+                "Hello ${   user.profile.name   }",
+            ),
         ).toBe("Hello Naufal");
     });
 
     it("keeps placeholder when accessing nested property on primitive", () => {
-        vi.mocked(VariableStore.getVariable)
-            .mockReturnValue("Naufal");
+        vi.mocked(
+            VariableStore.getVariable,
+        ).mockReturnValue("Naufal");
 
         expect(
             resolveVariables(
-                "Hello ${user.name}"
-            )
+                "Hello ${user.name}",
+            ),
         ).toBe("Hello ${user.name}");
 
         expect(
-            executionLogger.warning
-        ).toHaveBeenCalledWith(
-            'Property "user.name" not found'
-        );
+            executionLogger.warning,
+        ).toHaveBeenCalledWith({
+            message:
+                'Property "user.name" not found',
+        });
     });
 
     it("returns empty string when variable name is empty", () => {
         expect(
-            resolveVariables("Hello ${.name}")
+            resolveVariables("Hello ${.name}"),
         ).toBe("Hello ");
     });
 
     it("resolves known variables while keeping unknown ones", () => {
-        vi.mocked(VariableStore.getVariable)
-            .mockImplementation((name) => {
-                if (name === "name") {
-                    return "Naufal";
-                }
+        vi.mocked(
+            VariableStore.getVariable,
+        ).mockImplementation((name) => {
+            if (name === "name") {
+                return "Naufal";
+            }
 
-                return undefined;
-            });
+            return undefined;
+        });
 
         expect(
             resolveVariables(
-                "Hello ${name} (${username})"
-            )
+                "Hello ${name} (${username})",
+            ),
         ).toBe(
-            "Hello Naufal (${username})"
+            "Hello Naufal (${username})",
         );
 
         expect(
-            executionLogger.warning
-        ).toHaveBeenCalledWith(
-            'Variable "username" not found'
-        );
+            executionLogger.warning,
+        ).toHaveBeenCalledWith({
+            message:
+                'Variable "username" not found',
+        });
     });
 });
