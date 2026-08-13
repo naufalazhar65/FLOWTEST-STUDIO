@@ -1,4 +1,8 @@
-import { colors } from "../../themes";
+import {
+    colors,
+    spacing,
+    typography,
+} from "../../themes";
 
 interface Props {
     title: string;
@@ -13,18 +17,27 @@ export function DialogHeader({
     return (
         <div
             style={{
-                padding: 24,
+                padding:
+                    `${spacing.lg}px ${spacing.xl}px`,
 
-                borderBottom: `1px solid ${colors.border}`,
+                borderBottom:
+                    `1px solid ${colors.border}`,
             }}
         >
             <div
                 style={{
-                    fontSize: 20,
+                    color:
+                        colors.text,
 
-                    fontWeight: 700,
+                    fontSize:
+                        typography.title
+                            .fontSize,
 
-                    color: colors.text,
+                    fontWeight:
+                        typography.title
+                            .fontWeight,
+
+                    lineHeight: 1.4,
                 }}
             >
                 {title}
@@ -33,12 +46,21 @@ export function DialogHeader({
             {subtitle && (
                 <div
                     style={{
-                        marginTop: 8,
+                        marginTop:
+                            spacing.sm,
 
                         color:
                             colors.textSecondary,
 
-                        fontSize: 14,
+                        fontSize:
+                            typography.body
+                                .fontSize,
+
+                        fontWeight:
+                            typography.body
+                                .fontWeight,
+
+                        lineHeight: 1.5,
                     }}
                 >
                     {subtitle}

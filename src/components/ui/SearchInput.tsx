@@ -1,8 +1,11 @@
 import { Search } from "lucide-react";
 
 import {
+    animation,
     colors,
     radius,
+    spacing,
+    typography,
 } from "../../themes";
 
 interface Props {
@@ -27,44 +30,109 @@ export function SearchInput({
 
                 alignItems: "center",
 
-                gap: 10,
+                gap: spacing.sm + 2,
 
-                padding: "0 12px",
+                width: "100%",
 
                 height: 38,
 
-                border: `1px solid ${colors.border}`,
+                boxSizing:
+                    "border-box",
 
-                background: colors.panel,
+                padding:
+                    `0 ${spacing.md}px`,
 
-                borderRadius: radius.md,
+                border:
+                    `1px solid ${colors.border}`,
+
+                background:
+                    colors.panel,
+
+                borderRadius:
+                    radius.md,
+
+                transition:
+                    `border-color ${animation.fast}, box-shadow ${animation.fast}`,
             }}
         >
             <Search
                 size={16}
-                color={colors.textSecondary}
+                color={
+                    colors.textSecondary
+                }
+                strokeWidth={2}
             />
 
             <input
                 value={value}
-                onChange={(e) =>
+                onChange={(event) =>
                     onChange(
-                        e.target.value,
+                        event.target.value,
                     )
                 }
-                placeholder={placeholder}
+                placeholder={
+                    placeholder
+                }
                 style={{
                     flex: 1,
 
-                    background: "transparent",
+                    minWidth: 0,
+
+                    height: "100%",
+
+                    padding: 0,
+
+                    background:
+                        "transparent",
 
                     border: 0,
 
                     outline: 0,
 
-                    color: colors.text,
+                    color:
+                        colors.text,
 
-                    fontSize: 13,
+                    fontSize:
+                        typography.body
+                            .fontSize,
+
+                    fontWeight:
+                        typography.body
+                            .fontWeight,
+                }}
+                onFocus={(event) => {
+                    const container =
+                        event.currentTarget
+                            .parentElement;
+
+                    if (!container) {
+                        return;
+                    }
+
+                    container.style
+                        .borderColor =
+                        colors.focus;
+
+                    container.style
+                        .boxShadow =
+                        `0 0 0 2px ${colors.selection}`;
+                }}
+                onBlur={(event) => {
+                    const container =
+                        event.currentTarget
+                            .parentElement;
+
+                    if (!container) {
+                        return;
+                    }
+
+                    container.style
+                        .borderColor =
+                        colors.border;
+
+                    container.style
+                        .boxShadow =
+                        "none";
                 }}
             />
         </div>

@@ -4,8 +4,10 @@ import type {
 } from "react";
 
 import {
+    animation,
     colors,
     radius,
+    typography,
 } from "../../themes";
 
 type ButtonVariant =
@@ -65,10 +67,12 @@ const VARIANT = {
     primary: {
         background: colors.accent,
         border: colors.accent,
-        color: "#FFFFFF",
+        color: colors.text,
 
-        hoverBackground: colors.accentHover,
-        hoverBorder: colors.accentHover,
+        hoverBackground:
+            colors.accentHover,
+        hoverBorder:
+            colors.accentHover,
     },
 
     secondary: {
@@ -76,17 +80,21 @@ const VARIANT = {
         border: colors.border,
         color: colors.text,
 
-        hoverBackground: colors.panelHover,
-        hoverBorder: colors.borderLight,
+        hoverBackground:
+            colors.panelHover,
+        hoverBorder:
+            colors.borderLight,
     },
 
     danger: {
         background: colors.danger,
         border: colors.danger,
-        color: "#FFFFFF",
+        color: colors.text,
 
-        hoverBackground: "#FF6B63",
-        hoverBorder: "#FF6B63",
+        hoverBackground:
+            colors.danger,
+        hoverBorder:
+            colors.danger,
     },
 
     ghost: {
@@ -94,8 +102,10 @@ const VARIANT = {
         border: "transparent",
         color: colors.text,
 
-        hoverBackground: colors.panelHover,
-        hoverBorder: "transparent",
+        hoverBackground:
+            colors.panelHover,
+        hoverBorder:
+            "transparent",
     },
 } satisfies Record<
     ButtonVariant,
@@ -103,7 +113,6 @@ const VARIANT = {
         background: string;
         border: string;
         color: string;
-
         hoverBackground: string;
         hoverBorder: string;
     }
@@ -159,10 +168,11 @@ export function Button({
                 borderRadius:
                     radius.md,
 
-                border: `1px solid ${disabled
+                border: `1px solid ${
+                    disabled
                         ? colors.border
                         : appearance.border
-                    }`,
+                }`,
 
                 background: disabled
                     ? colors.panel
@@ -175,7 +185,11 @@ export function Button({
                 fontSize:
                     dimension.fontSize,
 
-                fontWeight: 600,
+                fontWeight:
+                    typography.subtitle
+                        .fontWeight,
+
+                lineHeight: 1,
 
                 whiteSpace: "nowrap",
 
@@ -188,38 +202,40 @@ export function Button({
                     : 1,
 
                 transition:
-                    "all .18s ease",
+                    `background ${animation.fast}, ` +
+                    `border-color ${animation.fast}, ` +
+                    `transform ${animation.fast}`,
 
                 userSelect: "none",
 
                 ...style,
             }}
-            onMouseEnter={(e) => {
+            onMouseEnter={(event) => {
                 if (disabled) {
                     return;
                 }
 
-                e.currentTarget.style.background =
+                event.currentTarget.style.background =
                     appearance.hoverBackground;
 
-                e.currentTarget.style.borderColor =
+                event.currentTarget.style.borderColor =
                     appearance.hoverBorder;
 
-                e.currentTarget.style.transform =
+                event.currentTarget.style.transform =
                     "translateY(-1px)";
             }}
-            onMouseLeave={(e) => {
+            onMouseLeave={(event) => {
                 if (disabled) {
                     return;
                 }
 
-                e.currentTarget.style.background =
+                event.currentTarget.style.background =
                     appearance.background;
 
-                e.currentTarget.style.borderColor =
+                event.currentTarget.style.borderColor =
                     appearance.border;
 
-                e.currentTarget.style.transform =
+                event.currentTarget.style.transform =
                     "translateY(0)";
             }}
         >

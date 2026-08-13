@@ -1,9 +1,9 @@
 export const animation = {
-    fast: "150ms ease",
-    normal: "220ms ease",
-    slow: "320ms ease",
+    fast: "120ms ease",
+    normal: "180ms ease",
+    slow: "260ms ease",
 };
 
 export const transform = {
-    hover: "translateY(-3px)",
+    hover: "translateY(-1px)",
 };

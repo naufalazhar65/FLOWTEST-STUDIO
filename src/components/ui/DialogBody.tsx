@@ -2,6 +2,10 @@ import type {
     ReactNode,
 } from "react";
 
+import {
+    spacing,
+} from "../../themes";
+
 interface Props {
     children: ReactNode;
 }
@@ -12,13 +16,19 @@ export function DialogBody({
     return (
         <div
             style={{
-                padding: 24,
+                padding:
+                    spacing.xl,
 
                 display: "flex",
 
-                flexDirection: "column",
+                flexDirection:
+                    "column",
 
-                gap: 20,
+                gap: spacing.lg,
+
+                minHeight: 0,
+
+                overflowY: "auto",
             }}
         >
             {children}

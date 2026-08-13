@@ -1,3 +1,10 @@
+import {
+    colors,
+    radius,
+    spacing,
+    typography,
+} from "../../themes";
+
 interface SidebarCategoryProps {
     title: string;
 
@@ -14,33 +21,53 @@ export function SidebarCategory({
     return (
         <div
             style={{
-                marginTop: 18,
-                marginBottom: 12,
+                marginTop:
+                    spacing.lg,
+
+                marginBottom:
+                    spacing.sm,
             }}
         >
             <div
                 style={{
                     display: "flex",
+
                     alignItems: "center",
-                    gap: 10,
+
+                    gap: spacing.sm,
                 }}
             >
                 <div
                     style={{
                         flex: 1,
+
                         height: 1,
-                        background: "#30363D",
+
+                        background:
+                            colors.border,
                     }}
                 />
 
                 <span
                     style={{
                         color: accent,
-                        fontSize: 11,
-                        fontWeight: 700,
-                        letterSpacing: 1,
-                        textTransform: "uppercase",
-                        whiteSpace: "nowrap",
+
+                        fontSize:
+                            typography.tiny
+                                .fontSize,
+
+                        fontWeight:
+                            typography.caption
+                                .fontWeight,
+
+                        letterSpacing:
+                            "0.08em",
+
+                        textTransform:
+                            "uppercase",
+
+                        whiteSpace:
+                            "nowrap",
                     }}
                 >
                     {title}
@@ -48,18 +75,45 @@ export function SidebarCategory({
 
                 <span
                     style={{
-                        minWidth: 22,
+                        minWidth: 20,
+
                         height: 20,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        padding: "0 6px",
-                        borderRadius: 999,
-                        background: `${accent}22`,
-                        border: `1px solid ${accent}55`,
+
+                        display:
+                            "inline-flex",
+
+                        alignItems:
+                            "center",
+
+                        justifyContent:
+                            "center",
+
+                        padding:
+                            "0 5px",
+
+                        boxSizing:
+                            "border-box",
+
+                        borderRadius:
+                            radius.full,
+
+                        background:
+                            `${accent}18`,
+
+                        border:
+                            `1px solid ${accent}38`,
+
                         color: accent,
-                        fontSize: 10,
-                        fontWeight: 700,
+
+                        fontSize:
+                            typography.tiny
+                                .fontSize,
+
+                        fontWeight:
+                            typography.caption
+                                .fontWeight,
+
+                        lineHeight: 1,
                     }}
                 >
                     {count}
@@ -68,8 +122,11 @@ export function SidebarCategory({
                 <div
                     style={{
                         flex: 1,
+
                         height: 1,
-                        background: "#30363D",
+
+                        background:
+                            colors.border,
                     }}
                 />
             </div>

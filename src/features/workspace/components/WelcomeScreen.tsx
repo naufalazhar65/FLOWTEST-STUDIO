@@ -1,4 +1,8 @@
-// import { FooterSection } from "./FooterSection";
+import {
+    colors,
+    spacing,
+} from "../../../themes";
+
 import { HeroSection } from "./HeroSection";
 import { QuickActions } from "./QuickActions";
 import { RecentProjects } from "./RecentProjects";
@@ -11,28 +15,33 @@ export function WelcomeScreen() {
 
                 minHeight: "100vh",
 
+                boxSizing: "border-box",
+
                 display: "flex",
-                flexDirection: "column",
+
+                flexDirection:
+                    "column",
+
                 alignItems: "center",
-                justifyContent: "center",
 
-                gap: 42,
+                justifyContent:
+                    "center",
 
-                padding: "48px",
+                padding: `${spacing.xxxl}px ${spacing.xl}px`,
 
                 overflow: "hidden",
 
                 background: `
                     radial-gradient(
                         circle at 50% 0%,
-                        rgba(59, 130, 246, 0.10),
+                        rgba(47, 129, 247, 0.10),
                         transparent 38%
                     ),
                     radial-gradient(
-                        rgba(139, 148, 158, 0.10) 1px,
+                        rgba(139, 148, 158, 0.08) 1px,
                         transparent 1px
                     ),
-                    #0D1117
+                    ${colors.background}
                 `,
 
                 backgroundSize: `
@@ -44,21 +53,25 @@ export function WelcomeScreen() {
             {/* Ambient glow */}
             <div
                 style={{
-                    position: "absolute",
+                    position:
+                        "absolute",
 
                     top: -180,
+
                     left: "50%",
 
                     width: 520,
+
                     height: 520,
 
                     transform:
                         "translateX(-50%)",
 
-                    borderRadius: "50%",
+                    borderRadius:
+                        "50%",
 
                     background:
-                        "rgba(59, 130, 246, 0.06)",
+                        "rgba(47, 129, 247, 0.055)",
 
                     filter:
                         "blur(100px)",
@@ -69,19 +82,27 @@ export function WelcomeScreen() {
             />
 
             {/* Content */}
-            <div
+            <main
                 style={{
-                    position: "relative",
+                    position:
+                        "relative",
 
                     zIndex: 1,
 
                     width: "100%",
 
+                    maxWidth: 1100,
+
                     display: "flex",
-                    flexDirection: "column",
+
+                    flexDirection:
+                        "column",
+
                     alignItems: "center",
 
-                    gap: 42,
+                    gap: spacing.xxl,
+
+                    margin: "0 auto",
                 }}
             >
                 <HeroSection />
@@ -89,10 +110,7 @@ export function WelcomeScreen() {
                 <QuickActions />
 
                 <RecentProjects />
-
-                {/* <FooterSection /> */}
-            </div>
-
+            </main>
         </div>
     );
 }

@@ -3,6 +3,10 @@ import {
     Plus,
 } from "lucide-react";
 
+import {
+    spacing,
+} from "../../../themes";
+
 import { ActionCard } from "../../../components/ui/ActionCard";
 
 import { useWorkspaceStore } from "../store/useWorkspaceStore";
@@ -23,11 +27,22 @@ export function QuickActions() {
             style={{
                 display: "flex",
 
-                justifyContent: "center",
+                alignItems: "stretch",
 
-                gap: 24,
+                justifyContent:
+                    "center",
+
+                gap: spacing.lg,
 
                 flexWrap: "wrap",
+
+                width: "100%",
+
+                padding:
+                    `0 ${spacing.sm}px`,
+
+                boxSizing:
+                    "border-box",
             }}
         >
             <ActionCard

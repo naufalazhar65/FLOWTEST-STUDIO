@@ -4,8 +4,11 @@ import type {
 } from "react";
 
 import {
+    animation,
     colors,
     radius,
+    spacing,
+    typography,
 } from "../../themes";
 
 interface Props {
@@ -28,9 +31,15 @@ export function Badge({
 
                 alignItems: "center",
 
-                gap: 6,
+                gap: spacing.xs + 2,
 
-                padding: "4px 10px",
+                minHeight: 24,
+
+                boxSizing:
+                    "border-box",
+
+                padding:
+                    `${spacing.xs}px ${spacing.sm + 2}px`,
 
                 borderRadius:
                     radius.full,
@@ -43,9 +52,22 @@ export function Badge({
 
                 color,
 
-                fontSize: 12,
+                fontSize:
+                    typography.caption
+                        .fontSize,
 
-                fontWeight: 600,
+                fontWeight:
+                    typography.caption
+                        .fontWeight,
+
+                lineHeight: 1,
+
+                whiteSpace: "nowrap",
+
+                userSelect: "none",
+
+                transition:
+                    `border-color ${animation.fast}, background ${animation.fast}`,
 
                 ...style,
             }}

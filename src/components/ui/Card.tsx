@@ -4,6 +4,7 @@ import type {
 } from "react";
 
 import {
+    animation,
     colors,
     radius,
     shadow,
@@ -21,6 +22,8 @@ interface Props {
 
 export function Card({
     children,
+    padding,
+    hoverable = false,
     style,
 }: Props) {
     return (
@@ -38,8 +41,56 @@ export function Card({
                 boxShadow:
                     shadow.card,
 
+                padding,
+
+                transition: hoverable
+                    ? `transform ${animation.fast}, border-color ${animation.fast}, box-shadow ${animation.fast}`
+                    : undefined,
+
                 ...style,
             }}
+            onMouseEnter={
+                hoverable
+                    ? (event) => {
+                        event.currentTarget
+                            .style
+                            .borderColor =
+                            colors
+                                .borderLight;
+
+                        event.currentTarget
+                            .style
+                            .transform =
+                            "translateY(-2px)";
+
+                        event.currentTarget
+                            .style
+                            .boxShadow =
+                            shadow.panel;
+                    }
+                    : undefined
+            }
+            onMouseLeave={
+                hoverable
+                    ? (event) => {
+                        event.currentTarget
+                            .style
+                            .borderColor =
+                            colors
+                                .border;
+
+                        event.currentTarget
+                            .style
+                            .transform =
+                            "translateY(0)";
+
+                        event.currentTarget
+                            .style
+                            .boxShadow =
+                            shadow.card;
+                    }
+                    : undefined
+            }
         >
             {children}
         </div>

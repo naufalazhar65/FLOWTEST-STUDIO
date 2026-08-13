@@ -1,6 +1,16 @@
+import {
+    colors,
+    layout,
+    radius,
+    spacing,
+    typography,
+} from "../../themes";
+
 import { useExecutionStore } from "../../features/execution/store/useExecutionStore";
 
-function formatDuration(ms: number) {
+function formatDuration(
+    ms: number,
+) {
     if (ms <= 0) {
         return "0.00 s";
     }
@@ -8,141 +18,282 @@ function formatDuration(ms: number) {
     return `${(ms / 1000).toFixed(2)} s`;
 }
 
+const STATUS_CONFIG = {
+    idle: {
+        label: "Ready",
+        color: colors.textSecondary,
+    },
+
+    running: {
+        label: "Running",
+        color: colors.accent,
+    },
+
+    paused: {
+        label: "Paused",
+        color: colors.warning,
+    },
+
+    passed: {
+        label: "Passed",
+        color: colors.success,
+    },
+
+    failed: {
+        label: "Failed",
+        color: colors.danger,
+    },
+
+    stopped: {
+        label: "Stopped",
+        color: colors.textMuted,
+    },
+} as const;
+
 export function StatusBar() {
     const status = useExecutionStore(
-        (state) => state.status
+        (state) => state.status,
     );
 
     const progress = useExecutionStore(
-        (state) => state.progress
+        (state) => state.progress,
     );
 
-    const executedNodes = useExecutionStore(
-        (state) => state.executedNodes
-    );
+    const executedNodes =
+        useExecutionStore(
+            (state) =>
+                state.executedNodes,
+        );
 
     const totalNodes = useExecutionStore(
-        (state) => state.totalNodes
+        (state) => state.totalNodes,
     );
 
-    const passedNodes = useExecutionStore(
-        (state) => state.passedNodes
-    );
+    const passedNodes =
+        useExecutionStore(
+            (state) =>
+                state.passedNodes,
+        );
 
-    const failedNodes = useExecutionStore(
-        (state) => state.failedNodes
-    );
+    const failedNodes =
+        useExecutionStore(
+            (state) =>
+                state.failedNodes,
+        );
 
     const duration = useExecutionStore(
-        (state) => state.duration
+        (state) => state.duration,
     );
 
-    const statusColor =
-        status === "running"
-            ? "#F59E0B"
-            : status === "paused"
-                ? "#FBBF24"
-                : status === "passed"
-                    ? "#22C55E"
-                    : status === "failed"
-                        ? "#EF4444"
-                        : status === "stopped"
-                            ? "#6B7280"
-                            : "#8B949E";
-
-    const statusText =
-        status === "idle"
-            ? "Ready"
-            : status === "running"
-                ? "Running"
-                : status === "paused"
-                    ? "Paused"
-                    : status === "passed"
-                        ? "Passed"
-                        : status === "failed"
-                            ? "Failed"
-                            : status === "stopped"
-                                ? "Stopped"
-                                : "Ready";
+    const current =
+        STATUS_CONFIG[
+        status as keyof typeof STATUS_CONFIG
+        ];
 
     return (
         <footer
             style={{
+                ...layout.between,
+
                 height: 32,
-                background: "#161B22",
-                borderTop: "1px solid #30363D",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "0 16px",
-                fontSize: 12,
-                color: "#8B949E",
+
+                flexShrink: 0,
+
+                padding:
+                    `0 ${spacing.md}px`,
+
+                background:
+                    colors.panel,
+
+                borderTop:
+                    `1px solid ${colors.border}`,
+
+                color:
+                    colors.textSecondary,
+
+                fontSize:
+                    typography.tiny.fontSize,
+
+                boxSizing:
+                    "border-box",
+
+                userSelect: "none",
             }}
         >
             <div
                 style={{
-                    display: "flex",
-                    gap: 18,
-                    alignItems: "center",
+                    ...layout.row,
+
+                    gap: spacing.lg,
+
+                    minWidth: 0,
+
+                    overflow: "hidden",
                 }}
             >
-                <span>FlowTest Studio v0.1</span>
+                <span
+                    style={{
+                        color:
+                            colors.textMuted,
 
-                <span>
-                    Progress:
-                    {" "}
-                    {executedNodes}/{totalNodes}
+                        whiteSpace:
+                            "nowrap",
+                    }}
+                >
+                    FlowTest Studio v0.1
                 </span>
 
-                <span>
-                    Passed:
-                    {" "}
-                    {passedNodes}
-                </span>
+                <StatusMetric
+                    label="Progress"
+                    value={`${executedNodes}/${totalNodes}`}
+                />
 
-                <span>
-                    Failed:
-                    {" "}
-                    {failedNodes}
-                </span>
+                <StatusMetric
+                    label="Passed"
+                    value={String(
+                        passedNodes,
+                    )}
+                    valueColor={
+                        passedNodes > 0
+                            ? colors.success
+                            : undefined
+                    }
+                />
 
-                <span>
-                    Duration:
-                    {" "}
-                    {formatDuration(duration)}
-                </span>
+                <StatusMetric
+                    label="Failed"
+                    value={String(
+                        failedNodes,
+                    )}
+                    valueColor={
+                        failedNodes > 0
+                            ? colors.danger
+                            : undefined
+                    }
+                />
+
+                <StatusMetric
+                    label="Duration"
+                    value={formatDuration(
+                        duration,
+                    )}
+                />
             </div>
 
             <div
                 style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    color: statusColor,
-                    fontWeight: 600,
+                    ...layout.row,
+
+                    gap: spacing.sm,
+
+                    flexShrink: 0,
+
+                    color:
+                        current.color,
+
+                    fontSize:
+                        typography.caption
+                            .fontSize,
+
+                    fontWeight:
+                        typography.caption
+                            .fontWeight,
                 }}
             >
-                <div
+                <span
                     style={{
                         width: 8,
+
                         height: 8,
-                        borderRadius: "50%",
-                        background: statusColor,
+
+                        flexShrink: 0,
+
+                        borderRadius:
+                            radius.full,
+
+                        background:
+                            current.color,
+
+                        boxShadow:
+                            `0 0 7px ${current.color}66`,
                     }}
                 />
 
-                <span>{statusText}</span>
+                <span>
+                    {current.label}
+                </span>
 
                 {status !== "idle" && (
                     <span
                         style={{
-                            color: "#8B949E",
+                            color:
+                                colors.textMuted,
+
+                            fontVariantNumeric:
+                                "tabular-nums",
                         }}
                     >
-                        ({progress}%)
+                        {progress}%
                     </span>
                 )}
             </div>
         </footer>
+    );
+}
+
+interface StatusMetricProps {
+    label: string;
+
+    value: string;
+
+    valueColor?: string;
+}
+
+function StatusMetric({
+    label,
+    value,
+    valueColor,
+}: StatusMetricProps) {
+    return (
+        <span
+            style={{
+                display:
+                    "inline-flex",
+
+                alignItems:
+                    "center",
+
+                gap: spacing.xs,
+
+                whiteSpace:
+                    "nowrap",
+            }}
+        >
+            <span
+                style={{
+                    color:
+                        colors.textMuted,
+                }}
+            >
+                {label}
+            </span>
+
+            <span
+                style={{
+                    color:
+                        valueColor ??
+                        colors.textSecondary,
+
+                    fontVariantNumeric:
+                        "tabular-nums",
+
+                    fontWeight:
+                        typography.caption
+                            .fontWeight,
+                }}
+            >
+                {value}
+            </span>
+        </span>
     );
 }

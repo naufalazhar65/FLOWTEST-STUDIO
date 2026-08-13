@@ -2,7 +2,10 @@ import type {
     ReactNode,
 } from "react";
 
-import { colors } from "../../themes";
+import {
+    colors,
+    spacing,
+} from "../../themes";
 
 interface Props {
     children: ReactNode;
@@ -14,16 +17,24 @@ export function DialogFooter({
     return (
         <div
             style={{
-                padding: 20,
+                padding:
+                    `${spacing.md}px ${spacing.xl}px`,
 
                 display: "flex",
+
+                alignItems:
+                    "center",
 
                 justifyContent:
                     "flex-end",
 
-                gap: 12,
+                gap: spacing.sm,
 
-                borderTop: `1px solid ${colors.border}`,
+                borderTop:
+                    `1px solid ${colors.border}`,
+
+                background:
+                    colors.panel,
             }}
         >
             {children}

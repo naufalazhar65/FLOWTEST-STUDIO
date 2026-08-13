@@ -1,13 +1,44 @@
-import { useMemo, useState } from "react";
+import {
+    useMemo,
+    useState,
+} from "react";
+
+import type {
+    CSSProperties,
+} from "react";
+
 import { Search } from "lucide-react";
 
-import { getPlugins } from "../../features/flow/services/pluginRegistry";
-import { useFlowStore } from "../../features/flow/store/useFlowStore";
+import {
+    colors,
+    radius,
+    spacing,
+    typography,
+} from "../../themes";
 
-import { SidebarButton } from "./SidebarButton";
-import { SidebarSection } from "./SidebarSection";
-import { SidebarCategory } from "./SidebarCategory";
-import { WorkspaceNavigation } from "./WorkspaceNavigation";
+import {
+    getPlugins,
+} from "../../features/flow/services/pluginRegistry";
+
+import {
+    useFlowStore,
+} from "../../features/flow/store/useFlowStore";
+
+import {
+    SidebarButton,
+} from "./SidebarButton";
+
+import {
+    SidebarSection,
+} from "./SidebarSection";
+
+import {
+    SidebarCategory,
+} from "./SidebarCategory";
+
+import {
+    WorkspaceNavigation,
+} from "./WorkspaceNavigation";
 
 import {
     platformMetadata,
@@ -21,13 +52,15 @@ import type {
 } from "../../features/flow/types/NodePlugin";
 
 export function Sidebar() {
-    const { addNode } = useFlowStore();
+    const { addNode } =
+        useFlowStore();
 
     /* ------------------------------------------ */
     /* Search                                     */
     /* ------------------------------------------ */
 
-    const [search, setSearch] = useState("");
+    const [search, setSearch] =
+        useState("");
 
     /* ------------------------------------------ */
     /* Expand State                               */
@@ -48,23 +81,27 @@ export function Sidebar() {
     function togglePlatform(
         platform: NodePlatform,
     ) {
-        setExpandedPlatforms((prev) => {
-            const next = new Set(prev);
+        setExpandedPlatforms(
+            (prev) => {
+                const next =
+                    new Set(prev);
 
-            if (next.has(platform)) {
-                next.delete(platform);
-            } else {
-                next.add(platform);
-            }
+                if (
+                    next.has(platform)
+                ) {
+                    next.delete(
+                        platform,
+                    );
+                } else {
+                    next.add(
+                        platform,
+                    );
+                }
 
-            return next;
-        });
+                return next;
+            },
+        );
     }
-
-
-
-
-
 
     /* ------------------------------------------ */
     /* Plugin List                                */
@@ -145,7 +182,9 @@ export function Sidebar() {
                             .get(
                                 plugin.category,
                             )!
-                            .push(plugin);
+                            .push(
+                                plugin,
+                            );
                     },
                 );
             },
@@ -157,14 +196,32 @@ export function Sidebar() {
     return (
         <aside style={styles.sidebar}>
             <div style={styles.header}>
-                <h3 style={styles.title}>
-                    Component Library
-                </h3>
+                <div
+                    style={{
+                        display: "flex",
+                        flexDirection:
+                            "column",
+                        gap: spacing.xs,
+                    }}
+                >
+                    <h3
+                        style={
+                            styles.title
+                        }
+                    >
+                        Component Library
+                    </h3>
 
-                <p style={styles.subtitle}>
-                    Click any component to
-                    add it to the canvas
-                </p>
+                    <p
+                        style={
+                            styles.subtitle
+                        }
+                    >
+                        Click any component
+                        to add it to the
+                        canvas
+                    </p>
+                </div>
 
                 <div
                     style={
@@ -173,17 +230,22 @@ export function Sidebar() {
                 >
                     <Search
                         size={16}
-                        color="#8B949E"
+                        color={
+                            colors.textSecondary
+                        }
+                        strokeWidth={2}
                     />
 
                     <input
                         value={search}
-                        onChange={(e) =>
+                        onChange={(event) =>
                             setSearch(
-                                e.target.value,
+                                event.target
+                                    .value,
                             )
                         }
                         placeholder="Search component..."
+                        aria-label="Search components"
                         style={
                             styles.searchInput
                         }
@@ -193,25 +255,34 @@ export function Sidebar() {
 
             <WorkspaceNavigation />
 
-            <div style={styles.content}>
+            <div
+                style={
+                    styles.content
+                }
+            >
                 {[...grouped.entries()].map(
-                    ([platform, categoryMap]) => {
+                    ([
+                        platform,
+                        categoryMap,
+                    ]) => {
                         const platformInfo =
                             platformMetadata[
-                            platform
-                            ];  
+                                platform
+                            ];
 
                         const PlatformIcon =
                             platformInfo.icon;
 
                         const totalPlugins =
-                            [...categoryMap.values()].reduce(
+                            [
+                                ...categoryMap.values(),
+                            ].reduce(
                                 (
                                     total,
-                                    plugins,
+                                    pluginItems,
                                 ) =>
                                     total +
-                                    plugins.length,
+                                    pluginItems.length,
                                 0,
                             );
 
@@ -229,7 +300,9 @@ export function Sidebar() {
                                 accent={
                                     platformInfo.accent
                                 }
-                                count={totalPlugins}
+                                count={
+                                    totalPlugins
+                                }
                                 open={expandedPlatforms.has(
                                     platform,
                                 )}
@@ -242,50 +315,75 @@ export function Sidebar() {
                                 {expandedPlatforms.has(
                                     platform,
                                 ) &&
-                                    [...categoryMap.entries()].map(
+                                    [
+                                        ...categoryMap.entries(),
+                                    ].map(
                                         ([
                                             category,
                                             items,
                                         ]) => {
                                             const info =
                                                 categoryMetadata[
-                                                category
+                                                    category
                                                 ];
-
-
 
                                             return (
                                                 <div
                                                     key={`${platform}-${category}`}
                                                     style={{
-                                                        marginBottom: 16,
+                                                        marginBottom:
+                                                            spacing.sm,
                                                     }}
                                                 >
                                                     <SidebarCategory
-                                                        title={info.title}
-                                                        count={items.length}
-                                                        accent={platformInfo.accent}
+                                                        title={
+                                                            info.title
+                                                        }
+                                                        count={
+                                                            items.length
+                                                        }
+                                                        accent={
+                                                            platformInfo.accent
+                                                        }
                                                     />
 
-                                                    {items.map((plugin) => {
-                                                        const PluginIcon =
-                                                            plugin.icon;
+                                                    {items.map(
+                                                        (
+                                                            plugin,
+                                                        ) => {
+                                                            const PluginIcon =
+                                                                plugin.icon;
 
-                                                        return (
-                                                            <SidebarButton
-                                                                key={plugin.type}
-                                                                icon={
-                                                                    <PluginIcon size={18} />
-                                                                }
-                                                                label={plugin.title}
-                                                                subtitle={plugin.subtitle}
-                                                                color={plugin.color}
-                                                                onClick={() =>
-                                                                    addNode(plugin.type)
-                                                                }
-                                                            />
-                                                        );
-                                                    })}
+                                                            return (
+                                                                <SidebarButton
+                                                                    key={
+                                                                        plugin.type
+                                                                    }
+                                                                    icon={
+                                                                        <PluginIcon
+                                                                            size={
+                                                                                18
+                                                                            }
+                                                                        />
+                                                                    }
+                                                                    label={
+                                                                        plugin.title
+                                                                    }
+                                                                    subtitle={
+                                                                        plugin.subtitle
+                                                                    }
+                                                                    color={
+                                                                        plugin.color
+                                                                    }
+                                                                    onClick={() =>
+                                                                        addNode(
+                                                                            plugin.type,
+                                                                        )
+                                                                    }
+                                                                />
+                                                            );
+                                                        },
+                                                    )}
                                                 </div>
                                             );
                                         },
@@ -301,7 +399,7 @@ export function Sidebar() {
 
 const styles: Record<
     string,
-    React.CSSProperties
+    CSSProperties
 > = {
     sidebar: {
         width: "100%",
@@ -314,76 +412,124 @@ const styles: Record<
 
         flexDirection: "column",
 
-        background: "#161B22",
+        background:
+            colors.panel,
 
-        borderRight: "1px solid #30363D",
+        borderRight:
+            `1px solid ${colors.border}`,
 
         overflow: "hidden",
+
+        boxSizing: "border-box",
     },
 
     header: {
-        padding: 20,
+        padding:
+            `${spacing.lg}px ${spacing.md}px`,
 
         borderBottom:
-            "1px solid #30363D",
+            `1px solid ${colors.border}`,
 
         flexShrink: 0,
+
+        background:
+            colors.panel,
     },
 
     title: {
         margin: 0,
 
-        color: "#E6EDF3",
+        color:
+            colors.text,
 
-        fontSize: 18,
+        fontSize:
+            typography.title
+                .fontSize,
 
-        fontWeight: 700,
+        fontWeight:
+            typography.title
+                .fontWeight,
+
+        lineHeight: 1.3,
+
+        letterSpacing:
+            "-0.01em",
     },
 
     subtitle: {
-        marginTop: 6,
+        margin: 0,
 
-        color: "#8B949E",
+        color:
+            colors.textSecondary,
 
-        fontSize: 13,
+        fontSize:
+            typography.caption
+                .fontSize,
 
-        lineHeight: 1.5,
+        fontWeight:
+            typography.body
+                .fontWeight,
+
+        lineHeight: 1.4,
     },
 
     searchContainer: {
-        marginTop: 18,
+        marginTop:
+            spacing.md,
 
         display: "flex",
 
         alignItems: "center",
 
-        gap: 8,
+        gap: spacing.sm,
 
-        padding: "10px 12px",
+        height: 38,
 
-        borderRadius: 10,
+        padding:
+            `0 ${spacing.md}px`,
+
+        boxSizing:
+            "border-box",
+
+        borderRadius:
+            radius.md,
 
         border:
-            "1px solid #30363D",
+            `1px solid ${colors.border}`,
 
-        background: "#0D1117",
+        background:
+            colors.background,
 
         transition:
-            "border-color .2s ease",
+            "border-color 150ms ease, box-shadow 150ms ease",
     },
 
     searchInput: {
         flex: 1,
 
+        minWidth: 0,
+
+        height: "100%",
+
         border: "none",
 
         outline: "none",
 
-        background: "transparent",
+        padding: 0,
 
-        color: "#FFFFFF",
+        background:
+            "transparent",
 
-        fontSize: 14,
+        color:
+            colors.text,
+
+        fontSize:
+            typography.body
+                .fontSize,
+
+        fontWeight:
+            typography.body
+                .fontWeight,
     },
 
     content: {
@@ -397,10 +543,16 @@ const styles: Record<
 
         overflowX: "hidden",
 
-        padding: 20,
+        padding:
+            `${spacing.sm}px ${spacing.md}px ${spacing.lg}px`,
 
-        scrollbarWidth: "thin",
+        scrollbarWidth:
+            "thin",
 
-        overscrollBehavior: "contain",
+        scrollbarColor:
+            `${colors.borderLight} transparent`,
+
+        overscrollBehavior:
+            "contain",
     },
 };

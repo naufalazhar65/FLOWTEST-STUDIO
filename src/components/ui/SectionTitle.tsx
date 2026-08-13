@@ -1,4 +1,12 @@
-import type { ReactNode } from "react";
+import type {
+    ReactNode,
+} from "react";
+
+import {
+    colors,
+    spacing,
+    typography,
+} from "../../themes";
 
 interface Props {
     children: ReactNode;
@@ -10,15 +18,24 @@ export function SectionTitle({
     return (
         <div
             style={{
-                marginBottom: 14,
+                marginBottom:
+                    spacing.md,
 
-                color: "#F0F6FC",
+                color:
+                    colors.text,
 
-                fontSize: 15,
+                fontSize:
+                    typography.subtitle
+                        .fontSize,
 
-                fontWeight: 700,
+                fontWeight:
+                    typography.title
+                        .fontWeight,
 
-                letterSpacing: .2,
+                lineHeight: 1.4,
+
+                letterSpacing:
+                    0.2,
             }}
         >
             {children}

@@ -1,5 +1,13 @@
 import { useState } from "react";
 
+import {
+    animation,
+    colors,
+    radius,
+    spacing,
+    typography,
+} from "../../themes";
+
 import { InspectorPanel } from "../inspector/InspectorPanel";
 import { GeneratorPanel } from "../../features/generator/components/GeneratorPanel";
 import { ElementInspector } from "../../features/inspector/components/ElementInspector";
@@ -16,31 +24,43 @@ export function RightPanel() {
         );
 
     return (
-        <div
+        <aside
             style={{
                 height: "100%",
 
                 display: "flex",
 
-                flexDirection: "column",
+                flexDirection:
+                    "column",
 
                 minHeight: 0,
 
-                background: "#0D1117",
+                background:
+                    colors.background,
+
+                borderLeft:
+                    `1px solid ${colors.border}`,
             }}
         >
             {/* Tabs */}
-
             <div
+                role="tablist"
+                aria-label="Inspector panels"
                 style={{
                     display: "flex",
 
                     flexShrink: 0,
 
-                    borderBottom:
-                        "1px solid #30363D",
+                    padding:
+                        `${spacing.xs}px ${spacing.sm}px 0`,
 
-                    background: "#161B22",
+                    gap: spacing.xs,
+
+                    borderBottom:
+                        `1px solid ${colors.border}`,
+
+                    background:
+                        colors.panel,
                 }}
             >
                 <TabButton
@@ -86,7 +106,6 @@ export function RightPanel() {
             </div>
 
             {/* Panel */}
-
             <div
                 style={{
                     flex: 1,
@@ -100,18 +119,21 @@ export function RightPanel() {
             >
                 {tab ===
                     "properties" && (
-                        <div
-                            style={{
-                                flex: 1,
+                    <div
+                        style={{
+                            flex: 1,
 
-                                minHeight: 0,
+                            minHeight: 0,
 
-                                overflow: "auto",
-                            }}
-                        >
-                            <InspectorPanel />
-                        </div>
-                    )}
+                            overflowY: "auto",
+
+                            overscrollBehavior:
+                                "contain",
+                        }}
+                    >
+                        <InspectorPanel />
+                    </div>
+                )}
 
                 {tab === "element" && (
                     <div
@@ -129,22 +151,23 @@ export function RightPanel() {
 
                 {tab ===
                     "generator" && (
-                        <div
-                            style={{
-                                flex: 1,
+                    <div
+                        style={{
+                            flex: 1,
 
-                                minHeight: 0,
+                            minHeight: 0,
 
-                                display: "flex",
+                            display: "flex",
 
-                                overflow: "hidden",
-                            }}
-                        >
-                            <GeneratorPanel />
-                        </div>
-                    )}
+                            overflow:
+                                "hidden",
+                        }}
+                    >
+                        <GeneratorPanel />
+                    </div>
+                )}
             </div>
-        </div>
+        </aside>
     );
 }
 
@@ -164,34 +187,109 @@ function TabButton({
     return (
         <button
             type="button"
+            role="tab"
+            aria-selected={active}
             onClick={onClick}
             style={{
+                position: "relative",
+
                 flex: 1,
 
-                padding: "12px 16px",
+                minWidth: 0,
 
-                cursor: "pointer",
+                padding:
+                    `${spacing.sm}px ${spacing.sm}px`,
 
                 border: "none",
 
+                borderRadius:
+                    `${radius.sm}px ${radius.sm}px 0 0`,
+
                 background:
-                    "transparent",
+                    active
+                        ? colors.panelHover
+                        : "transparent",
 
-                borderBottom: active
-                    ? "2px solid #3B82F6"
-                    : "2px solid transparent",
+                color:
+                    active
+                        ? colors.text
+                        : colors.textSecondary,
 
-                color: active
-                    ? "#FFFFFF"
-                    : "#8B949E",
+                fontSize:
+                    typography.caption
+                        .fontSize,
 
-                fontWeight: 600,
+                fontWeight:
+                    active
+                        ? typography.subtitle
+                              .fontWeight
+                        : typography.caption
+                              .fontWeight,
+
+                cursor: "pointer",
 
                 transition:
-                    "all .2s",
+                    `background ${animation.fast}, color ${animation.fast}`,
+
+                outline: "none",
+
+                whiteSpace:
+                    "nowrap",
+            }}
+            onMouseEnter={(event) => {
+                if (active) {
+                    return;
+                }
+
+                event.currentTarget.style
+                    .background =
+                    colors.panelHover;
+
+                event.currentTarget.style
+                    .color =
+                    colors.text;
+            }}
+            onMouseLeave={(event) => {
+                if (active) {
+                    return;
+                }
+
+                event.currentTarget.style
+                    .background =
+                    "transparent";
+
+                event.currentTarget.style
+                    .color =
+                    colors.textSecondary;
             }}
         >
             {children}
+
+            {active && (
+                <span
+                    aria-hidden="true"
+                    style={{
+                        position:
+                            "absolute",
+
+                        left:
+                            spacing.sm,
+
+                        right:
+                            spacing.sm,
+
+                        bottom: 0,
+
+                        height: 2,
+
+                        borderRadius:
+                            radius.full,
+
+                        background:
+                            colors.accent,
+                    }}
+                />
+            )}
         </button>
     );
 }

@@ -4,9 +4,12 @@ import type {
 } from "react";
 
 import {
+    animation,
     colors,
     radius,
     shadow,
+    spacing,
+    typography,
 } from "../../themes";
 
 interface Props {
@@ -40,19 +43,20 @@ export function ActionCard({
                 width: 320,
 
                 display: "flex",
-                flexDirection: "column",
 
-                gap: 18,
+                flexDirection:
+                    "column",
 
-                padding: 24,
+                gap: spacing.lg,
 
-                background: `
-                    linear-gradient(
+                padding: spacing.xl,
+
+                background:
+                    `linear-gradient(
                         145deg,
-                        rgba(22, 27, 34, 0.96),
-                        rgba(13, 17, 23, 0.96)
-                    )
-                `,
+                        ${colors.panel},
+                        ${colors.background}
+                    )`,
 
                 border:
                     `1px solid ${colors.border}`,
@@ -66,7 +70,7 @@ export function ActionCard({
                 cursor: "pointer",
 
                 transition:
-                    "transform .18s ease, border-color .18s ease, box-shadow .18s ease",
+                    `transform ${animation.fast}, border-color ${animation.fast}, box-shadow ${animation.fast}`,
 
                 userSelect: "none",
 
@@ -75,41 +79,51 @@ export function ActionCard({
                 ...style,
             }}
             onMouseEnter={(event) => {
-                event.currentTarget.style.transform =
-                    "translateY(-4px)";
+                event.currentTarget.style
+                    .transform =
+                    "translateY(-3px)";
 
-                event.currentTarget.style.borderColor =
+                event.currentTarget.style
+                    .borderColor =
                     colors.accent;
 
-                event.currentTarget.style.boxShadow =
+                event.currentTarget.style
+                    .boxShadow =
                     shadow.floating;
             }}
             onMouseLeave={(event) => {
-                event.currentTarget.style.transform =
+                event.currentTarget.style
+                    .transform =
                     "translateY(0)";
 
-                event.currentTarget.style.borderColor =
+                event.currentTarget.style
+                    .borderColor =
                     colors.border;
 
-                event.currentTarget.style.boxShadow =
+                event.currentTarget.style
+                    .boxShadow =
                     shadow.card;
             }}
         >
             {/* Subtle accent glow */}
             <div
                 style={{
-                    position: "absolute",
+                    position:
+                        "absolute",
 
                     top: -80,
+
                     right: -80,
 
                     width: 180,
+
                     height: 180,
 
-                    borderRadius: "50%",
+                    borderRadius:
+                        radius.full,
 
                     background:
-                        "rgba(124, 92, 252, 0.06)",
+                        "rgba(47, 129, 247, 0.06)",
 
                     filter:
                         "blur(45px)",
@@ -122,24 +136,31 @@ export function ActionCard({
             {/* Icon */}
             <div
                 style={{
-                    position: "relative",
+                    position:
+                        "relative",
 
                     width: 54,
+
                     height: 54,
 
-                    display: "grid",
-                    placeItems: "center",
+                    flexShrink: 0,
 
-                    borderRadius: 16,
+                    display: "grid",
+
+                    placeItems:
+                        "center",
+
+                    borderRadius:
+                        radius.lg,
 
                     background:
-                        "rgba(124, 92, 252, 0.10)",
+                        colors.selection,
 
                     border:
-                        "1px solid rgba(124, 92, 252, 0.18)",
+                        `1px solid ${colors.focus}2E`,
 
                     color:
-                        colors.accent,
+                        colors.accentHover,
 
                     boxShadow:
                         "inset 0 1px rgba(255,255,255,0.04)",
@@ -151,16 +172,22 @@ export function ActionCard({
             {/* Content */}
             <div
                 style={{
-                    position: "relative",
+                    position:
+                        "relative",
                 }}
             >
                 <div
                     style={{
-                        color: colors.text,
+                        color:
+                            colors.text,
 
                         fontSize: 18,
 
-                        fontWeight: 700,
+                        fontWeight:
+                            typography.title
+                                .fontWeight,
+
+                        lineHeight: 1.35,
 
                         letterSpacing:
                             "-0.01em",
@@ -171,12 +198,19 @@ export function ActionCard({
 
                 <div
                     style={{
-                        marginTop: 8,
+                        marginTop:
+                            spacing.sm,
 
                         color:
                             colors.textSecondary,
 
-                        fontSize: 14,
+                        fontSize:
+                            typography.body
+                                .fontSize,
+
+                        fontWeight:
+                            typography.body
+                                .fontWeight,
 
                         lineHeight: 1.6,
                     }}
@@ -192,9 +226,11 @@ export function ActionCard({
                         position:
                             "relative",
 
-                        marginTop: "auto",
+                        marginTop:
+                            "auto",
 
-                        display: "flex",
+                        display:
+                            "flex",
 
                         justifyContent:
                             "flex-end",
@@ -203,9 +239,10 @@ export function ActionCard({
                     <div
                         style={{
                             padding:
-                                "5px 9px",
+                                `${spacing.xs + 1}px ${spacing.sm + 1}px`,
 
-                            borderRadius: 7,
+                            borderRadius:
+                                radius.sm,
 
                             background:
                                 colors.background,
@@ -216,9 +253,15 @@ export function ActionCard({
                             color:
                                 colors.textSecondary,
 
-                            fontSize: 11,
+                            fontSize:
+                                typography.tiny
+                                    .fontSize,
 
-                            fontWeight: 600,
+                            fontWeight:
+                                typography.caption
+                                    .fontWeight,
+
+                            lineHeight: 1.2,
 
                             letterSpacing:
                                 "0.02em",

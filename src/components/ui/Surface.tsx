@@ -21,11 +21,14 @@ export function Surface({
     return (
         <div
             style={{
-                background: colors.panel,
+                background:
+                    colors.panel,
 
-                border: `1px solid ${colors.border}`,
+                border:
+                    `1px solid ${colors.border}`,
 
-                borderRadius: radius.lg,
+                borderRadius:
+                    radius.lg,
 
                 overflow: "hidden",
 

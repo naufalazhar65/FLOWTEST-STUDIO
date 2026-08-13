@@ -1,9 +1,17 @@
 import {
     BarChart3,
     Layers3,
-    Workflow,
     Smartphone,
+    Workflow,
 } from "lucide-react";
+
+import {
+    animation,
+    colors,
+    radius,
+    spacing,
+    typography,
+} from "../../themes";
 
 import { useWorkspaceStore } from "../../features/workspace/store/useWorkspaceStore";
 
@@ -17,25 +25,37 @@ export function WorkspaceNavigation() {
     );
 
     return (
-        <div
+        <nav
+            aria-label="Workspace navigation"
             style={{
-                padding: "14px 16px",
+                padding:
+                    `${spacing.sm + 2}px ${spacing.md}px`,
 
                 borderBottom:
-                    "1px solid #30363D",
+                    `1px solid ${colors.border}`,
             }}
         >
             <div
                 style={{
-                    marginBottom: 8,
+                    marginBottom:
+                        spacing.xs + 2,
 
-                    color: "#8B949E",
+                    paddingLeft:
+                        spacing.xs,
 
-                    fontSize: 10,
+                    color:
+                        colors.textMuted,
 
-                    fontWeight: 700,
+                    fontSize:
+                        typography.tiny
+                            .fontSize,
 
-                    letterSpacing: 1,
+                    fontWeight:
+                        typography.caption
+                            .fontWeight,
+
+                    letterSpacing:
+                        "0.08em",
 
                     textTransform:
                         "uppercase",
@@ -46,7 +66,9 @@ export function WorkspaceNavigation() {
 
             <NavigationButton
                 icon={
-                    <Workflow size={16} />
+                    <Workflow
+                        size={16}
+                    />
                 }
                 label="Flow Builder"
                 active={
@@ -59,7 +81,9 @@ export function WorkspaceNavigation() {
 
             <NavigationButton
                 icon={
-                    <Layers3 size={16} />
+                    <Layers3
+                        size={16}
+                    />
                 }
                 label="Test Suites"
                 active={
@@ -72,7 +96,9 @@ export function WorkspaceNavigation() {
 
             <NavigationButton
                 icon={
-                    <BarChart3 size={16} />
+                    <BarChart3
+                        size={16}
+                    />
                 }
                 label="Reports"
                 active={
@@ -97,7 +123,7 @@ export function WorkspaceNavigation() {
                     setView("devices")
                 }
             />
-        </div>
+        </nav>
     );
 }
 
@@ -121,71 +147,180 @@ function NavigationButton({
         <button
             type="button"
             onClick={onClick}
+            aria-current={
+                active
+                    ? "page"
+                    : undefined
+            }
             style={{
+                position: "relative",
+
                 width: "100%",
 
                 display: "flex",
 
                 alignItems: "center",
 
-                gap: 10,
+                gap: spacing.sm,
 
-                padding: "9px 10px",
+                padding:
+                    `${spacing.sm}px ${spacing.sm + 2}px`,
 
-                marginBottom: 4,
+                marginBottom:
+                    spacing.xs,
 
                 border:
-                    "1px solid transparent",
+                    `1px solid ${
+                        active
+                            ? colors.borderLight
+                            : "transparent"
+                    }`,
 
-                borderRadius: 8,
+                borderRadius:
+                    radius.sm,
 
-                background: active
-                    ? "#21262D"
-                    : "transparent",
+                background:
+                    active
+                        ? colors.panelHover
+                        : "transparent",
 
-                color: active
-                    ? "#E6EDF3"
-                    : "#8B949E",
+                color:
+                    active
+                        ? colors.text
+                        : colors.textSecondary,
 
                 cursor: "pointer",
 
-                fontSize: 13,
+                fontSize:
+                    typography.body
+                        .fontSize,
 
-                fontWeight: active
-                    ? 600
-                    : 500,
+                fontWeight:
+                    active
+                        ? typography.subtitle
+                              .fontWeight
+                        : typography.body
+                              .fontWeight,
+
+                lineHeight: 1.3,
 
                 textAlign: "left",
 
                 transition:
-                    "all .15s ease",
+                    `background ${animation.fast}, border-color ${animation.fast}, color ${animation.fast}, transform ${animation.fast}`,
+
+                outline: "none",
+
+                boxSizing:
+                    "border-box",
             }}
-            onMouseEnter={(
-                event,
-            ) => {
-                if (active) return;
+            onMouseEnter={(event) => {
+                if (active) {
+                    return;
+                }
 
-                event.currentTarget.style.background =
-                    "#161B22";
+                event.currentTarget.style
+                    .background =
+                    colors.panelHover;
 
-                event.currentTarget.style.color =
-                    "#E6EDF3";
+                event.currentTarget.style
+                    .color =
+                    colors.text;
+
+                event.currentTarget.style
+                    .transform =
+                    "translateX(1px)";
             }}
-            onMouseLeave={(
-                event,
-            ) => {
-                if (active) return;
+            onMouseLeave={(event) => {
+                if (active) {
+                    return;
+                }
 
-                event.currentTarget.style.background =
+                event.currentTarget.style
+                    .background =
                     "transparent";
 
-                event.currentTarget.style.color =
-                    "#8B949E";
+                event.currentTarget.style
+                    .color =
+                    colors.textSecondary;
+
+                event.currentTarget.style
+                    .transform =
+                    "translateX(0)";
             }}
         >
-            {icon}
+            {active && (
+                <span
+                    aria-hidden="true"
+                    style={{
+                        position:
+                            "absolute",
 
-            <span>{label}</span>
+                        left: -1,
+
+                        top: "50%",
+
+                        width: 3,
+
+                        height: 18,
+
+                        transform:
+                            "translateY(-50%)",
+
+                        borderRadius:
+                            radius.full,
+
+                        background:
+                            colors.accent,
+                    }}
+                />
+            )}
+
+            <span
+                style={{
+                    width: 18,
+
+                    height: 18,
+
+                    display: "flex",
+
+                    alignItems:
+                        "center",
+
+                    justifyContent:
+                        "center",
+
+                    flexShrink: 0,
+
+                    color:
+                        active
+                            ? colors.accentHover
+                            : colors.textMuted,
+
+                    transition:
+                        `color ${animation.fast}`,
+                }}
+            >
+                {icon}
+            </span>
+
+            <span
+                style={{
+                    minWidth: 0,
+
+                    flex: 1,
+
+                    overflow: "hidden",
+
+                    textOverflow:
+                        "ellipsis",
+
+                    whiteSpace:
+                        "nowrap",
+                }}
+            >
+                {label}
+            </span>
         </button>
     );
 }

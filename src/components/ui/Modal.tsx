@@ -4,9 +4,11 @@ import type {
 } from "react";
 
 import {
+    animation,
     colors,
     radius,
     shadow,
+    spacing,
 } from "../../themes";
 
 interface ModalProps {
@@ -37,30 +39,49 @@ export function Modal({
             onClick={onClose}
             style={{
                 position: "fixed",
+
                 inset: 0,
 
                 zIndex: 9999,
 
                 display: "flex",
+
                 alignItems: "center",
-                justifyContent: "center",
 
-                background: "rgba(0,0,0,.55)",
+                justifyContent:
+                    "center",
 
-                backdropFilter: "blur(8px)",
+                padding: spacing.lg,
+
+                boxSizing: "border-box",
+
+                background:
+                    colors.overlay,
+
+                backdropFilter:
+                    "blur(8px)",
+
+                animation:
+                    `modal-overlay-in ${animation.fast}`,
             }}
         >
             <div
-                onClick={(e) =>
-                    e.stopPropagation()
+                onClick={(event) =>
+                    event.stopPropagation()
                 }
                 style={{
-                    width,
+                    width: "100%",
+
+                    maxWidth: width,
+
+                    maxHeight:
+                        "calc(100vh - 48px)",
 
                     background:
                         colors.panel,
 
-                    border: `1px solid ${colors.border}`,
+                    border:
+                        `1px solid ${colors.border}`,
 
                     borderRadius:
                         radius.xl,

@@ -1,8 +1,15 @@
-import type { ReactNode } from "react";
+import type {
+    ReactNode,
+} from "react";
 
 import { AlertTriangle } from "lucide-react";
 
-import { colors } from "../../themes";
+import {
+    colors,
+    radius,
+    spacing,
+    typography,
+} from "../../themes";
 
 import { Button } from "./Button";
 import { Modal } from "./Modal";
@@ -46,41 +53,50 @@ export function ConfirmDialog({
         >
             <div
                 style={{
-                    padding: 24,
+                    padding: spacing.xl,
                 }}
             >
                 {/* Header */}
                 <div
                     style={{
                         display: "flex",
-                        alignItems: "flex-start",
-                        gap: 14,
+
+                        alignItems:
+                            "flex-start",
+
+                        gap: spacing.md,
                     }}
                 >
                     {/* Warning Icon */}
                     <div
                         style={{
-                            width: 40,
-                            height: 40,
+                            width: 42,
+
+                            height: 42,
 
                             flexShrink: 0,
 
                             display: "grid",
-                            placeItems: "center",
 
-                            borderRadius: 10,
+                            placeItems:
+                                "center",
+
+                            borderRadius:
+                                radius.md,
 
                             background:
-                                "rgba(245, 158, 11, 0.10)",
+                                "rgba(210, 153, 34, 0.10)",
 
                             border:
-                                "1px solid rgba(245, 158, 11, 0.20)",
+                                "1px solid rgba(210, 153, 34, 0.20)",
 
-                            color: "#F59E0B",
+                            color:
+                                colors.warning,
                         }}
                     >
                         <AlertTriangle
                             size={20}
+                            strokeWidth={2}
                         />
                     </div>
 
@@ -88,6 +104,8 @@ export function ConfirmDialog({
                     <div
                         style={{
                             flex: 1,
+
+                            minWidth: 0,
                         }}
                     >
                         <div
@@ -98,6 +116,8 @@ export function ConfirmDialog({
                                 fontSize: 18,
 
                                 fontWeight: 700,
+
+                                lineHeight: 1.35,
                             }}
                         >
                             {title}
@@ -105,12 +125,19 @@ export function ConfirmDialog({
 
                         <div
                             style={{
-                                marginTop: 8,
+                                marginTop:
+                                    spacing.sm,
 
                                 color:
                                     colors.textSecondary,
 
-                                fontSize: 13,
+                                fontSize:
+                                    typography.body
+                                        .fontSize,
+
+                                fontWeight:
+                                    typography.body
+                                        .fontWeight,
 
                                 lineHeight: 1.6,
                             }}
@@ -128,11 +155,13 @@ export function ConfirmDialog({
                         justifyContent:
                             "flex-end",
 
-                        alignItems: "center",
+                        alignItems:
+                            "center",
 
-                        gap: 8,
+                        gap: spacing.sm,
 
-                        marginTop: 28,
+                        marginTop:
+                            spacing.xl,
                     }}
                 >
                     <Button

@@ -1,24 +1,43 @@
 import type {
-  ReactNode,
+    ReactNode,
 } from "react";
 
+import {
+    colors,
+    spacing,
+    typography,
+} from "../../themes";
+
 interface Props {
-  children: ReactNode;
+    children: ReactNode;
 }
 
 export function Label({
-  children,
+    children,
 }: Props) {
-  return (
-    <div
-      style={{
-        marginBottom: 6,
-        color: "#8B949E",
-        fontSize: 13,
-        fontWeight: 600,
-      }}
-    >
-      {children}
-    </div>
-  );
+    return (
+        <div
+            style={{
+                marginBottom:
+                    spacing.xs + 2,
+
+                color:
+                    colors.textSecondary,
+
+                fontSize:
+                    typography.caption
+                        .fontSize,
+
+                fontWeight:
+                    typography.subtitle
+                        .fontWeight,
+
+                lineHeight: 1.4,
+
+                userSelect: "none",
+            }}
+        >
+            {children}
+        </div>
+    );
 }

@@ -1,8 +1,16 @@
 import {
-  Trash2,
   ChevronDown,
   ChevronRight,
+  Trash2,
 } from "lucide-react";
+
+import {
+  colors,
+  radius,
+  spacing,
+  typography,
+  animation,
+} from "../../themes";
 
 import { useExecutionLogStore } from "../../features/execution/store/useExecutionLogStore";
 import { ExecutionTimeline } from "../../features/execution/components/ExecutionTimeline";
@@ -17,59 +25,150 @@ export function ConsolePanel({
   expanded,
   onToggle,
 }: ConsolePanelProps) {
-  const clear = useExecutionLogStore(
-    (state) => state.clear
-  );
+  const clear =
+    useExecutionLogStore(
+      (state) => state.clear,
+    );
 
-  const logs = useExecutionLogStore(
-    (state) => state.logs
-  );
+  const logs =
+    useExecutionLogStore(
+      (state) => state.logs,
+    );
 
   return (
     <div
       style={{
         height: "100%",
+
         display: "flex",
-        flexDirection: "column",
-        background: "#0D1117",
-        borderTop: "1px solid #30363D",
-        color: "#FFF",
+
+        flexDirection:
+          "column",
+
+        background:
+          colors.background,
+
+        borderTop:
+          `1px solid ${colors.border}`,
+
+        color:
+          colors.text,
+
         overflow: "hidden",
       }}
     >
       {/* Header */}
       <div
+        role="button"
+        tabIndex={0}
         onClick={onToggle}
+        onKeyDown={(event) => {
+          if (
+            event.key === "Enter" ||
+            event.key === " "
+          ) {
+            event.preventDefault();
+            onToggle();
+          }
+        }}
         style={{
-          height: 48,
+          minHeight: 48,
+
           display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "0 16px",
-          borderBottom: expanded
-            ? "1px solid #30363D"
-            : "none",
-          cursor: "pointer",
-          userSelect: "none",
+
+          alignItems:
+            "center",
+
+          justifyContent:
+            "space-between",
+
+          padding:
+            `0 ${spacing.lg}px`,
+
+          borderBottom:
+            expanded
+              ? `1px solid ${colors.border}`
+              : "none",
+
+          background:
+            colors.panel,
+
+          cursor:
+            "pointer",
+
+          userSelect:
+            "none",
+
+          transition:
+            `background ${animation.fast}`,
+        }}
+        onMouseEnter={(event) => {
+          event.currentTarget.style
+            .background =
+            colors.panelHover;
+        }}
+        onMouseLeave={(event) => {
+          event.currentTarget.style
+            .background =
+            colors.panel;
         }}
       >
         <div
           style={{
             display: "flex",
-            alignItems: "center",
-            gap: 10,
+
+            alignItems:
+              "center",
+
+            gap: spacing.sm,
           }}
         >
-          {expanded ? (
-            <ChevronDown size={16} />
-          ) : (
-            <ChevronRight size={16} />
-          )}
+          <span
+            style={{
+              display:
+                "flex",
+
+              alignItems:
+                "center",
+
+              justifyContent:
+                "center",
+
+              width: 20,
+
+              height: 20,
+
+              flexShrink: 0,
+
+              color:
+                colors.textSecondary,
+            }}
+          >
+            {expanded ? (
+              <ChevronDown
+                size={16}
+              />
+            ) : (
+              <ChevronRight
+                size={16}
+              />
+            )}
+          </span>
 
           <span
             style={{
-              fontWeight: 700,
-              fontSize: 14,
+              color:
+                colors.text,
+
+              fontSize:
+                typography.subtitle
+                  .fontSize,
+
+              fontWeight:
+                typography.subtitle
+                  .fontWeight,
+
+              lineHeight: 1.3,
             }}
           >
             Execution Console
@@ -77,13 +176,41 @@ export function ConsolePanel({
 
           <span
             style={{
-              padding: "2px 8px",
-              borderRadius: 999,
-              background: "#202632",
-              border: "1px solid #313847",
-              color: "#8B949E",
-              fontSize: 11,
-              fontWeight: 600,
+              minHeight: 22,
+
+              display:
+                "inline-flex",
+
+              alignItems:
+                "center",
+
+              justifyContent:
+                "center",
+
+              padding:
+                "0 8px",
+
+              borderRadius:
+                radius.full,
+
+              background:
+                colors.panelHover,
+
+              border:
+                `1px solid ${colors.border}`,
+
+              color:
+                colors.textSecondary,
+
+              fontSize:
+                typography.tiny
+                  .fontSize,
+
+              fontWeight:
+                typography.caption
+                  .fontWeight,
+
+              lineHeight: 1,
             }}
           >
             {logs.length} Logs
@@ -92,19 +219,80 @@ export function ConsolePanel({
 
         {expanded && (
           <button
-            onClick={(e) => {
-              e.stopPropagation();
+            type="button"
+            aria-label="Clear execution logs"
+            title="Clear logs"
+            onClick={(event) => {
+              event.stopPropagation();
               clear();
             }}
             style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              background: "transparent",
-              border: "none",
-              color: "#8B949E",
-              cursor: "pointer",
-              fontSize: 12,
+              display:
+                "inline-flex",
+
+              alignItems:
+                "center",
+
+              gap: spacing.xs,
+
+              minHeight: 30,
+
+              padding:
+                `0 ${spacing.sm}px`,
+
+              border:
+                `1px solid transparent`,
+
+              borderRadius:
+                radius.sm,
+
+              background:
+                "transparent",
+
+              color:
+                colors.textSecondary,
+
+              cursor:
+                "pointer",
+
+              fontSize:
+                typography.tiny
+                  .fontSize,
+
+              fontWeight:
+                typography.caption
+                  .fontWeight,
+
+              transition:
+                `background ${animation.fast}, border-color ${animation.fast}, color ${animation.fast}`,
+
+              outline: "none",
+            }}
+            onMouseEnter={(event) => {
+              event.currentTarget.style
+                .background =
+                colors.panelHover;
+
+              event.currentTarget.style
+                .borderColor =
+                colors.border;
+
+              event.currentTarget.style
+                .color =
+                colors.text;
+            }}
+            onMouseLeave={(event) => {
+              event.currentTarget.style
+                .background =
+                "transparent";
+
+              event.currentTarget.style
+                .borderColor =
+                "transparent";
+
+              event.currentTarget.style
+                .color =
+                colors.textSecondary;
             }}
           >
             <Trash2 size={14} />
@@ -113,19 +301,36 @@ export function ConsolePanel({
         )}
       </div>
 
+      {/* Content */}
       {expanded && (
         <div
           style={{
             flex: 1,
-            overflowY: "auto",
-            padding: "12px 16px",
+
+            minHeight: 0,
+
+            overflowY:
+              "auto",
+
+            overflowX:
+              "hidden",
+
+            padding:
+              `${spacing.sm}px ${spacing.lg}px ${spacing.lg}px`,
+
+            boxSizing:
+              "border-box",
+
+            overscrollBehavior:
+              "contain",
           }}
         >
           <ExecutionFilter />
 
           <div
             style={{
-              marginTop: 12,
+              marginTop:
+                spacing.md,
             }}
           >
             <ExecutionTimeline />

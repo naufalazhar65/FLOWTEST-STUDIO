@@ -3,6 +3,16 @@ import {
     FolderOpen,
 } from "lucide-react";
 
+import {
+    animation,
+    colors,
+    radius,
+    shadow,
+    spacing,
+    typography,
+} from "../../../themes";
+
+import { Badge } from "../../../components/ui/Badge";
 import { Card } from "../../../components/ui/Card";
 import { EmptyState } from "../../../components/ui/EmptyState";
 
@@ -17,43 +27,66 @@ export function RecentProjects() {
     return (
         <Card
             style={{
-                width: "min(760px, calc(100vw - 48px))",
-                padding: 20,
+                width:
+                    "min(760px, calc(100vw - 48px))",
+
+                padding:
+                    spacing.xl,
             }}
         >
             {/* Header */}
             <div
                 style={{
                     display: "flex",
+
                     alignItems: "center",
+
                     justifyContent:
                         "space-between",
 
-                    marginBottom: 14,
+                    marginBottom:
+                        spacing.lg,
                 }}
             >
                 <div
                     style={{
-                        fontSize: 16,
-                        fontWeight: 600,
-                        color: "#F0F6FC",
+                        fontSize:
+                            typography.title
+                                .fontSize,
+
+                        fontWeight:
+                            typography.title
+                                .fontWeight,
+
+                        color:
+                            colors.text,
                     }}
                 >
                     Recent Projects
                 </div>
 
                 {projects.length > 0 && (
-                    <div
+                    <Badge
+                        color={
+                            colors.textSecondary
+                        }
                         style={{
-                            fontSize: 11,
-                            color: "#6E7681",
+                            minHeight: 22,
+
+                            padding:
+                                "3px 8px",
+
+                            fontSize:
+                                typography.tiny
+                                    .fontSize,
                         }}
                     >
                         {projects.length}{" "}
-                        {projects.length === 1
+                        {projects.length ===
+                        1
                             ? "project"
                             : "projects"}
-                    </div>
+                    </Badge>
                 )}
             </div>
 
@@ -71,26 +104,33 @@ export function RecentProjects() {
                 <div
                     style={{
                         maxHeight: 250,
-                        overflowY: "auto",
+
+                        overflowY:
+                            "auto",
 
                         display: "flex",
+
                         flexDirection:
                             "column",
 
-                        gap: 7,
+                        gap: spacing.sm,
 
-                        paddingRight: 4,
+                        paddingRight:
+                            spacing.xs,
 
-                        scrollbarWidth: "thin",
+                        scrollbarWidth:
+                            "thin",
 
                         scrollbarColor:
-                            "#30363D transparent",
+                            `${colors.border} transparent`,
                     }}
                 >
                     {projects.map(
                         (project) => (
                             <button
-                                key={project.id}
+                                key={
+                                    project.id
+                                }
                                 type="button"
                                 onClick={() => {
                                     void openRecentProjectWorkflow(
@@ -99,17 +139,21 @@ export function RecentProjects() {
                                 }}
                                 style={{
                                     width: "100%",
+
                                     minHeight: 58,
+
                                     flexShrink: 0,
 
-                                    display: "flex",
+                                    display:
+                                        "flex",
+
                                     alignItems:
                                         "center",
 
-                                    gap: 12,
+                                    gap: spacing.md,
 
                                     padding:
-                                        "9px 12px",
+                                        `${spacing.sm + 1}px ${spacing.md}px`,
 
                                     textAlign:
                                         "left",
@@ -118,20 +162,22 @@ export function RecentProjects() {
                                         "rgba(13, 17, 23, 0.45)",
 
                                     border:
-                                        "1px solid #30363D",
+                                        `1px solid ${colors.border}`,
 
-                                    borderRadius: 9,
+                                    borderRadius:
+                                        radius.md,
 
                                     cursor:
                                         "pointer",
 
                                     color:
-                                        "#F0F6FC",
+                                        colors.text,
 
                                     transition:
-                                        "background .16s ease, border-color .16s ease, transform .16s ease, box-shadow .16s ease",
+                                        `background ${animation.fast}, border-color ${animation.fast}, transform ${animation.fast}, box-shadow ${animation.fast}`,
 
-                                    outline: "none",
+                                    outline:
+                                        "none",
                                 }}
                                 onMouseEnter={(
                                     event,
@@ -140,16 +186,16 @@ export function RecentProjects() {
                                         event.currentTarget;
 
                                     target.style.background =
-                                        "rgba(59, 130, 246, 0.06)";
+                                        colors.selection;
 
                                     target.style.borderColor =
-                                        "rgba(59, 130, 246, 0.35)";
+                                        colors.focus;
 
                                     target.style.transform =
                                         "translateX(2px)";
 
                                     target.style.boxShadow =
-                                        "0 6px 18px rgba(0, 0, 0, 0.16)";
+                                        shadow.card;
 
                                     const arrow =
                                         target.querySelector(
@@ -177,7 +223,7 @@ export function RecentProjects() {
                                         "rgba(13, 17, 23, 0.45)";
 
                                     target.style.borderColor =
-                                        "#30363D";
+                                        colors.border;
 
                                     target.style.transform =
                                         "translateX(0)";
@@ -205,37 +251,47 @@ export function RecentProjects() {
                                     event,
                                 ) => {
                                     event.currentTarget.style.borderColor =
-                                        "rgba(59, 130, 246, 0.5)";
+                                        colors.focus;
+
+                                    event.currentTarget.style.boxShadow =
+                                        `0 0 0 2px ${colors.selection}`;
                                 }}
                                 onBlur={(
                                     event,
                                 ) => {
                                     event.currentTarget.style.borderColor =
-                                        "#30363D";
+                                        colors.border;
+
+                                    event.currentTarget.style.boxShadow =
+                                        "none";
                                 }}
                             >
                                 {/* Project icon */}
                                 <div
                                     style={{
                                         width: 36,
+
                                         height: 36,
 
                                         flexShrink: 0,
 
-                                        display: "grid",
+                                        display:
+                                            "grid",
+
                                         placeItems:
                                             "center",
 
-                                        borderRadius: 9,
+                                        borderRadius:
+                                            radius.md,
 
                                         background:
-                                            "rgba(124, 92, 252, 0.10)",
+                                            colors.selection,
 
                                         border:
-                                            "1px solid rgba(124, 92, 252, 0.16)",
+                                            `1px solid ${colors.focus}2E`,
 
                                         color:
-                                            "#A78BFA",
+                                            colors.accentHover,
                                     }}
                                 >
                                     <FolderOpen
@@ -250,6 +306,7 @@ export function RecentProjects() {
                                 <div
                                     style={{
                                         minWidth: 0,
+
                                         flex: 1,
                                     }}
                                 >
@@ -264,13 +321,18 @@ export function RecentProjects() {
                                             whiteSpace:
                                                 "nowrap",
 
-                                            fontSize: 13,
+                                            fontSize:
+                                                typography
+                                                    .body
+                                                    .fontSize,
 
                                             fontWeight:
-                                                600,
+                                                typography
+                                                    .subtitle
+                                                    .fontWeight,
 
                                             color:
-                                                "#F0F6FC",
+                                                colors.text,
                                         }}
                                     >
                                         {
@@ -280,7 +342,8 @@ export function RecentProjects() {
 
                                     <div
                                         style={{
-                                            marginTop: 3,
+                                            marginTop:
+                                                spacing.xs,
 
                                             overflow:
                                                 "hidden",
@@ -291,10 +354,18 @@ export function RecentProjects() {
                                             whiteSpace:
                                                 "nowrap",
 
-                                            fontSize: 11,
+                                            fontSize:
+                                                typography
+                                                    .tiny
+                                                    .fontSize,
+
+                                            fontWeight:
+                                                typography
+                                                    .tiny
+                                                    .fontWeight,
 
                                             color:
-                                                "#8B949E",
+                                                colors.textSecondary,
                                         }}
                                     >
                                         {
@@ -316,7 +387,7 @@ export function RecentProjects() {
                                             "center",
 
                                         color:
-                                            "#8B5CF6",
+                                            colors.accentHover,
 
                                         opacity: 0,
 
@@ -324,7 +395,7 @@ export function RecentProjects() {
                                             "translate(-3px, 3px)",
 
                                         transition:
-                                            "opacity .16s ease, transform .16s ease",
+                                            `opacity ${animation.fast}, transform ${animation.fast}`,
                                     }}
                                 >
                                     <ArrowUpRight

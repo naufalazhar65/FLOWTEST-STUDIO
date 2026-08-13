@@ -7,6 +7,8 @@ import {
     colors,
     radius,
     shadow,
+    spacing,
+    typography,
 } from "../../themes";
 
 interface Props {
@@ -45,7 +47,8 @@ export function Panel({
             {title && (
                 <div
                     style={{
-                        padding: "10px 14px",
+                        padding:
+                            `${spacing.sm + 2}px ${spacing.md}px`,
 
                         borderBottom:
                             `1px solid ${colors.border}`,
@@ -53,9 +56,15 @@ export function Panel({
                         color:
                             colors.text,
 
-                        fontSize: 12,
+                        fontSize:
+                            typography.caption
+                                .fontSize,
 
-                        fontWeight: 600,
+                        fontWeight:
+                            typography.caption
+                                .fontWeight,
+
+                        lineHeight: 1.4,
                     }}
                 >
                     {title}

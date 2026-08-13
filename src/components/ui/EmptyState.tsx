@@ -4,6 +4,8 @@ import type {
 
 import {
     colors,
+    spacing,
+    typography,
 } from "../../themes";
 
 interface Props {
@@ -32,22 +34,48 @@ export function EmptyState({
 
                 alignItems: "center",
 
-                gap: 10,
+                gap: spacing.md,
 
-                color: colors.textSecondary,
+                color:
+                    colors.textSecondary,
 
                 textAlign: "center",
 
-                padding: 32,
+                padding: spacing.xxl,
             }}
         >
-            {icon}
+            {icon && (
+                <div
+                    style={{
+                        display: "flex",
+
+                        alignItems: "center",
+
+                        justifyContent: "center",
+
+                        color:
+                            colors.textSecondary,
+
+                        opacity: 0.85,
+                    }}
+                >
+                    {icon}
+                </div>
+            )}
 
             <div
                 style={{
                     color: colors.text,
 
-                    fontWeight: 600,
+                    fontSize:
+                        typography.subtitle
+                            .fontSize,
+
+                    fontWeight:
+                        typography.subtitle
+                            .fontWeight,
+
+                    lineHeight: 1.4,
                 }}
             >
                 {title}
@@ -56,7 +84,20 @@ export function EmptyState({
             {description && (
                 <div
                     style={{
-                        fontSize: 13,
+                        maxWidth: 360,
+
+                        color:
+                            colors.textSecondary,
+
+                        fontSize:
+                            typography.body
+                                .fontSize,
+
+                        fontWeight:
+                            typography.body
+                                .fontWeight,
+
+                        lineHeight: 1.5,
                     }}
                 >
                     {description}

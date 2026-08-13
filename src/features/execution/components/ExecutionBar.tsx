@@ -1,21 +1,22 @@
 import {
-    Play,
-    Pause,
     CheckCircle2,
-    XCircle,
+    Pause,
+    Play,
     Square,
+    XCircle,
 } from "lucide-react";
-
-import { ProgressBar } from "../../../components/ui/ProgressBar";
-
-import { useExecutionStore } from "../store/useExecutionStore";
 
 import {
     colors,
     layout,
+    radius,
     spacing,
     typography,
 } from "../../../themes";
+
+import { ProgressBar } from "../../../components/ui/ProgressBar";
+
+import { useExecutionStore } from "../store/useExecutionStore";
 
 const STATUS_CONFIG = {
     idle: {
@@ -64,9 +65,11 @@ export function ExecutionBar() {
         (state) => state.progress,
     );
 
-    const executedNodes = useExecutionStore(
-        (state) => state.executedNodes,
-    );
+    const executedNodes =
+        useExecutionStore(
+            (state) =>
+                state.executedNodes,
+        );
 
     const totalNodes = useExecutionStore(
         (state) => state.totalNodes,
@@ -74,7 +77,7 @@ export function ExecutionBar() {
 
     const current =
         STATUS_CONFIG[
-        status as keyof typeof STATUS_CONFIG
+            status as keyof typeof STATUS_CONFIG
         ];
 
     return (
@@ -82,17 +85,26 @@ export function ExecutionBar() {
             style={{
                 ...layout.row,
 
-                height: 44,
+                minHeight: 44,
 
                 gap: spacing.lg,
 
-                padding: `0 ${spacing.lg}px`,
+                padding:
+                    `0 ${spacing.lg}px`,
 
-                background: colors.panel,
+                background:
+                    colors.panel,
 
-                borderBottom: `1px solid ${colors.border}`,
+                borderBottom:
+                    `1px solid ${colors.border}`,
+
+                boxSizing:
+                    "border-box",
+
+                flexShrink: 0,
             }}
         >
+            {/* Status */}
             <div
                 style={{
                     ...layout.row,
@@ -106,18 +118,58 @@ export function ExecutionBar() {
                     ...typography.subtitle,
                 }}
             >
-                {current.icon}
+                <span
+                    style={{
+                        width: 26,
+
+                        height: 26,
+
+                        display:
+                            "inline-flex",
+
+                        alignItems:
+                            "center",
+
+                        justifyContent:
+                            "center",
+
+                        flexShrink: 0,
+
+                        borderRadius:
+                            radius.sm,
+
+                        background:
+                            `${current.color}15`,
+
+                        border:
+                            `1px solid ${current.color}35`,
+
+                        color:
+                            current.color,
+                    }}
+                >
+                    {current.icon}
+                </span>
 
                 <span>
                     {current.label}
                 </span>
             </div>
 
+            {/* Progress */}
             <div
                 style={{
                     flex: 1,
 
+                    minWidth: 120,
+
                     maxWidth: 420,
+
+                    display:
+                        "flex",
+
+                    alignItems:
+                        "center",
                 }}
             >
                 <ProgressBar
@@ -126,18 +178,56 @@ export function ExecutionBar() {
                 />
             </div>
 
+            {/* Counter */}
             <div
                 style={{
                     minWidth: 110,
 
-                    textAlign: "right",
+                    display:
+                        "flex",
 
-                    color: colors.textSecondary,
+                    alignItems:
+                        "center",
+
+                    justifyContent:
+                        "flex-end",
+
+                    gap: spacing.xs,
+
+                    color:
+                        colors.textSecondary,
 
                     ...typography.caption,
                 }}
             >
-                {executedNodes} / {totalNodes} Nodes
+                <span>
+                    {executedNodes}
+                </span>
+
+                <span
+                    style={{
+                        color:
+                            colors.textMuted,
+                    }}
+                >
+                    /
+                </span>
+
+                <span>
+                    {totalNodes}
+                </span>
+
+                <span
+                    style={{
+                        marginLeft:
+                            spacing.xs,
+
+                        color:
+                            colors.textMuted,
+                    }}
+                >
+                    Nodes
+                </span>
             </div>
         </div>
     );

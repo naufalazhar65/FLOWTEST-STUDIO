@@ -1,46 +1,67 @@
 import { Workflow } from "lucide-react";
 
+import {
+    colors,
+    radius,
+    spacing,
+    typography,
+} from "../../../themes";
+
 export function HeroSection() {
     return (
-        <div
+        <section
             style={{
                 display: "flex",
-                flexDirection: "column",
+
+                flexDirection:
+                    "column",
+
                 alignItems: "center",
 
                 textAlign: "center",
+
+                maxWidth: 620,
             }}
         >
             {/* Logo / Icon */}
             <div
                 style={{
-                    position: "relative",
+                    position:
+                        "relative",
 
                     width: 68,
+
                     height: 68,
 
                     display: "flex",
+
                     alignItems: "center",
-                    justifyContent: "center",
 
-                    marginBottom: 18,
+                    justifyContent:
+                        "center",
 
-                    borderRadius: 18,
+                    marginBottom:
+                        spacing.lg,
+
+                    borderRadius:
+                        radius.lg,
 
                     background:
-                        "rgba(59, 130, 246, 0.10)",
+                        colors.selection,
 
                     border:
-                        "1px solid rgba(59, 130, 246, 0.22)",
+                        `1px solid ${colors.focus}38`,
 
                     boxShadow:
-                        "0 0 45px rgba(59, 130, 246, 0.12)",
+                        `0 0 45px ${colors.accent}1F`,
                 }}
             >
                 <Workflow
                     size={34}
                     strokeWidth={1.8}
-                    color="#3B82F6"
+                    color={
+                        colors.accentHover
+                    }
                 />
             </div>
 
@@ -49,15 +70,19 @@ export function HeroSection() {
                 style={{
                     margin: 0,
 
+                    color:
+                        colors.text,
+
                     fontSize: 48,
+
                     lineHeight: 1.1,
 
-                    fontWeight: 700,
+                    fontWeight:
+                        typography.title
+                            .fontWeight,
 
                     letterSpacing:
                         "-0.03em",
-
-                    color: "#F0F6FC",
                 }}
             >
                 FlowTest Studio
@@ -66,12 +91,16 @@ export function HeroSection() {
             {/* Subtitle */}
             <p
                 style={{
-                    marginTop: 14,
+                    marginTop:
+                        spacing.md,
+
                     marginBottom: 0,
 
-                    color: "#8B949E",
+                    color:
+                        colors.textSecondary,
 
                     fontSize: 16,
+
                     lineHeight: 1.5,
                 }}
             >
@@ -83,28 +112,38 @@ export function HeroSection() {
             <div
                 style={{
                     display: "flex",
+
                     alignItems: "center",
-                    gap: 7,
 
-                    marginTop: 14,
+                    gap: spacing.xs + 2,
 
-                    color: "#6E7681",
+                    marginTop:
+                        spacing.md,
 
-                    fontSize: 12,
+                    color:
+                        colors.textMuted,
+
+                    fontSize:
+                        typography.caption
+                            .fontSize,
                 }}
             >
                 <span
                     style={{
                         width: 6,
+
                         height: 6,
 
-                        borderRadius: "50%",
+                        flexShrink: 0,
+
+                        borderRadius:
+                            radius.full,
 
                         background:
-                            "#3FB950",
+                            colors.success,
 
                         boxShadow:
-                            "0 0 8px rgba(63, 185, 80, 0.45)",
+                            `0 0 8px ${colors.success}73`,
                     }}
                 />
 
@@ -112,6 +151,6 @@ export function HeroSection() {
                     Ready to build your flow
                 </span>
             </div>
-        </div>
+        </section>
     );
 }

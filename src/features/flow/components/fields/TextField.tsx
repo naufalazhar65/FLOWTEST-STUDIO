@@ -1,41 +1,39 @@
+import { Input } from "../../../../components/ui/Input";
+
 import { useFlowStore } from "../../store/useFlowStore";
 
 interface Props {
-  nodeId: string;
+    nodeId: string;
 
-  fieldKey: string;
+    fieldKey: string;
 
-  value: string;
+    value: string;
 }
 
 export function TextField({
-  nodeId,
-  fieldKey,
-  value,
+    nodeId,
+    fieldKey,
+    value,
 }: Props) {
-  const updateNodeData =
-    useFlowStore(
-      (state) => state.updateNodeData
-    );
+    const updateNodeData =
+        useFlowStore(
+            (state) =>
+                state.updateNodeData,
+        );
 
-  return (
-    <input
-      value={value}
-      onChange={(e) =>
-        updateNodeData(nodeId, {
-          [fieldKey]: e.target.value,
-        })
-      }
-      style={{
-        width: "100%",
-        background: "#0F172A",
-        border: "1px solid #334155",
-        borderRadius: 8,
-        color: "#FFF",
-        padding: "8px 10px",
-        outline: "none",
-        fontSize: 13,
-      }}
-    />
-  );
+    return (
+        <Input
+            value={value}
+            onChange={(event) =>
+                updateNodeData(
+                    nodeId,
+                    {
+                        [fieldKey]:
+                            event.target
+                                .value,
+                    },
+                )
+            }
+        />
+    );
 }

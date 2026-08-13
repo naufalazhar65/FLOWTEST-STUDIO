@@ -1,3 +1,7 @@
+import {
+    radius,
+} from "../../themes";
+
 interface StatusDotProps {
     color: string;
 
@@ -12,13 +16,18 @@ export function StatusDot({
         <div
             style={{
                 width: 10,
+
                 height: 10,
 
-                borderRadius: "50%",
+                flexShrink: 0,
+
+                borderRadius:
+                    radius.full,
 
                 background: color,
 
-                boxShadow: `0 0 10px ${color}`,
+                boxShadow:
+                    `0 0 10px ${color}`,
 
                 animation: animated
                     ? "pulse 1.2s infinite"

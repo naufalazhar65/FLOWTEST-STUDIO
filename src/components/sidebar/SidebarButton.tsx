@@ -4,12 +4,25 @@ import {
     type ReactNode,
 } from "react";
 
+import {
+    animation,
+    colors,
+    radius,
+    spacing,
+    typography,
+} from "../../themes";
+
 interface SidebarButtonProps {
     icon: ReactNode;
+
     label: string;
+
     subtitle?: string;
+
     color?: string;
+
     onClick?: () => void;
+
     disabled?: boolean;
 }
 
@@ -17,7 +30,7 @@ export function SidebarButton({
     icon,
     label,
     subtitle = "Click to add component",
-    color = "#58A6FF",
+    color = colors.accentHover,
     onClick,
     disabled,
 }: SidebarButtonProps) {
@@ -29,48 +42,50 @@ export function SidebarButton({
             type="button"
             onClick={onClick}
             disabled={disabled}
-            style={buttonStyle(
-                disabled,
-            )}
-            onMouseEnter={(e) => {
-                if (disabled) return;
+            style={buttonStyle(disabled)}
+            onMouseEnter={(event) => {
+                if (disabled) {
+                    return;
+                }
 
                 const glow =
-                    `${color}35`;
+                    `${color}28`;
 
-                e.currentTarget.style.background =
-                    "#161B22";
+                event.currentTarget.style.background =
+                    colors.panelHover;
 
-                e.currentTarget.style.borderColor =
-                    `${color}88`;
+                event.currentTarget.style.borderColor =
+                    `${color}66`;
 
-                e.currentTarget.style.transform =
+                event.currentTarget.style.transform =
                     "translateY(-1px)";
 
-                e.currentTarget.style.boxShadow =
+                event.currentTarget.style.boxShadow =
                     `0 4px 14px ${glow}`;
 
                 if (iconRef.current) {
                     iconRef.current.style.transform =
-                        "scale(1.05)";
+                        "scale(1.04)";
 
                     iconRef.current.style.boxShadow =
                         `0 0 8px ${glow}`;
                 }
             }}
-            onMouseLeave={(e) => {
-                if (disabled) return;
+            onMouseLeave={(event) => {
+                if (disabled) {
+                    return;
+                }
 
-                e.currentTarget.style.background =
-                    "#11161D";
+                event.currentTarget.style.background =
+                    colors.background;
 
-                e.currentTarget.style.borderColor =
-                    "#30363D";
+                event.currentTarget.style.borderColor =
+                    colors.border;
 
-                e.currentTarget.style.transform =
+                event.currentTarget.style.transform =
                     "translateY(0)";
 
-                e.currentTarget.style.boxShadow =
+                event.currentTarget.style.boxShadow =
                     "none";
 
                 if (iconRef.current) {
@@ -84,9 +99,7 @@ export function SidebarButton({
         >
             <div
                 ref={iconRef}
-                style={iconContainer(
-                    color,
-                )}
+                style={iconContainer(color)}
             >
                 {icon}
             </div>
@@ -114,37 +127,44 @@ function buttonStyle(
 
         alignItems: "center",
 
-        gap: 14,
+        gap: spacing.md,
 
         padding:
-            "12px",
+            `${spacing.sm + 2}px ${spacing.md}px`,
 
-        marginBottom: 10,
+        marginBottom: spacing.sm,
 
-        borderRadius: 12,
+        borderRadius: radius.md,
 
         border:
-            "1px solid #30363D",
+            `1px solid ${colors.border}`,
 
         background: disabled
-            ? "#161B22"
-            : "#11161D",
+            ? colors.panel
+            : colors.background,
 
         color: disabled
-            ? "#555"
-            : "#FFFFFF",
+            ? colors.textMuted
+            : colors.text,
 
         cursor: disabled
             ? "not-allowed"
             : "pointer",
 
         transition:
-            "all .16s ease",
+            `background ${animation.fast}, border-color ${animation.fast}, transform ${animation.fast}, box-shadow ${animation.fast}`,
 
         textAlign: "left",
 
-        boxSizing:
-            "border-box",
+        boxSizing: "border-box",
+
+        userSelect: "none",
+
+        opacity: disabled
+            ? 0.55
+            : 1,
+
+        outline: "none",
     };
 }
 
@@ -152,15 +172,16 @@ function iconContainer(
     color: string,
 ): CSSProperties {
     return {
-        width: 42,
+        width: 38,
 
-        height: 42,
+        height: 38,
 
-        borderRadius: 10,
+        borderRadius: radius.sm,
 
-        background: `${color}20`,
+        background: `${color}18`,
 
-        border: `1px solid ${color}66`,
+        border:
+            `1px solid ${color}45`,
 
         display: "flex",
 
@@ -173,10 +194,9 @@ function iconContainer(
         color,
 
         transition:
-            "transform .18s ease, box-shadow .18s ease",
+            `transform ${animation.fast}, box-shadow ${animation.fast}`,
     };
 }
-
 
 const content: CSSProperties = {
     flex: 1,
@@ -193,11 +213,13 @@ const content: CSSProperties = {
 };
 
 const title: CSSProperties = {
-    color: "#E6EDF3",
+    color: colors.text,
 
-    fontSize: 14,
+    fontSize:
+        typography.body.fontSize,
 
-    fontWeight: 600,
+    fontWeight:
+        typography.subtitle.fontWeight,
 
     lineHeight: 1.25,
 
@@ -205,29 +227,38 @@ const title: CSSProperties = {
 
     WebkitBoxOrient: "vertical",
 
-    WebkitLineClamp: 2,
+    WebkitLineClamp: 1,
 
     overflow: "hidden",
+
+    textOverflow: "ellipsis",
 
     wordBreak: "break-word",
 };
 
 const subtitleStyle: CSSProperties = {
-    marginTop: 5,
+    marginTop: spacing.xs,
 
-    color: "#8B949E",
+    color:
+        colors.textSecondary,
 
-    fontSize: 12,
+    fontSize:
+        typography.tiny.fontSize,
 
-    lineHeight: 1.35,
+    fontWeight:
+        typography.tiny.fontWeight,
+
+    lineHeight: 1.3,
 
     display: "-webkit-box",
 
     WebkitBoxOrient: "vertical",
 
-    WebkitLineClamp: 2,
+    WebkitLineClamp: 1,
 
     overflow: "hidden",
+
+    textOverflow: "ellipsis",
 
     wordBreak: "break-word",
 };
