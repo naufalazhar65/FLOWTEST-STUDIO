@@ -5,7 +5,13 @@ import {
     type EdgeProps,
 } from "reactflow";
 
-import { memo, useState } from "react";
+import {
+    memo,
+    useEffect,
+    useRef,
+    useState,
+} from "react";
+
 import { Plus } from "lucide-react";
 
 import { EdgeInsertMenu } from "./EdgeInsertMenu";
@@ -16,7 +22,7 @@ import { useExecutionStore } from "../../../execution/store/useExecutionStore";
 import type { NodeExecutionStatus } from "../../../execution/types/NodeExecutionStatus";
 
 function edgeColor(
-    status: NodeExecutionStatus
+    status: NodeExecutionStatus,
 ) {
     switch (status) {
         case "running":
@@ -37,21 +43,60 @@ export const FlowEdge = memo(function FlowEdge({
     id,
     sourceX,
     sourceY,
+    sourcePosition,
     targetX,
     targetY,
-    sourcePosition,
     targetPosition,
 }: EdgeProps) {
-    const [open, setOpen] = useState(false);
+    const [open, setOpen] =
+        useState(false);
+
+    const menuRef =
+        useRef<HTMLDivElement>(null);
 
     const insertNode = useFlowStore(
-        (state) => state.insertNode
+        (state) => state.insertNode,
     );
 
-    const edgeStatus = useExecutionStore((state) => {
+    const edgeStatus = useExecutionStore(
+        (state) =>
+            state.edgeStatus[id] ?? "idle",
+    );
 
-        return state.edgeStatus[id] ?? "idle";
-    });
+    useEffect(() => {
+        if (!open) {
+            return;
+        }
+
+        function handlePointerDown(
+            event: PointerEvent,
+        ) {
+            const target =
+                event.target as Node;
+
+            if (
+                menuRef.current?.contains(
+                    target,
+                )
+            ) {
+                return;
+            }
+
+            setOpen(false);
+        }
+
+        document.addEventListener(
+            "pointerdown",
+            handlePointerDown,
+        );
+
+        return () => {
+            document.removeEventListener(
+                "pointerdown",
+                handlePointerDown,
+            );
+        };
+    }, [open]);
 
     const [path, labelX, labelY] =
         getBezierPath({
@@ -63,22 +108,27 @@ export const FlowEdge = memo(function FlowEdge({
             targetPosition,
         });
 
-    const stroke = edgeColor(edgeStatus);
+    const stroke =
+        edgeColor(edgeStatus);
 
     return (
         <>
             <style>
                 {`
-          @keyframes edge-flow {
-            from {
-              stroke-dashoffset: 14;
-            }
+                    @keyframes edge-flow {
+                        from {
+                            stroke-dashoffset: 14;
+                        }
 
-            to {
-              stroke-dashoffset: 0;
-            }
-          }
-        `}
+                        to {
+                            stroke-dashoffset: 0;
+                        }
+                    }
+
+                    .react-flow__edgelabel-renderer {
+                        z-index: 1000 !important;
+                    }
+                `}
             </style>
 
             <BaseEdge
@@ -111,26 +161,49 @@ export const FlowEdge = memo(function FlowEdge({
                 <div
                     style={{
                         position: "absolute",
-                        transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
+
+                        transform:
+                            `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
+
                         pointerEvents: "all",
+
+                        zIndex: 1001,
                     }}
                 >
                     <button
                         type="button"
                         onClick={() =>
-                            setOpen((prev) => !prev)
+                            setOpen(
+                                (prev) =>
+                                    !prev,
+                            )
                         }
                         style={{
                             width: 30,
                             height: 30,
-                            borderRadius: "50%",
-                            border: `2px solid ${stroke}`,
-                            background: "#161B22",
+
+                            borderRadius:
+                                "50%",
+
+                            border:
+                                `2px solid ${stroke}`,
+
+                            background:
+                                "#161B22",
+
                             color: stroke,
-                            cursor: "pointer",
+
+                            cursor:
+                                "pointer",
+
                             display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
+
+                            alignItems:
+                                "center",
+
+                            justifyContent:
+                                "center",
+
                             transition:
                                 "transform .2s ease",
                         }}
@@ -148,16 +221,40 @@ export const FlowEdge = memo(function FlowEdge({
 
                     {open && (
                         <div
+                            ref={menuRef}
                             style={{
-                                position: "absolute",
+                                position:
+                                    "absolute",
+
                                 top: 40,
+
                                 left: -75,
-                                zIndex: 999,
+
+                                zIndex: 99999,
+
+                                pointerEvents:
+                                    "all",
+                            }}
+                            onPointerDown={(
+                                event,
+                            ) => {
+                                event.stopPropagation();
+                            }}
+                            onWheelCapture={(
+                                event,
+                            ) => {
+                                event.stopPropagation();
                             }}
                         >
                             <EdgeInsertMenu
-                                onSelect={(type) => {
-                                    insertNode(id, type);
+                                onSelect={(
+                                    type,
+                                ) => {
+                                    insertNode(
+                                        id,
+                                        type,
+                                    );
+
                                     setOpen(false);
                                 }}
                             />

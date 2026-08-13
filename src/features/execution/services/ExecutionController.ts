@@ -10,6 +10,20 @@ export class ExecutionController {
         nodes: FlowNode[],
         context: ExecutionContext,
     ) {
+        const status =
+            useExecutionStore
+                .getState()
+                .status;
+
+        // Jangan memulai execution baru
+        // ketika execution sebelumnya masih aktif.
+        if (
+            status === "running" ||
+            status === "paused"
+        ) {
+            return;
+        }
+
         // Pastikan setiap execution
         // menggunakan Appium session baru.
         await appiumClient.deleteSession();
