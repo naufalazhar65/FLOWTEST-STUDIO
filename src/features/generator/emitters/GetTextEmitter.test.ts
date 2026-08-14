@@ -51,17 +51,20 @@ function createNode(): FlowNode & {
 }
 
 describe("GetTextEmitter", () => {
-    it("generates get_text()", () => {
+    it("generates get_text() with set_variable()", () => {
         const code = getTextEmitter.emit(
             createNode(),
             context,
         );
 
         expect(code).toBe(
-`variables["text"] = get_text(
-    AppiumBy.ID,
-    "login_button",
-)`
+            `set_variable(
+    "text",
+    get_text(
+        AppiumBy.ID,
+        "login_button",
+    ),
+)`,
         );
     });
 });

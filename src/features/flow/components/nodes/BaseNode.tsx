@@ -1,17 +1,5 @@
 import type { ReactNode } from "react";
-import {
-  Handle,
-  Position,
-} from "reactflow";
-
-import {
-  animation,
-  colors,
-  radius,
-  shadow,
-  spacing,
-  typography,
-} from "../../../../themes";
+import { Handle, Position } from "reactflow";
 
 import type { NodeExecutionStatus } from "../../../execution/types/NodeExecutionStatus";
 import type { NodeHandles } from "../../types/NodePlugin";
@@ -39,20 +27,20 @@ interface BaseNodeProps {
 }
 
 function statusColor(
-  status: NodeExecutionStatus = "idle",
+  status: NodeExecutionStatus = "idle"
 ) {
   switch (status) {
     case "running":
-      return colors.warning;
+      return "#F59E0B";
 
     case "passed":
-      return colors.success;
+      return "#10B981";
 
     case "failed":
-      return colors.danger;
+      return "#EF4444";
 
     default:
-      return colors.textMuted;
+      return "#374151";
   }
 }
 
@@ -73,83 +61,56 @@ export function BaseNode({
   const isRunning =
     executionStatus === "running";
 
-  const currentStatusColor =
-    !valid
-      ? colors.danger
-      : statusColor(
-        executionStatus,
-      );
-
-  const nodeBorderColor =
-    !valid
-      ? colors.danger
-      : isRunning
-        ? colors.warning
-        : color;
-
-  const nodeShadow =
-    !valid
-      ? `0 0 18px ${colors.danger}35`
-      : isRunning
-        ? `0 0 22px ${colors.warning}38`
-        : shadow.card;
-
   return (
     <>
       <style>
         {`
-                    @keyframes flow-node-pulse {
-                        0% {
-                            box-shadow:
-                                0 0 18px ${colors.warning}26;
-                        }
+          @keyframes pulse {
+            0% {
+              box-shadow: 0 0 20px rgba(251,191,36,.35);
+            }
 
-                        50% {
-                            box-shadow:
-                                0 0 26px ${colors.warning}4D;
-                        }
+            50% {
+              box-shadow: 0 0 34px rgba(251,191,36,.75);
+            }
 
-                        100% {
-                            box-shadow:
-                                0 0 18px ${colors.warning}26;
-                        }
-                    }
-                `}
+            100% {
+              box-shadow: 0 0 20px rgba(251,191,36,.35);
+            }
+          }
+        `}
       </style>
 
       <div
         style={{
           width: 240,
-
-          background:
-            colors.panel,
-
-          border:
-            `1px solid ${nodeBorderColor}`,
-
-          borderRadius:
-            radius.lg,
-
+          background: "#1A1F29",
+          border: `2px solid ${!valid
+            ? "#EF4444"
+            : isRunning
+              ? "#FBBF24"
+              : color
+            }`,
+          borderRadius: 14,
           overflow: "hidden",
+          color: "#FFF",
 
-          color:
-            colors.text,
-
-          boxShadow:
-            nodeShadow,
+          boxShadow: !valid
+            ? "0 0 18px rgba(239,68,68,.35)"
+            : isRunning
+              ? "0 0 20px rgba(251,191,36,.5)"
+              : "0 8px 30px rgba(0,0,0,.30)",
 
           transition:
-            `transform ${animation.normal}, border-color ${animation.normal}, box-shadow ${animation.normal}`,
+            "transform .2s ease, border .25s ease, box-shadow .25s ease",
 
-          transform:
-            isRunning
-              ? "scale(1.015)"
-              : "scale(1)",
+          transform: isRunning
+            ? "scale(1.02)"
+            : "scale(1)",
 
-          animation:
-            isRunning
-              ? "flow-node-pulse 1.2s ease-in-out infinite"
-              : undefined,
+          animation: isRunning
+            ? "pulse 1s infinite"
+            : undefined,
         }}
       >
         <Handle
@@ -157,117 +118,38 @@ export function BaseNode({
           position={Position.Top}
           style={{
             width: 12,
-
             height: 12,
-
             background: color,
-
-            border:
-              `2px solid ${colors.panel}`,
-
-            boxSizing:
-              "border-box",
           }}
         />
 
-        {/* Node Header */}
         <div
           style={{
-            background:
-              color,
-
-            minHeight: 46,
-
+            background: color,
             display: "flex",
-
-            alignItems:
-              "center",
-
-            justifyContent:
-              "space-between",
-
-            gap: spacing.sm,
-
-            padding:
-              `${spacing.sm}px ${spacing.md}px`,
-
-            boxSizing:
-              "border-box",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "12px 16px",
           }}
         >
           <div
             style={{
-              minWidth: 0,
-
               display: "flex",
-
-              alignItems:
-                "center",
-
-              gap: spacing.sm,
-
-              fontSize:
-                typography.body
-                  .fontSize,
-
-              fontWeight:
-                typography.subtitle
-                  .fontWeight,
-
-              color:
-                colors.text,
-
-              lineHeight: 1.2,
+              alignItems: "center",
+              gap: 8,
+              fontWeight: 700,
+              fontSize: 15,
             }}
           >
-            <span
-              style={{
-                display:
-                  "flex",
-
-                alignItems:
-                  "center",
-
-                justifyContent:
-                  "center",
-
-                flexShrink: 0,
-
-                color:
-                  colors.text,
-              }}
-            >
-              {icon}
-            </span>
-
-            <span
-              style={{
-                minWidth: 0,
-
-                overflow:
-                  "hidden",
-
-                textOverflow:
-                  "ellipsis",
-
-                whiteSpace:
-                  "nowrap",
-              }}
-            >
-              {title}
-            </span>
+            {icon}
+            {title}
           </div>
 
           <div
             style={{
               display: "flex",
-
-              alignItems:
-                "center",
-
-              gap: spacing.sm,
-
-              flexShrink: 0,
+              alignItems: "center",
+              gap: 8,
             }}
           >
             <button
@@ -277,135 +159,52 @@ export function BaseNode({
                   ? "Remove Breakpoint"
                   : "Add Breakpoint"
               }
-              aria-label={
-                breakpoint
-                  ? "Remove breakpoint"
-                  : "Add breakpoint"
-              }
-              onClick={(
-                event,
-              ) => {
+              onClick={(event) => {
                 event.stopPropagation();
-
                 onToggleBreakpoint?.();
               }}
               style={{
-                width: 14,
-
-                height: 14,
-
+                width: 12,
+                height: 12,
+                borderRadius: "50%",
+                border: breakpoint
+                  ? "2px solid #EF4444"
+                  : "2px solid rgba(255,255,255,.35)",
+                background: breakpoint
+                  ? "#EF4444"
+                  : "transparent",
+                cursor: "pointer",
                 padding: 0,
-
-                borderRadius:
-                  radius.full,
-
-                border:
-                  breakpoint
-                    ? `2px solid ${colors.danger}`
-                    : `2px solid rgba(255,255,255,.45)`,
-
-                background:
-                  breakpoint
-                    ? colors.danger
-                    : "transparent",
-
-                cursor:
-                  onToggleBreakpoint
-                    ? "pointer"
-                    : "default",
-
-                transition:
-                  `background ${animation.fast}, border-color ${animation.fast}, transform ${animation.fast}`,
-
-                transform:
-                  breakpoint
-                    ? "scale(1.05)"
-                    : "scale(1)",
-
-                flexShrink: 0,
-              }}
-              onMouseEnter={(
-                event,
-              ) => {
-                if (
-                  !onToggleBreakpoint
-                ) {
-                  return;
-                }
-
-                event.currentTarget.style
-                  .transform =
-                  "scale(1.12)";
-              }}
-              onMouseLeave={(
-                event,
-              ) => {
-                event.currentTarget.style
-                  .transform =
-                  breakpoint
-                    ? "scale(1.05)"
-                    : "scale(1)";
+                transition: "all .2s ease",
               }}
             />
 
             <div
-              title={
-                !valid
-                  ? "Validation failed"
-                  : `Status: ${executionStatus}`
-              }
               style={{
-                width: 9,
-
-                height: 9,
-
-                flexShrink: 0,
-
-                borderRadius:
-                  radius.full,
-
-                background:
-                  currentStatusColor,
-
-                boxShadow:
-                  `0 0 8px ${currentStatusColor}66`,
+                width: 10,
+                height: 10,
+                borderRadius: "50%",
+                background: !valid
+                  ? "#EF4444"
+                  : statusColor(executionStatus),
               }}
             />
           </div>
         </div>
 
-        {/* Node Body */}
         <div
           style={{
-            padding:
-              spacing.md,
-
+            padding: 16,
             display: "flex",
-
-            flexDirection:
-              "column",
-
-            gap: spacing.sm,
-
-            background:
-              colors.panel,
+            flexDirection: "column",
+            gap: 10,
           }}
         >
           {subtitle && (
             <div
               style={{
-                color:
-                  colors.textSecondary,
-
-                fontSize:
-                  typography.caption
-                    .fontSize,
-
-                fontWeight:
-                  typography.caption
-                    .fontWeight,
-
-                lineHeight: 1.4,
+                fontSize: 13,
+                color: "#9CA3AF",
               }}
             >
               {subtitle}
@@ -415,50 +214,25 @@ export function BaseNode({
           {children}
         </div>
 
-        {handles.outputs.map(
-          (
-            output,
-            index,
-          ) => (
-            <Handle
-              key={output}
-              id={output}
-              type="source"
-              position={
-                Position.Bottom
-              }
-              style={{
-                width: 12,
-
-                height: 12,
-
-                background:
-                  color,
-
-                border:
-                  `2px solid ${colors.panel}`,
-
-                boxSizing:
-                  "border-box",
-
-                left:
-                  handles
-                    .outputs
-                    .length ===
-                    1
-                    ? "50%"
-                    : `${((index +
-                      1) /
-                      (handles
-                        .outputs
-                        .length +
-                        1)) *
-                    100
-                    }%`,
-              }}
-            />
-          ),
-        )}
+        {handles.outputs.map((output, index) => (
+          <Handle
+            key={output}
+            id={output}
+            type="source"
+            position={Position.Bottom}
+            style={{
+              width: 12,
+              height: 12,
+              background: color,
+              left:
+                handles.outputs.length === 1
+                  ? "50%"
+                  : `${((index + 1) /
+                    (handles.outputs.length + 1)) *
+                  100}%`,
+            }}
+          />
+        ))}
       </div>
     </>
   );

@@ -51,17 +51,21 @@ function createNode(): FlowNode & {
 }
 
 describe("GetRectEmitter", () => {
-    it("generates get_rect()", () => {
-        const code = getRectEmitter.emit(
-            createNode(),
-            context,
-        );
+    it("generates get_rect() with set_variable()", () => {
+        const code =
+            getRectEmitter.emit(
+                createNode(),
+                context,
+            );
 
         expect(code).toBe(
-            `variables["rect"] = get_rect(
-    AppiumBy.ID,
-    "login_button",
-)`
+            `set_variable(
+    "rect",
+    get_rect(
+        AppiumBy.ID,
+        "login_button",
+    ),
+)`,
         );
     });
 });

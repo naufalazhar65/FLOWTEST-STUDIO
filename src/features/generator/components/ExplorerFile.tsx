@@ -17,18 +17,27 @@ export function ExplorerFile({
         <button
             type="button"
             onClick={onClick}
+            aria-current={
+                active
+                    ? "page"
+                    : undefined
+            }
             className={`
                 relative
                 flex
                 w-full
                 items-center
                 gap-2
-                pl-6
+                py-1.5
+                pl-7
                 pr-3
-                py-2
                 text-left
                 text-sm
-                transition-all
+                transition-colors
+                focus-visible:outline-none
+                focus-visible:ring-1
+                focus-visible:ring-inset
+                focus-visible:ring-blue-500/60
 
                 ${
                     active
@@ -37,34 +46,33 @@ export function ExplorerFile({
                             text-white
                         `
                         : `
-                            text-neutral-300
+                            text-neutral-400
                             hover:bg-neutral-800
+                            hover:text-neutral-200
                         `
                 }
             `}
         >
             {active && (
-
                 <div
                     className="
                         absolute
                         left-0
                         top-0
                         h-full
-                        w-1
-                        rounded-r
+                        w-0.5
                         bg-blue-500
                     "
                 />
-
             )}
 
-            {getFileIcon(name)}
+            <span className="shrink-0">
+                {getFileIcon(name)}
+            </span>
 
             <span className="truncate">
                 {name}
             </span>
-
         </button>
     );
 }

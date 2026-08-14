@@ -6,11 +6,19 @@ export function emitFunction(
         return `${name}()`;
     }
 
-    return `${name}(
-${args
-        .map(
-            (arg) => `    ${arg},`,
+    const formattedArgs = args
+        .map((arg) =>
+            arg
+                .split("\n")
+                .map(
+                    (line) =>
+                        `    ${line}`,
+                )
+                .join("\n"),
         )
-        .join("\n")}
+        .join(",\n");
+
+    return `${name}(
+${formattedArgs},
 )`;
 }

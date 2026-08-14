@@ -71,21 +71,52 @@ export function FlowCanvas() {
         edges={edges}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
+
+        onNodesChange={
+          callbacks.onNodesChange
+        }
+
+        onEdgesChange={
+          callbacks.onEdgesChange
+        }
+
+        onConnect={(connection) => {
+          callbacks.onConnect(
+            connection,
+          );
+        }}
+
+        onNodeClick={
+          callbacks.onNodeClick
+        }
+
+        onPaneClick={
+          callbacks.onPaneClick
+        }
+
+        nodesConnectable={true}
+        nodesDraggable={true}
+        elementsSelectable={true}
+        connectOnClick={false}
+
         fitView
+
         translateExtent={[
           [-10000, 0],
           [10000, 10000],
         ]}
+
         fitViewOptions={{
           padding: 0.3,
         }}
+
         proOptions={{
           hideAttribution: true,
         }}
+
         selectionOnDrag
         panOnDrag
         zoomOnScroll
-        {...callbacks}
       >
         <ExecutionCamera />
 

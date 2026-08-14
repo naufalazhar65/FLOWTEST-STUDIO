@@ -6,17 +6,26 @@ from appium.options.android import UiAutomator2Options
 from appium.options.ios import XCUITestOptions
 
 
-def create_driver(capabilities):
+def create_driver(
+    capabilities,
+    server_url,
+):
     """
     Create an Appium driver.
 
     capabilities:
-        dict containing desired capabilities.
+        Dictionary containing W3C/Appium
+        session capabilities.
+
+    server_url:
+        Appium server URL.
     """
 
-    platform = capabilities.get(
-        "platformName",
-        "",
+    platform = str(
+        capabilities.get(
+            "platformName",
+            "",
+        )
     ).lower()
 
     if platform == "android":
@@ -35,10 +44,7 @@ def create_driver(capabilities):
     )
 
     return webdriver.Remote(
-        command_executor=capabilities.get(
-            "serverUrl",
-            "http://127.0.0.1:4723",
-        ),
+        command_executor=server_url,
         options=options,
     )
 `.trim();

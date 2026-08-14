@@ -2,16 +2,22 @@ import { useGeneratorStore } from "../store/useGeneratorStore";
 import { downloadProject } from "../utils/downloadProject";
 
 export function useDownloadCode() {
-    return async () => {
+    return async (): Promise<boolean> => {
         const project =
             useGeneratorStore
                 .getState()
                 .project;
 
         if (!project) {
-            return;
+            return false;
         }
 
-        await downloadProject(project);
+        try {
+            await downloadProject(project);
+
+            return true;
+        } catch {
+            return false;
+        }
     };
 }

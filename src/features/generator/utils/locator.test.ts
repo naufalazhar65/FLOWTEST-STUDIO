@@ -25,7 +25,7 @@ describe("locatorStrategy", () => {
                 "accessibilityId",
             ),
         ).toBe(
-            "AppiumBy.ACCESSIBILITYID",
+            "AppiumBy.ACCESSIBILITY_ID",
         );
     });
 });

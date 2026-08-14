@@ -19,5 +19,7 @@ export interface NodeExecutionResult {
 
     screenshot?: string;
 
+    screenshotFileName?: string;
+
     pageSource?: string;
 }

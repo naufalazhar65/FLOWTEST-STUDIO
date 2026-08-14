@@ -59,5 +59,64 @@ def assert_false(value):
     assert not bool(value), (
         "Expected value to be False."
     )
+
+
+def compare(actual, expected, operator):
+    actual = str(actual)
+    expected = str(expected)
+
+    if operator == "equals":
+        return actual == expected
+
+    if operator == "notEquals":
+        return actual != expected
+
+    if operator == "contains":
+        return expected in actual
+
+    if operator == "notContains":
+        return expected not in actual
+
+    if operator == "startsWith":
+        return actual.startswith(expected)
+
+    if operator == "endsWith":
+        return actual.endswith(expected)
+
+    if operator == "greaterThan":
+        return float(actual) > float(expected)
+
+    if operator == "greaterThanOrEqual":
+        return float(actual) >= float(expected)
+
+    if operator == "lessThan":
+        return float(actual) < float(expected)
+
+    if operator == "lessThanOrEqual":
+        return float(actual) <= float(expected)
+
+    if operator == "isTrue":
+        return actual.lower() == "true"
+
+    if operator == "isFalse":
+        return actual.lower() != "true"
+
+    if operator == "isEmpty":
+        return actual.strip() == ""
+
+    if operator == "isNotEmpty":
+        return actual.strip() != ""
+
+    if operator == "matches":
+        import re
+
+        return re.search(
+            expected,
+            actual,
+        ) is not None
+
+    raise ValueError(
+        f"Unsupported assert operator: {operator}"
+    )
 `.trim();
 }

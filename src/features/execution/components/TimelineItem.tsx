@@ -3,6 +3,9 @@ import { useState } from "react";
 import {
     ChevronDown,
     ChevronRight,
+    Download,
+    ExternalLink,
+    Image as ImageIcon,
 } from "lucide-react";
 
 import {
@@ -25,8 +28,149 @@ import {
     formatLogLabel,
 } from "../utils/formatLogLabel";
 
+import { useExecutionStore } from "../store/useExecutionStore";
+
 interface Props {
     log: ExecutionLog;
+}
+
+function normalizeScreenshotFileName(
+    fileName?: string,
+): string {
+    const fallback =
+        "screenshot.png";
+
+    const value =
+        fileName?.trim();
+
+    if (!value) {
+        return fallback;
+    }
+
+    return value.toLowerCase().endsWith(".png")
+        ? value
+        : `${value}.png`;
+}
+
+function getScreenshotSrc(
+    screenshot?: string,
+): string | null {
+    if (!screenshot) {
+        return null;
+    }
+
+    if (
+        screenshot.startsWith(
+            "data:image/",
+        )
+    ) {
+        return screenshot;
+    }
+
+    return `data:image/png;base64,${screenshot}`;
+}
+
+function downloadScreenshot(
+    screenshot: string,
+    fileName: string,
+) {
+    const source =
+        getScreenshotSrc(
+            screenshot,
+        );
+
+    if (!source) {
+        return;
+    }
+
+    const link =
+        document.createElement("a");
+
+    link.href = source;
+
+    link.download =
+        normalizeScreenshotFileName(
+            fileName,
+        );
+
+    document.body.appendChild(
+        link,
+    );
+
+    link.click();
+
+    document.body.removeChild(
+        link,
+    );
+}
+
+function openScreenshot(
+    screenshot: string,
+) {
+    const source =
+        getScreenshotSrc(
+            screenshot,
+        );
+
+    if (!source) {
+        return;
+    }
+
+    const imageWindow =
+        window.open(
+            "",
+            "_blank",
+        );
+
+    if (!imageWindow) {
+        return;
+    }
+
+    imageWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+            <head>
+                <title>Screenshot</title>
+                <style>
+                    html,
+                    body {
+                        margin: 0;
+                        padding: 0;
+                        background: #0D1117;
+                        min-height: 100%;
+                    }
+
+                    body {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        padding: 24px;
+                        box-sizing: border-box;
+                    }
+
+                    img {
+                        display: block;
+                        max-width: 100%;
+                        max-height: calc(100vh - 48px);
+                        object-fit: contain;
+                        border-radius: 8px;
+                        box-shadow:
+                            0 20px 60px
+                            rgba(0, 0, 0, 0.45);
+                    }
+                </style>
+            </head>
+
+            <body>
+                <img
+                    src="${source}"
+                    alt="Execution screenshot"
+                />
+            </body>
+        </html>
+    `);
+
+    imageWindow.document.close();
 }
 
 export function TimelineItem({
@@ -35,10 +179,40 @@ export function TimelineItem({
     const [expanded, setExpanded] =
         useState(false);
 
+    const nodeResults =
+        useExecutionStore(
+            (state) =>
+                state.nodeResults,
+        );
+
+    const nodeResult =
+        log.nodeId
+            ? nodeResults[
+            log.nodeId
+            ]
+            : undefined;
+
+    const screenshot =
+        nodeResult?.screenshot;
+
+    const screenshotFileName =
+        normalizeScreenshotFileName(
+            nodeResult?.screenshotFileName,
+        );
+
+    const screenshotSrc =
+        getScreenshotSrc(
+            screenshot,
+        );
+
+    const hasScreenshot =
+        !!screenshotSrc;
+
     const hasDetails =
         !!log.details &&
-        Object.keys(log.details)
-            .length > 0;
+        Object.keys(
+            log.details,
+        ).length > 0;
 
     const theme =
         getExecutionNodeTheme(
@@ -81,15 +255,17 @@ export function TimelineItem({
                         ? shadow.card
                         : undefined,
 
-                cursor: hasDetails
-                    ? "pointer"
-                    : "default",
+                cursor:
+                    hasDetails
+                        ? "pointer"
+                        : "default",
 
                 transition:
                     "background 150ms ease, border-color 150ms ease, box-shadow 150ms ease",
             }}
         >
             {/* Time */}
+
             <div
                 style={{
                     width: 68,
@@ -117,6 +293,7 @@ export function TimelineItem({
             </div>
 
             {/* Expand Icon */}
+
             <div
                 style={{
                     width: 18,
@@ -151,6 +328,7 @@ export function TimelineItem({
             </div>
 
             {/* Badge */}
+
             {log.nodeType && (
                 <div
                     style={{
@@ -168,7 +346,8 @@ export function TimelineItem({
                                 "3px 8px",
 
                             fontSize:
-                                typography.tiny
+                                typography
+                                    .tiny
                                     .fontSize,
                         }}
                     >
@@ -178,6 +357,7 @@ export function TimelineItem({
             )}
 
             {/* Content */}
+
             <div
                 style={{
                     flex: 1,
@@ -186,10 +366,10 @@ export function TimelineItem({
                 }}
             >
                 {/* Message */}
+
                 <div
                     style={{
-                        display:
-                            "flex",
+                        display: "flex",
 
                         alignItems:
                             "center",
@@ -237,15 +417,16 @@ export function TimelineItem({
                                 colors.text,
 
                             fontSize:
-                                typography.body
+                                typography
+                                    .body
                                     .fontSize,
 
                             fontWeight:
-                                typography.body
+                                typography
+                                    .body
                                     .fontWeight,
 
-                            lineHeight:
-                                1.4,
+                            lineHeight: 1.4,
 
                             overflow:
                                 "hidden",
@@ -262,6 +443,7 @@ export function TimelineItem({
                 </div>
 
                 {/* Node Title */}
+
                 {log.nodeTitle && (
                     <div
                         style={{
@@ -269,14 +451,15 @@ export function TimelineItem({
                                 spacing.xs,
 
                             color:
-                                colors.textSecondary,
+                                colors
+                                    .textSecondary,
 
                             fontSize:
-                                typography.tiny
+                                typography
+                                    .tiny
                                     .fontSize,
 
-                            lineHeight:
-                                1.4,
+                            lineHeight: 1.4,
 
                             overflow:
                                 "hidden",
@@ -293,6 +476,7 @@ export function TimelineItem({
                 )}
 
                 {/* Duration */}
+
                 {log.duration !==
                     undefined && (
                         <div
@@ -301,10 +485,12 @@ export function TimelineItem({
                                     spacing.xs,
 
                                 color:
-                                    colors.textMuted,
+                                    colors
+                                        .textMuted,
 
                                 fontSize:
-                                    typography.tiny
+                                    typography
+                                        .tiny
                                         .fontSize,
 
                                 fontVariantNumeric:
@@ -318,7 +504,297 @@ export function TimelineItem({
                         </div>
                     )}
 
+                {/* Screenshot */}
+
+                {hasScreenshot && (
+                    <div
+                        onClick={(
+                            event,
+                        ) => {
+                            event.stopPropagation();
+                        }}
+                        style={{
+                            marginTop:
+                                spacing.md,
+
+                            padding:
+                                spacing.md,
+
+                            borderRadius:
+                                radius.md,
+
+                            background:
+                                colors.panel,
+
+                            border:
+                                `1px solid ${colors.border}`,
+
+                            boxShadow:
+                                shadow.card,
+                        }}
+                    >
+                        {/* Screenshot Header */}
+
+                        <div
+                            style={{
+                                display:
+                                    "flex",
+
+                                alignItems:
+                                    "center",
+
+                                justifyContent:
+                                    "space-between",
+
+                                gap:
+                                    spacing.md,
+
+                                marginBottom:
+                                    spacing.sm,
+                            }}
+                        >
+                            <div
+                                style={{
+                                    display:
+                                        "flex",
+
+                                    alignItems:
+                                        "center",
+
+                                    gap:
+                                        spacing.sm,
+
+                                    minWidth:
+                                        0,
+                                }}
+                            >
+                                <ImageIcon
+                                    size={15}
+                                    color={
+                                        theme.color
+                                    }
+                                />
+
+                                <div
+                                    style={{
+                                        minWidth:
+                                            0,
+
+                                        color:
+                                            colors.text,
+
+                                        fontSize:
+                                            typography
+                                                .tiny
+                                                .fontSize,
+
+                                        fontWeight:
+                                            600,
+
+                                        overflow:
+                                            "hidden",
+
+                                        textOverflow:
+                                            "ellipsis",
+
+                                        whiteSpace:
+                                            "nowrap",
+                                    }}
+                                >
+                                    {screenshotFileName}
+                                </div>
+                            </div>
+
+                            {/* Actions */}
+
+                            <div
+                                style={{
+                                    display:
+                                        "flex",
+
+                                    alignItems:
+                                        "center",
+
+                                    gap:
+                                        spacing.xs,
+
+                                    flexShrink:
+                                        0,
+                                }}
+                            >
+                                <button
+                                    type="button"
+                                    title="Open screenshot"
+                                    onClick={() =>
+                                        openScreenshot(
+                                            screenshot!,
+                                        )
+                                    }
+                                    style={{
+                                        display:
+                                            "inline-flex",
+
+                                        alignItems:
+                                            "center",
+
+                                        justifyContent:
+                                            "center",
+
+                                        gap:
+                                            6,
+
+                                        padding:
+                                            "6px 9px",
+
+                                        border:
+                                            `1px solid ${colors.border}`,
+
+                                        borderRadius:
+                                            radius.sm,
+
+                                        background:
+                                            colors
+                                                .background,
+
+                                        color:
+                                            colors.text,
+
+                                        cursor:
+                                            "pointer",
+
+                                        fontSize:
+                                            typography
+                                                .tiny
+                                                .fontSize,
+                                    }}
+                                >
+                                    <ExternalLink
+                                        size={13}
+                                    />
+
+                                    Open
+                                </button>
+
+                                <button
+                                    type="button"
+                                    title="Download screenshot"
+                                    onClick={() =>
+                                        downloadScreenshot(
+                                            screenshot!,
+                                            screenshotFileName,
+                                        )
+                                    }
+                                    style={{
+                                        display:
+                                            "inline-flex",
+
+                                        alignItems:
+                                            "center",
+
+                                        justifyContent:
+                                            "center",
+
+                                        gap:
+                                            6,
+
+                                        padding:
+                                            "6px 9px",
+
+                                        border:
+                                            "none",
+
+                                        borderRadius:
+                                            radius.sm,
+
+                                        background:
+                                            theme.color,
+
+                                        color:
+                                            "#FFFFFF",
+
+                                        cursor:
+                                            "pointer",
+
+                                        fontSize:
+                                            typography
+                                                .tiny
+                                                .fontSize,
+
+                                        fontWeight:
+                                            600,
+                                    }}
+                                >
+                                    <Download
+                                        size={13}
+                                    />
+
+                                    Download
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Screenshot Preview */}
+
+                        <div
+                            style={{
+                                width:
+                                    "100%",
+
+                                maxHeight:
+                                    420,
+
+                                overflow:
+                                    "auto",
+
+                                borderRadius:
+                                    radius.sm,
+
+                                border:
+                                    `1px solid ${colors.border}`,
+
+                                background:
+                                    "#000",
+
+                                display:
+                                    "flex",
+
+                                alignItems:
+                                    "center",
+
+                                justifyContent:
+                                    "center",
+                            }}
+                        >
+                            <img
+                                src={
+                                    screenshotSrc!
+                                }
+                                alt={
+                                    `Screenshot ${screenshotFileName}`
+                                }
+                                style={{
+                                    display:
+                                        "block",
+
+                                    width:
+                                        "100%",
+
+                                    height:
+                                        "auto",
+
+                                    maxHeight:
+                                        420,
+
+                                    objectFit:
+                                        "contain",
+                                }}
+                            />
+                        </div>
+                    </div>
+                )}
+
                 {/* Details */}
+
                 {expanded &&
                     hasDetails && (
                         <div
@@ -344,7 +820,8 @@ export function TimelineItem({
                                 flexDirection:
                                     "column",
 
-                                gap: spacing.sm,
+                                gap:
+                                    spacing.sm,
 
                                 boxShadow:
                                     shadow.card,
@@ -368,7 +845,8 @@ export function TimelineItem({
                                             gridTemplateColumns:
                                                 "120px minmax(0, 1fr)",
 
-                                            gap: spacing.md,
+                                            gap:
+                                                spacing.md,
 
                                             alignItems:
                                                 "start",
@@ -377,14 +855,17 @@ export function TimelineItem({
                                         <div
                                             style={{
                                                 color:
-                                                    colors.textMuted,
+                                                    colors
+                                                        .textMuted,
 
                                                 fontSize:
-                                                    typography.tiny
+                                                    typography
+                                                        .tiny
                                                         .fontSize,
 
                                                 fontWeight:
-                                                    typography.caption
+                                                    typography
+                                                        .caption
                                                         .fontWeight,
 
                                                 lineHeight:
@@ -405,7 +886,8 @@ export function TimelineItem({
                                                     colors.text,
 
                                                 fontSize:
-                                                    typography.tiny
+                                                    typography
+                                                        .tiny
                                                         .fontSize,
 
                                                 lineHeight:

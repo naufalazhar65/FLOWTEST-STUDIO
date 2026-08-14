@@ -72,13 +72,20 @@ export async function executeNode(
             nodeTitle:
                 node.data.title,
 
-            status: "passed",
+            status:
+                "passed",
 
             startedAt,
 
             finishedAt,
 
             duration,
+
+            screenshot:
+                result?.screenshot,
+
+            screenshotFileName:
+                result?.screenshotFileName,
         });
 
         execution.completeNode(

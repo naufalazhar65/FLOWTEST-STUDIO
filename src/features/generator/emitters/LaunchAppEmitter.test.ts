@@ -110,11 +110,11 @@ describe("LaunchAppEmitter", () => {
             );
 
         expect(code).toBe(
-`launch_app(
+            `launch_app(
     "Android",
     "com.demo.app",
     ".MainActivity",
-    true,
+    True,
 )`
         );
     });
@@ -127,11 +127,11 @@ describe("LaunchAppEmitter", () => {
             );
 
         expect(code).toBe(
-`launch_app(
+            `launch_app(
     "iOS",
     "com.demo.app",
     "/apps/Demo.app",
-    false,
+    False,
 )`
         );
     });

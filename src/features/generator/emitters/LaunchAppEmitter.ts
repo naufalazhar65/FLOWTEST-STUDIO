@@ -26,7 +26,9 @@ export const launchAppEmitter =
             }
 
             args.push(
-                String(data.noReset),
+                data.noReset
+                    ? "True"
+                    : "False",
             );
 
             return args;

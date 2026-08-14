@@ -53,18 +53,22 @@ function createNode(): FlowNode & {
 }
 
 describe("GetAttributeEmitter", () => {
-    it("generates get_attribute()", () => {
-        const code = getAttributeEmitter.emit(
-            createNode(),
-            context,
-        );
+    it("generates get_attribute() with set_variable()", () => {
+        const code =
+            getAttributeEmitter.emit(
+                createNode(),
+                context,
+            );
 
         expect(code).toBe(
-            `variables["usernameAttribute"] = get_attribute(
-    AppiumBy.ID,
-    "username",
-    "content-desc",
-)`
+            `set_variable(
+    "usernameAttribute",
+    get_attribute(
+        AppiumBy.ID,
+        "username",
+        "content-desc",
+    ),
+)`,
         );
     });
 });

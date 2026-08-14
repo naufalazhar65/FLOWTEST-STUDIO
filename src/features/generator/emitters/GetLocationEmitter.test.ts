@@ -51,17 +51,21 @@ function createNode(): FlowNode & {
 }
 
 describe("GetLocationEmitter", () => {
-    it("generates get_location()", () => {
-        const code = getLocationEmitter.emit(
-            createNode(),
-            context,
-        );
+    it("generates get_location() with set_variable()", () => {
+        const code =
+            getLocationEmitter.emit(
+                createNode(),
+                context,
+            );
 
         expect(code).toBe(
-`variables["location"] = get_location(
-    AppiumBy.ID,
-    "login_button",
-)`
+            `set_variable(
+    "location",
+    get_location(
+        AppiumBy.ID,
+        "login_button",
+    ),
+)`,
         );
     });
 });

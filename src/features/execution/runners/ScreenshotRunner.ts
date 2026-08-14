@@ -10,42 +10,77 @@ export const screenshotRunner: NodeRunner<ScreenshotNodeData> = {
       return;
     }
 
-    const startedAt = performance.now();
+    const startedAt =
+      performance.now();
 
-    const data = node.data;
+    const data =
+      node.data;
+
+    const fileName =
+      data.fileName.trim() ||
+      `screenshot-${node.id}.png`;
 
     try {
-      await appiumClient.screenshot(
-        data.fileName,
-      );
+      const screenshot =
+        await appiumClient.screenshot(
+          fileName,
+        );
 
-      const duration = performance.now() - startedAt;
+      const duration =
+        performance.now() -
+        startedAt;
 
       executionLogger.success({
-        message: "Screenshot completed",
-        nodeId: node.id,
-        nodeType: data.action,
-        nodeTitle: data.title,
+        message:
+          "Screenshot completed",
+
+        nodeId:
+          node.id,
+
+        nodeType:
+          data.action,
+
+        nodeTitle:
+          data.title,
+
         duration,
+
         details: {
-          fileName: data.fileName,
+          fileName,
         },
       });
 
       return {
         outputs: ["next"],
+
+        screenshot,
+
+        screenshotFileName:
+          fileName,
       };
     } catch (error) {
-      const duration = performance.now() - startedAt;
+      const duration =
+        performance.now() -
+        startedAt;
 
       executionLogger.error({
-        message: "Screenshot failed",
-        nodeId: node.id,
-        nodeType: data.action,
-        nodeTitle: data.title,
+        message:
+          "Screenshot failed",
+
+        nodeId:
+          node.id,
+
+        nodeType:
+          data.action,
+
+        nodeTitle:
+          data.title,
+
         duration,
+
         details: {
-          fileName: data.fileName,
+          fileName,
+
           reason:
             error instanceof Error
               ? error.message

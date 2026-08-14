@@ -1,19 +1,29 @@
 import {
+    Check,
     Copy,
     Download,
     FolderKanban,
+    Loader2,
     Play,
+    X,
 } from "lucide-react";
+
+import { useState } from "react";
 
 interface GeneratorHeaderProps {
     hasProject: boolean;
 
     onGenerate(): void;
 
-    onCopy(): void;
+    onCopy(): Promise<boolean>;
 
-    onDownload(): void;
+    onDownload(): Promise<boolean>;
 }
+
+type ActionState =
+    | "idle"
+    | "success"
+    | "error";
 
 export function GeneratorHeader({
     hasProject,
@@ -21,6 +31,70 @@ export function GeneratorHeader({
     onCopy,
     onDownload,
 }: GeneratorHeaderProps) {
+    const [generating, setGenerating] =
+        useState(false);
+
+    const [copyState, setCopyState] =
+        useState<ActionState>("idle");
+
+    const [downloadState, setDownloadState] =
+        useState<ActionState>("idle");
+
+    async function handleGenerate() {
+        if (generating) {
+            return;
+        }
+
+        setGenerating(true);
+
+        try {
+            onGenerate();
+        } finally {
+            setGenerating(false);
+        }
+    }
+
+    async function handleCopy() {
+        if (copyState === "success") {
+            return;
+        }
+
+        setCopyState("idle");
+
+        const success = await onCopy();
+
+        setCopyState(
+            success
+                ? "success"
+                : "error",
+        );
+
+        window.setTimeout(() => {
+            setCopyState("idle");
+        }, 1600);
+    }
+
+    async function handleDownload() {
+        if (downloadState === "success") {
+            return;
+        }
+
+        setDownloadState("idle");
+
+        const success =
+            await onDownload();
+
+        setDownloadState(
+            success
+                ? "success"
+                : "error",
+        );
+
+        window.setTimeout(() => {
+            setDownloadState("idle");
+        }, 1600);
+    }
+
     return (
         <header
             className="
@@ -30,14 +104,13 @@ export function GeneratorHeader({
             "
         >
             <div className="px-4 py-4">
-
                 <div className="flex items-center gap-3">
-
                     <div
                         className="
                             flex
                             h-10
                             w-10
+                            shrink-0
                             items-center
                             justify-center
                             rounded-lg
@@ -53,7 +126,6 @@ export function GeneratorHeader({
                     </div>
 
                     <div className="min-w-0">
-
                         <h2
                             className="
                                 truncate
@@ -74,40 +146,91 @@ export function GeneratorHeader({
                         >
                             FlowTest Studio Generator
                         </p>
-
                     </div>
-
                 </div>
 
                 <div className="mt-4 flex gap-2">
-
                     <PrimaryButton
-                        icon={<Play size={16} />}
-                        onClick={onGenerate}
+                        icon={
+                            generating ? (
+                                <Loader2
+                                    size={16}
+                                    className="animate-spin"
+                                />
+                            ) : (
+                                <Play size={16} />
+                            )
+                        }
+                        disabled={generating}
+                        onClick={handleGenerate}
                     >
-                        Generate
+                        {generating
+                            ? "Generating..."
+                            : "Generate"}
                     </PrimaryButton>
 
                     <SecondaryButton
-                        icon={<Copy size={15} />}
-                        disabled={!hasProject}
-                        onClick={onCopy}
+                        icon={
+                            copyState === "success" ? (
+                                <Check
+                                    size={15}
+                                />
+                            ) : copyState ===
+                              "error" ? (
+                                <X
+                                    size={15}
+                                />
+                            ) : (
+                                <Copy size={15} />
+                            )
+                        }
+                        disabled={
+                            !hasProject
+                        }
+                        onClick={handleCopy}
                     >
-                        Copy
+                        {copyState === "success"
+                            ? "Copied"
+                            : copyState === "error"
+                              ? "Copy failed"
+                              : "Copy"}
                     </SecondaryButton>
 
                     <SecondaryButton
-                        icon={<Download size={15} />}
-                        disabled={!hasProject}
-                        onClick={onDownload}
+                        icon={
+                            downloadState ===
+                            "success" ? (
+                                <Check
+                                    size={15}
+                                />
+                            ) : downloadState ===
+                              "error" ? (
+                                <X
+                                    size={15}
+                                />
+                            ) : (
+                                <Download
+                                    size={15}
+                                />
+                            )
+                        }
+                        disabled={
+                            !hasProject
+                        }
+                        onClick={
+                            handleDownload
+                        }
                     >
-                        Download
+                        {downloadState ===
+                        "success"
+                            ? "Downloaded"
+                            : downloadState ===
+                                "error"
+                              ? "Download failed"
+                              : "Download"}
                     </SecondaryButton>
-
                 </div>
-
             </div>
-
         </header>
     );
 }
@@ -117,7 +240,7 @@ interface ButtonProps {
 
     children: React.ReactNode;
 
-    onClick(): void;
+    onClick(): void | Promise<void>;
 
     disabled?: boolean;
 }
@@ -126,28 +249,43 @@ function PrimaryButton({
     icon,
     children,
     onClick,
+    disabled = false,
 }: ButtonProps) {
     return (
         <button
             type="button"
+            disabled={disabled}
             onClick={onClick}
-            className="
+            className={`
                 flex
                 flex-1
                 items-center
                 justify-center
                 gap-2
                 rounded-lg
-                bg-blue-600
                 px-4
                 py-2.5
                 text-sm
                 font-medium
                 text-white
                 transition-all
-                hover:bg-blue-500
-                active:scale-[0.98]
-            "
+                focus-visible:outline-none
+                focus-visible:ring-2
+                focus-visible:ring-blue-500/60
+
+                ${
+                    disabled
+                        ? `
+                            cursor-not-allowed
+                            bg-blue-600/50
+                        `
+                        : `
+                            bg-blue-600
+                            hover:bg-blue-500
+                            active:scale-[0.98]
+                        `
+                }
+            `}
         >
             {icon}
 
@@ -178,6 +316,9 @@ function SecondaryButton({
                 py-2.5
                 text-sm
                 transition-all
+                focus-visible:outline-none
+                focus-visible:ring-2
+                focus-visible:ring-blue-500/60
 
                 ${
                     disabled

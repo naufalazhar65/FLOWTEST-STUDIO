@@ -7,38 +7,65 @@ interface Props {
 export function PreviewBreadcrumb({
     path,
 }: Props) {
-    const parts =
-        path.split("/");
+    const parts = path.split("/");
 
     return (
         <div
             className="
                 flex
+                min-w-0
                 items-center
                 gap-1
+                overflow-hidden
                 border-b
                 border-neutral-800
                 bg-neutral-950
                 px-3
                 py-1.5
                 text-xs
-                text-neutral-500
             "
         >
             {parts.map(
-                (part, index) => (
-                    <div
-                        key={part}
-                        className="flex items-center gap-1"
-                    >
-                        {index > 0 && (
-                            <ChevronRight size={12} />
-                        )}
+                (part, index) => {
+                    const isLast =
+                        index ===
+                        parts.length - 1;
 
-                        <span>{part}</span>
+                    return (
+                        <div
+                            key={`${part}-${index}`}
+                            className="
+                                flex
+                                min-w-0
+                                shrink-0
+                                items-center
+                                gap-1
+                            "
+                        >
+                            {index > 0 && (
+                                <ChevronRight
+                                    size={12}
+                                    className="text-neutral-700"
+                                />
+                            )}
 
-                    </div>
-                ),
+                            <span
+                                title={part}
+                                className={`
+                                    max-w-48
+                                    truncate
+                                    ${
+                                        isLast
+                                            ? "font-medium text-neutral-300"
+                                            : "text-neutral-600"
+                                    }
+                                `}
+                            >
+                                {part}
+                            </span>
+                        </div>
+                    );
+                },
             )}
         </div>
     );

@@ -16,8 +16,7 @@ export function connectNodesAction(
         return edges;
     }
 
-    return [
-        ...edges,
+    const edge =
         createEdge(
             connection.source,
             connection.target,
@@ -25,6 +24,10 @@ export function connectNodesAction(
             undefined,
             connection.targetHandle ??
             undefined,
-        ),
+        );
+
+    return [
+        ...edges,
+        edge,
     ];
 }

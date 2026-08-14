@@ -8,43 +8,76 @@ import { PreviewBreadcrumb } from "./PreviewBreadcrumb";
 import { EditorStatusBar } from "./EditorStatusBar";
 
 export function CodePreview() {
-    const project = useGeneratorStore(
-        (state) => state.project,
-    );
+    const project =
+        useGeneratorStore(
+            (state) => state.project,
+        );
 
-    const activeFile = useGeneratorStore(
-        (state) => state.activeFile,
-    );
+    const activeFile =
+        useGeneratorStore(
+            (state) => state.activeFile,
+        );
 
-    const openFiles = useGeneratorStore(
-        (state) => state.openFiles,
-    );
+    const openFiles =
+        useGeneratorStore(
+            (state) => state.openFiles,
+        );
 
-    const closeFile = useGeneratorStore(
-        (state) => state.closeFile,
-    );
+    const closeFile =
+        useGeneratorStore(
+            (state) => state.closeFile,
+        );
 
-    const setActiveFile = useGeneratorStore(
-        (state) => state.setActiveFile,
-    );
+    const setActiveFile =
+        useGeneratorStore(
+            (state) => state.setActiveFile,
+        );
 
     const file = project?.files.find(
-        (file) => file.path === activeFile,
+        (item) =>
+            item.path === activeFile,
     );
 
     if (!file) {
         return (
-            <div className="flex h-full items-center justify-center text-sm text-neutral-500">
-                Select a file to preview
+            <div
+                className="
+                    flex
+                    h-full
+                    items-center
+                    justify-center
+                    bg-neutral-950
+                    px-6
+                    text-center
+                "
+            >
+                <div>
+                    <div className="text-sm text-neutral-400">
+                        Select a file to preview
+                    </div>
+
+                    <div className="mt-1 text-xs text-neutral-600">
+                        Choose a file from the Explorer.
+                    </div>
+                </div>
             </div>
         );
     }
 
-    const language = getLanguage(file.path);
+    const language =
+        getLanguage(file.path);
 
     return (
-        <div className="flex h-full min-h-0 flex-col overflow-hidden">
-
+        <div
+            className="
+                flex
+                h-full
+                min-h-0
+                flex-col
+                overflow-hidden
+                bg-neutral-950
+            "
+        >
             <PreviewTabs
                 openFiles={openFiles}
                 activeFile={activeFile}
@@ -65,12 +98,23 @@ export function CodePreview() {
                     height="100%"
                     width="100%"
                     loading={
-                        <div className="flex h-full items-center justify-center text-neutral-500">
+                        <div
+                            className="
+                                flex
+                                h-full
+                                items-center
+                                justify-center
+                                bg-neutral-950
+                                text-xs
+                                text-neutral-600
+                            "
+                        >
                             Loading editor...
                         </div>
                     }
                     options={{
                         readOnly: true,
+
                         automaticLayout: true,
 
                         minimap: {
@@ -84,13 +128,24 @@ export function CodePreview() {
 
                         lineNumbers: "on",
 
-                        wordWrap: "on",
+                        lineNumbersMinChars: 3,
+
+                        wordWrap: "off",
 
                         scrollBeyondLastLine: false,
 
                         smoothScrolling: true,
 
-                        renderWhitespace: "selection",
+                        cursorBlinking: "smooth",
+
+                        cursorSmoothCaretAnimation:
+                            "on",
+
+                        renderWhitespace:
+                            "selection",
+
+                        renderLineHighlight:
+                            "line",
 
                         folding: true,
 
@@ -98,8 +153,39 @@ export function CodePreview() {
 
                         contextmenu: true,
 
+                        overviewRulerBorder:
+                            false,
+
+                        hideCursorInOverviewRuler:
+                            true,
+
                         padding: {
                             top: 16,
+                            bottom: 16,
+                        },
+
+                        scrollbar: {
+                            horizontalScrollbarSize: 8,
+                            verticalScrollbarSize: 8,
+                        },
+
+                        bracketPairColorization: {
+                            enabled: true,
+                        },
+
+                        stickyScroll: {
+                            enabled: true,
+                        },
+
+                        guides: {
+                            indentation: true,
+                            bracketPairs: true,
+                        },
+
+                        suggest: {
+                            showMethods: false,
+                            showFunctions: false,
+                            showConstructors: false,
                         },
                     }}
                 />
@@ -108,7 +194,6 @@ export function CodePreview() {
             <EditorStatusBar
                 language={language}
             />
-
         </div>
     );
 }

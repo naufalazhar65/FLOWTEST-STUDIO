@@ -15,8 +15,8 @@ export const screenshotPlugin: NodePlugin = {
   icon: Camera,
 
   supportedPlatforms: [
-        "cross-platform",
-    ],
+    "cross-platform",
+  ],
 
   category: "device",
 
@@ -29,9 +29,9 @@ export const screenshotPlugin: NodePlugin = {
   fields: [
     {
       key: "fileName",
-      label: "Screenshot Name",
+      label: "Screenshot File Name",
       type: "text",
-      placeholder: "login-success",
+      placeholder: "login-success.png",
     },
   ],
 
@@ -51,12 +51,16 @@ export const screenshotPlugin: NodePlugin = {
           gap: 6,
         }}
       >
-        <strong>📸 Screenshot</strong>
+        <strong>
+          📸 Screenshot
+        </strong>
 
         <span>
           Name:
           <br />
-          {screenshot.fileName || "-"}
+
+          {screenshot.fileName ||
+            "Auto-generated filename"}
         </span>
       </div>
     );

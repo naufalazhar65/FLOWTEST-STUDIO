@@ -1,6 +1,7 @@
 export function actionsTemplate(): string {
     return `
 from appium.webdriver.common.appiumby import AppiumBy
+from selenium.webdriver.common.keys import Keys
 
 _driver = None
 
@@ -17,6 +18,14 @@ def get_driver():
         )
 
     return _driver
+
+
+def screenshot(
+    file_name,
+):
+    return get_driver().save_screenshot(
+        file_name,
+    )
 
 
 def _by(strategy):
@@ -47,6 +56,31 @@ def find(
         _by(locator_strategy),
         locator,
     )
+
+
+def launch_app(
+    platform,
+    app_identifier,
+    app_activity_or_path,
+    no_reset,
+):
+    driver = get_driver()
+
+    if platform == "Android":
+        driver.start_activity(
+            app_identifier,
+            app_activity_or_path,
+        )
+
+    elif platform == "iOS":
+        driver.activate_app(
+            app_identifier,
+        )
+
+    else:
+        raise ValueError(
+            f"Unsupported platform: {platform}"
+        )
 
 
 def tap(
@@ -121,7 +155,7 @@ def element_exists(
         return False
 
 
-def is_displayed(
+def get_displayed(
     locator_strategy,
     locator,
 ):
@@ -131,7 +165,7 @@ def is_displayed(
     ).is_displayed()
 
 
-def is_enabled(
+def get_enabled(
     locator_strategy,
     locator,
 ):
@@ -141,7 +175,7 @@ def is_enabled(
     ).is_enabled()
 
 
-def is_selected(
+def get_selected(
     locator_strategy,
     locator,
 ):
@@ -149,6 +183,37 @@ def is_selected(
         locator_strategy,
         locator,
     ).is_selected()
+
+
+def get_location(
+    locator_strategy,
+    locator,
+):
+    return find(
+        locator_strategy,
+        locator,
+    ).location
+
+
+def get_size(
+    locator_strategy,
+    locator,
+):
+    return find(
+        locator_strategy,
+        locator,
+    ).size
+
+
+def get_rect(
+    locator_strategy,
+    locator,
+):
+    return find(
+        locator_strategy,
+        locator,
+    ).rect
+
 
 def long_press(
     locator_strategy,
@@ -238,29 +303,6 @@ def pinch(
     )
 
 
-def zoom(
-    locator_strategy,
-    locator,
-    percent,
-    duration,
-):
-    driver = get_driver()
-
-    element = find(
-        locator_strategy,
-        locator,
-    )
-
-    driver.execute_script(
-        "mobile: pinchCloseGesture",
-        {
-            "elementId": element.id,
-            "percent": percent,
-            "speed": duration,
-        },
-    )
-
-
 def fling(
     locator_strategy,
     locator,
@@ -280,6 +322,29 @@ def fling(
             "elementId": element.id,
             "direction": direction,
             "speed": speed,
+        },
+    )
+
+
+def zoom(
+    locator_strategy,
+    locator,
+    percent,
+    duration,
+):
+    driver = get_driver()
+
+    element = find(
+        locator_strategy,
+        locator,
+    )
+
+    driver.execute_script(
+        "mobile: pinchCloseGesture",
+        {
+            "elementId": element.id,
+            "percent": percent,
+            "speed": duration,
         },
     )
 
@@ -323,6 +388,22 @@ def scroll(
             "direction": direction,
             "percent": percent,
         },
+    )
+
+
+def hide_keyboard():
+    try:
+        get_driver().hide_keyboard()
+
+    except Exception:
+        # iOS may not provide a dismiss action.
+        # Treat this as best-effort.
+        pass
+
+
+def press_return():
+    get_driver().switch_to.active_element.send_keys(
+        Keys.RETURN,
     )
 `.trim();
 }

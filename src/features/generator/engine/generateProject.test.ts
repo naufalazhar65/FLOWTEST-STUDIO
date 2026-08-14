@@ -100,7 +100,27 @@ describe("generateProject", () => {
 
         expect(
             generatePython,
-        ).toHaveBeenCalledWith([]);
+        ).toHaveBeenCalledWith(
+            [],
+            {
+                capabilities: {
+                    platformName:
+                        "Android",
+
+                    "appium:automationName":
+                        "UiAutomator2",
+
+                    "appium:deviceName":
+                        "Android Emulator",
+
+                    "appium:noReset":
+                        false,
+                },
+
+                serverUrl:
+                    "http://127.0.0.1:4723",
+            },
+        );
     });
 
     it("generates nine files", () => {

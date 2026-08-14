@@ -3,6 +3,7 @@ import type { ElementGetterNodeData } from "../../flow/types/flowNode";
 import type { NodeEmitter } from "../types/NodeEmitter";
 
 import { emitFunction } from "../utils/emitFunction";
+import { indent } from "../utils/indent";
 import { locatorStrategy } from "../utils/locator";
 import { quote } from "../utils/quote";
 
@@ -12,25 +13,28 @@ export function createGetterEmitter<
     functionName: string,
 ): NodeEmitter<T> {
     return {
-        emit(node, context) {
-            void context;
-
+        emit(node) {
             const data = node.data;
 
-            return `variables[${quote(
-                data.variableName,
-            )}] = ${emitFunction(
-                functionName,
-                [
-                    locatorStrategy(
-                        data.locatorStrategy,
-                    ),
+            const value = indent(
+                emitFunction(
+                    functionName,
+                    [
+                        locatorStrategy(
+                            data.locatorStrategy,
+                        ),
 
-                    quote(
-                        data.locator,
-                    ),
-                ],
-            )}`;
+                        quote(
+                            data.locator,
+                        ),
+                    ],
+                ),
+            );
+
+            return `set_variable(
+    ${quote(data.variableName)},
+${value},
+)`;
         },
     };
 }

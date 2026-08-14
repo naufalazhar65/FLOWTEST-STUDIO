@@ -1,4 +1,8 @@
-import { describe, expect, it } from "vitest";
+import {
+    describe,
+    expect,
+    it,
+} from "vitest";
 
 import { generatePython } from "./generatePython";
 
@@ -90,17 +94,20 @@ describe("generatePython", () => {
     });
 
     it("throws when emitter is missing", () => {
-        const node = createTapNode();
+        const node =
+            createTapNode();
 
         node.data = {
             ...node.data,
-            action: "assert",
+
+            action:
+                "unknownAction",
         } as never;
 
         expect(() =>
             generatePython([node]),
         ).toThrow(
-            'No emitter registered for "assert"',
+            'No emitter registered for "unknownAction"',
         );
     });
 
@@ -112,16 +119,20 @@ describe("generatePython", () => {
 
         nodes[1].id = "tap-2";
 
-        nodes[1].data.locator = "password";
+        nodes[1].data.locator =
+            "password";
 
-        const code = generatePython(
-            nodes,
-        );
+        const code =
+            generatePython(nodes);
 
         expect(
-            code.indexOf("login_button"),
+            code.indexOf(
+                "login_button",
+            ),
         ).toBeLessThan(
-            code.indexOf("password"),
+            code.indexOf(
+                "password",
+            ),
         );
     });
 });

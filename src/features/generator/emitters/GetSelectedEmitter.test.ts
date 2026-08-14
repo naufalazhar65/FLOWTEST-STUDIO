@@ -51,17 +51,21 @@ function createNode(): FlowNode & {
 }
 
 describe("GetSelectedEmitter", () => {
-    it("generates get_selected()", () => {
-        const code = getSelectedEmitter.emit(
-            createNode(),
-            context,
-        );
+    it("generates get_selected() with set_variable()", () => {
+        const code =
+            getSelectedEmitter.emit(
+                createNode(),
+                context,
+            );
 
         expect(code).toBe(
-`variables["isSelected"] = get_selected(
-    AppiumBy.ID,
-    "remember_me",
-)`
+            `set_variable(
+    "isSelected",
+    get_selected(
+        AppiumBy.ID,
+        "remember_me",
+    ),
+)`,
         );
     });
 });

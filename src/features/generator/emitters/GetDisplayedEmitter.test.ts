@@ -51,17 +51,21 @@ function createNode(): FlowNode & {
 }
 
 describe("GetDisplayedEmitter", () => {
-    it("generates get_displayed()", () => {
-        const code = getDisplayedEmitter.emit(
-            createNode(),
-            context,
-        );
+    it("generates get_displayed() with set_variable()", () => {
+        const code =
+            getDisplayedEmitter.emit(
+                createNode(),
+                context,
+            );
 
         expect(code).toBe(
-`variables["isDisplayed"] = get_displayed(
-    AppiumBy.ID,
-    "login_button",
-)`
+            `set_variable(
+    "isDisplayed",
+    get_displayed(
+        AppiumBy.ID,
+        "login_button",
+    ),
+)`,
         );
     });
 });

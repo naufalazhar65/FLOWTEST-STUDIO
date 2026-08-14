@@ -9,14 +9,14 @@ export function useCopyCode() {
         (state) => state.activeFile,
     );
 
-    return async () => {
+    return async (): Promise<boolean> => {
         if (!project || !activeFile) {
             return false;
         }
 
         const file = project.files.find(
-            (file) =>
-                file.path === activeFile,
+            (item) =>
+                item.path === activeFile,
         );
 
         if (!file) {

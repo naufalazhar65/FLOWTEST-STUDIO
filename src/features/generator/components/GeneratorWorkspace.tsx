@@ -3,14 +3,13 @@ import { ExplorerHeader } from "./ExplorerHeader";
 import { PreviewHeader } from "./PreviewHeader";
 import { GeneratorExplorer } from "./GeneratorExplorer";
 import { CodePreview } from "./CodePreview";
+import { GeneratorStatusBar } from "./GeneratorStatusBar";
 
 import { useGeneratorStore } from "../store/useGeneratorStore";
-
 import { generatorService } from "../services/GeneratorService";
 
 import { useCopyCode } from "../hooks/useCopyCode";
 import { useDownloadCode } from "../hooks/useDownloadCode";
-import { GeneratorStatusBar } from "./GeneratorStatusBar";
 
 export function GeneratorWorkspace() {
     const project = useGeneratorStore(
@@ -21,8 +20,18 @@ export function GeneratorWorkspace() {
     const download = useDownloadCode();
 
     return (
-        <div className="flex h-full w-full min-h-0 flex-col">
-
+        <div
+            className="
+                flex
+                h-full
+                min-h-0
+                w-full
+                min-w-0
+                flex-col
+                overflow-hidden
+                bg-neutral-950
+            "
+        >
             <GeneratorHeader
                 hasProject={!!project}
                 onGenerate={() =>
@@ -43,37 +52,60 @@ export function GeneratorWorkspace() {
             <div
                 className="
                     grid
-                    flex-1
                     min-h-0
-                    grid-rows-[240px_1fr]
+                    min-w-0
+                    flex-1
+                    grid-cols-1
+                    grid-rows-[minmax(180px,32%)_minmax(0,1fr)]
+                    overflow-hidden
                 "
             >
-                {/* Explorer */}
-
-                <section className="flex min-h-0 flex-col border-b border-neutral-800">
-
+                <section
+                    className="
+                        flex
+                        min-h-0
+                        min-w-0
+                        flex-col
+                        overflow-hidden
+                        border-b
+                        border-neutral-800
+                    "
+                >
                     <ExplorerHeader />
 
-                    <div className="flex-1 overflow-y-auto">
+                    <div
+                        className="
+                            min-h-0
+                            flex-1
+                            overflow-hidden
+                        "
+                    >
                         <GeneratorExplorer />
                     </div>
-
                 </section>
 
-                {/* Preview */}
-
-                <section className="flex min-h-0 flex-col">
-
+                <section
+                    className="
+                        flex
+                        min-h-0
+                        min-w-0
+                        flex-col
+                        overflow-hidden
+                    "
+                >
                     <PreviewHeader />
 
-                    <div className="flex-1 min-h-0 overflow-hidden">
+                    <div
+                        className="
+                            min-h-0
+                            flex-1
+                            overflow-hidden
+                        "
+                    >
                         <CodePreview />
                     </div>
-
                 </section>
-
             </div>
-
         </div>
     );
 }

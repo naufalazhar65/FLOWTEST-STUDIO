@@ -51,17 +51,21 @@ function createNode(): FlowNode & {
 }
 
 describe("GetSizeEmitter", () => {
-    it("generates get_size()", () => {
-        const code = getSizeEmitter.emit(
-            createNode(),
-            context,
-        );
+    it("generates get_size() with set_variable()", () => {
+        const code =
+            getSizeEmitter.emit(
+                createNode(),
+                context,
+            );
 
         expect(code).toBe(
-`variables["size"] = get_size(
-    AppiumBy.ID,
-    "login_button",
-)`
+            `set_variable(
+    "size",
+    get_size(
+        AppiumBy.ID,
+        "login_button",
+    ),
+)`,
         );
     });
 });

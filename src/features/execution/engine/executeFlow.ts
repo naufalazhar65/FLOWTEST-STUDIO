@@ -260,6 +260,11 @@ export async function executeFlow(
                 result.outputs[0] ??
                 "next";
 
+            const outgoingEdges =
+                graph.getOutgoingEdges(
+                    node.id,
+                );
+
             const transition =
                 graph.getTransition(
                     node.id,
@@ -278,13 +283,52 @@ export async function executeFlow(
                 currentNode =
                     transition.nextNode;
             } else {
-                currentNode =
-                    null;
+                console.warn(
+                    "[EXECUTION] No transition found:",
+                    {
+                        nodeId: node.id,
+                        action: node.data.action,
+                        output,
+                        availableOutputs:
+                            outgoingEdges.map(
+                                (edge) =>
+                                    edge.sourceHandle ??
+                                    "next",
+                            ),
+                        rawEdges:
+                            JSON.stringify(
+                                outgoingEdges.map(
+                                    (edge) => ({
+                                        id: edge.id,
+                                        source:
+                                            edge.source,
+                                        sourceHandle:
+                                            edge.sourceHandle,
+                                        target:
+                                            edge.target,
+                                        targetHandle:
+                                            edge.targetHandle,
+                                    }),
+                                ),
+                                null,
+                                2,
+                            ),
+                    },
+                );
+
+                currentNode = null;
             }
+
+            // ---------------------------------------
+            // End While
+            // ---------------------------------------
+
         }
 
         // ---------------------------------------
         // Check Final Status
+        // ---------------------------------------
+
         // ---------------------------------------
 
         const finalStatus =
