@@ -110,6 +110,39 @@ function getBranchTargets(
         return targets;
     }
 
+    if (
+        node.data.action === "repeat"
+    ) {
+        const targets: FlowNode[] =
+            [];
+
+        const bodyTransition =
+            graph.getTransition(
+                node.id,
+                "body",
+            );
+
+        const nextTransition =
+            graph.getTransition(
+                node.id,
+                "next",
+            );
+
+        if (bodyTransition) {
+            targets.push(
+                bodyTransition.nextNode,
+            );
+        }
+
+        if (nextTransition) {
+            targets.push(
+                nextTransition.nextNode,
+            );
+        }
+
+        return targets;
+    }
+
     const next =
         graph.getNextNode(
             node.id,
@@ -285,10 +318,6 @@ function generateBlock(
         startNode;
 
     while (current) {
-        /*
-         * Stop when we reach the node
-         * where both branches converge.
-         */
         if (
             stopNodeId &&
             current.id === stopNodeId
@@ -296,10 +325,6 @@ function generateBlock(
             break;
         }
 
-        /*
-         * Prevent infinite traversal when
-         * the graph contains a cycle.
-         */
         if (
             path.has(current.id)
         ) {
@@ -362,9 +387,6 @@ function generateBlock(
                     nodes,
                 );
 
-            /*
-             * TRUE branch
-             */
             const trueLines =
                 generateBlock(
                     trueNode,
@@ -392,9 +414,6 @@ function generateBlock(
                 );
             }
 
-            /*
-             * FALSE branch
-             */
             if (falseNode) {
                 lines.push(
                     indentCode(
@@ -432,12 +451,102 @@ function generateBlock(
                 }
             }
 
-            /*
-             * Continue from the common
-             * join node, if one exists.
-             */
             current =
                 join;
+
+            continue;
+        }
+
+        /*
+         * REPEAT node
+         *
+         * Repeat has two outputs:
+         *
+         *   body -> first node in the loop
+         *   next -> node after the loop
+         */
+        if (
+            current.data.action ===
+            "repeat"
+        ) {
+            const bodyTransition =
+                graph.getTransition(
+                    current.id,
+                    "body",
+                );
+
+            const nextTransition =
+                graph.getTransition(
+                    current.id,
+                    "next",
+                );
+
+            if (
+                !bodyTransition
+            ) {
+                throw new Error(
+                    `Repeat node "${current.data.title}" has no body transition.`,
+                );
+            }
+
+            if (
+                !nextTransition
+            ) {
+                throw new Error(
+                    `Repeat node "${current.data.title}" has no next transition.`,
+                );
+            }
+
+            const count =
+                Math.max(
+                    1,
+                    Math.floor(
+                        Number(
+                            current.data.count,
+                        ),
+                    ),
+                );
+
+            const exitNode =
+                nextTransition.nextNode;
+
+            const bodyLines =
+                generateBlock(
+                    bodyTransition.nextNode,
+                    exitNode.id,
+                    graph,
+                    nodes,
+                    context,
+                    indentLevel + 1,
+                    nextPath,
+                );
+
+            lines.push(
+                indentCode(
+                    `for _ in range(${count}):`,
+                    indentLevel,
+                    context.indent,
+                ),
+            );
+
+            if (
+                bodyLines.length === 0
+            ) {
+                lines.push(
+                    indentCode(
+                        "pass",
+                        indentLevel + 1,
+                        context.indent,
+                    ),
+                );
+            } else {
+                lines.push(
+                    ...bodyLines,
+                );
+            }
+
+            current =
+                exitNode;
 
             continue;
         }
