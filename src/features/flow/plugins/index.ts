@@ -12,6 +12,7 @@ import { backPlugin } from "./Back";
 import { homePlugin } from "./Home";
 import { screenshotPlugin } from "./Screenshot";
 import { ifPlugin } from "./If";
+import { repeatPlugin } from "./Repeat";
 import { getTextNode } from "./GetText";
 import { elementExistsNode } from "./ElementExists";
 import { getAttributeNode } from "./GetAttribute";
@@ -31,14 +32,12 @@ import { longPressPlugin } from "./LongPress";
 import { doubleTapPlugin } from "./DoubleTap";
 import { dragPlugin } from "./Drag";
 import { pinchPlugin } from "./Pinch";
-import { zoomPlugin } from "./zoom"
+import { zoomPlugin } from "./zoom";
 import { hideKeyboardplugin } from "./HideKeyboard";
 import { pressReturnPlugin } from "./PressReturn";
 
-
-
-
 import type { NodePlugin } from "../types/NodePlugin";
+
 import flingPlugin from "./Fling";
 
 export const plugins: NodePlugin[] = [
@@ -56,6 +55,7 @@ export const plugins: NodePlugin[] = [
   homePlugin,
   screenshotPlugin,
   ifPlugin,
+  repeatPlugin,
   longPressPlugin,
   doubleTapPlugin,
   dragPlugin,
@@ -64,7 +64,6 @@ export const plugins: NodePlugin[] = [
   flingPlugin,
   hideKeyboardplugin,
   pressReturnPlugin,
-
 
   // Element Getter
   getTextNode,

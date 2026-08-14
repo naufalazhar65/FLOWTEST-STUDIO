@@ -34,6 +34,7 @@ import type {
   FlingNodeData,
   HideKeyboardNodeData,
   BaseNodeData,
+  RepeatNodeData
 } from "./flowNode";
 
 type EditableKeys<T> =
@@ -76,7 +77,9 @@ export type NodeFieldKey =
   | EditableKeys<PinchNodeData>
   | EditableKeys<ZoomNodeData>
   | EditableKeys<FlingNodeData>
-  | EditableKeys<HideKeyboardNodeData>;
+  | EditableKeys<HideKeyboardNodeData>
+  | EditableKeys<RepeatNodeData>;
+
 
 export interface NodeField {
   key: NodeFieldKey;

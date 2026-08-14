@@ -80,9 +80,30 @@ export function FlowCanvas() {
           callbacks.onEdgesChange
         }
 
+        onConnectStart={(
+          _event,
+          params,
+        ) => {
+          console.log(
+            "[FLOW] CONNECT START:",
+            params,
+          );
+        }}
+
         onConnect={(connection) => {
+          console.log(
+            "[FLOW] CONNECT:",
+            connection,
+          );
+
           callbacks.onConnect(
             connection,
+          );
+        }}
+
+        onConnectEnd={() => {
+          console.log(
+            "[FLOW] CONNECT END",
           );
         }}
 

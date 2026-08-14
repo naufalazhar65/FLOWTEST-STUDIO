@@ -33,6 +33,7 @@ export type NodeAction =
   | "home"
   | "screenshot"
   | "if"
+  | "repeat"
   | "getText"
   | "elementExists"
   | "getAttribute"
@@ -289,6 +290,13 @@ export interface IfNodeData
   operator: AssertOperator;
 }
 
+export interface RepeatNodeData
+    extends BaseNodeData {
+    action: "repeat";
+
+    count: number;
+}
+
 export interface GetTextNodeData
   extends ElementGetterNodeData {
 
@@ -426,6 +434,7 @@ export type FlowNodeData =
   | FlingNodeData
   | HideKeyboardNodeData
   | PressReturnNodeData
+  | RepeatNodeData
 
 
 export type FlowNodeDataPatch =

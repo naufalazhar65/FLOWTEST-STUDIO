@@ -10,6 +10,7 @@ import { clearVariables } from "../variables/VariableStore";
 import { formatDuration } from "../utils/formatDuration";
 
 import { executeNode } from "./executeNode";
+import { executeRepeat } from "./executeRepeat";
 import { executionLogger } from "../services/executionLogger";
 import { waitWhilePaused } from "../utils/waitWhilePaused";
 
@@ -34,6 +35,28 @@ export async function executeFlow(
     executionLogger.clear();
 
     execution.reset();
+
+    console.log(
+        "[EXECUTION] FLOW NODES:",
+        nodes.map((node) => ({
+            id: node.id,
+            title: node.data.title,
+            action: node.data.action,
+        })),
+    );
+
+    console.log(
+        "[EXECUTION] FLOW EDGES:",
+        context.edges.map((edge) => ({
+            id: edge.id,
+            source: edge.source,
+            sourceHandle:
+                edge.sourceHandle,
+            target: edge.target,
+            targetHandle:
+                edge.targetHandle,
+        })),
+    );
 
     const graph =
         new GraphNavigator(
@@ -209,6 +232,70 @@ export async function executeFlow(
             // Execute Node
             // ---------------------------------------
 
+            if (node.data.action === "repeat") {
+                execution.setNodeStatus(
+                    node.id,
+                    "running",
+                );
+
+                const repeatStartedAt =
+                    Date.now();
+
+                try {
+                    const repeatResult =
+                        await executeRepeat(
+                            node,
+                            nodes,
+                            context,
+                        );
+
+                    const repeatFinishedAt =
+                        Date.now();
+
+                    execution.setNodeStatus(
+                        node.id,
+                        "passed",
+                    );
+
+                    execution.setNodeResult({
+                        nodeId: node.id,
+
+                        nodeType:
+                            node.data.action,
+
+                        nodeTitle:
+                            node.data.title,
+
+                        status: "passed",
+
+                        startedAt:
+                            repeatStartedAt,
+
+                        finishedAt:
+                            repeatFinishedAt,
+
+                        duration:
+                            repeatFinishedAt -
+                            repeatStartedAt,
+                    });
+
+                    currentNode =
+                        repeatResult.nextNode;
+
+                    activeEdgeId =
+                        null;
+
+                    continue;
+                } catch (error) {
+                    execution.setNodeStatus(
+                        node.id,
+                        "failed",
+                    );
+
+                    throw error;
+                }
+            }
+
             const result =
                 await executeNode(
                     node,
@@ -265,6 +352,27 @@ export async function executeFlow(
                     node.id,
                 );
 
+            /*
+             * A node with no outgoing edges is a
+             * legitimate terminal node.
+             */
+            if (outgoingEdges.length === 0) {
+                console.log(
+                    "[EXECUTION] Flow reached terminal node:",
+                    {
+                        nodeId: node.id,
+                        nodeTitle:
+                            node.data.title,
+                        action:
+                            node.data.action,
+                    },
+                );
+
+                currentNode = null;
+
+                continue;
+            }
+
             const transition =
                 graph.getTransition(
                     node.id,
@@ -283,8 +391,8 @@ export async function executeFlow(
                 currentNode =
                     transition.nextNode;
             } else {
-                console.warn(
-                    "[EXECUTION] No transition found:",
+                console.error(
+                    "[EXECUTION] No matching transition found:",
                     {
                         nodeId: node.id,
                         action: node.data.action,

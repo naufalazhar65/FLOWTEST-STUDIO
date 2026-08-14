@@ -214,25 +214,44 @@ export function BaseNode({
           {children}
         </div>
 
-        {handles.outputs.map((output, index) => (
-          <Handle
-            key={output}
-            id={output}
-            type="source"
-            position={Position.Bottom}
-            style={{
-              width: 12,
-              height: 12,
-              background: color,
-              left:
-                handles.outputs.length === 1
-                  ? "50%"
-                  : `${((index + 1) /
-                    (handles.outputs.length + 1)) *
-                  100}%`,
-            }}
-          />
-        ))}
+        {handles.outputs.map((output, index) => {
+          const isMultiple =
+            handles.outputs.length > 1;
+
+          const left =
+            isMultiple
+              ? `${((index + 1) /
+                (handles.outputs.length + 1)) *
+              100}%`
+              : "50%";
+
+          return (
+            <Handle
+              key={output}
+              id={output}
+              type="source"
+              position={Position.Bottom}
+              style={{
+                width: 16,
+                height: 16,
+
+                left,
+
+                transform:
+                  "translateX(-50%)",
+
+                background: color,
+
+                border:
+                  "2px solid #111827",
+
+                zIndex: 10,
+
+                cursor: "crosshair",
+              }}
+            />
+          );
+        })}
       </div>
     </>
   );

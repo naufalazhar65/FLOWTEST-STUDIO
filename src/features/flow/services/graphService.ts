@@ -6,12 +6,14 @@ export function appendEdge(
   edges: Edge[],
   source: string,
   target: string,
+  sourceHandle?: string,
 ): Edge[] {
   return [
     ...edges,
     createEdge(
       source,
       target,
+      sourceHandle,
     ),
   ];
 }
@@ -39,12 +41,6 @@ export function reconnectEdges(
       edge.target !==
       deletedNodeId,
   );
-
-  /*
- * Preserve the incoming edge's
- * source handle and the outgoing
- * edge's target handle.
- */
 
   for (const incomingEdge of incoming) {
     for (const outgoingEdge of outgoing) {

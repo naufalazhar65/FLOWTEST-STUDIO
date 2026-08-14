@@ -9,6 +9,20 @@ export function connectNodesAction(
     edges: Edge[],
     connection: Connection,
 ): Edge[] {
+    console.log(
+        "[FLOW] Connecting:",
+        {
+            source:
+                connection.source,  
+            sourceHandle:
+                connection.sourceHandle,
+            target:
+                connection.target,
+            targetHandle:
+                connection.targetHandle,
+        },
+    );
+
     if (
         !connection.source ||
         !connection.target
@@ -25,6 +39,11 @@ export function connectNodesAction(
             connection.targetHandle ??
             undefined,
         );
+
+    console.log(
+        "[FLOW] Created edge:",
+        edge,
+    );
 
     return [
         ...edges,

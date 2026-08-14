@@ -1,6 +1,7 @@
 import type { NodeField } from "../../types/nodeField";
 
 import { TextField } from "./TextField";
+import { NumberField } from "./NumberField";
 import { SelectField } from "./SelectField";
 
 interface Props {
@@ -21,8 +22,34 @@ export function NodeFieldRenderer({
       return (
         <TextField
           nodeId={nodeId}
-          fieldKey={String(field.key)}
-          value={String(value ?? "")}
+          fieldKey={String(
+            field.key,
+          )}
+          value={String(
+            value ?? "",
+          )}
+        />
+      );
+
+    case "number":
+      return (
+        <NumberField
+          nodeId={nodeId}
+          fieldKey={String(
+            field.key,
+          )}
+          value={
+            typeof value ===
+              "number"
+              ? value
+              : Number(
+                value ??
+                0,
+              )
+          }
+          min={field.min}
+          max={field.max}
+          step={field.step}
         />
       );
 
@@ -30,9 +57,16 @@ export function NodeFieldRenderer({
       return (
         <SelectField
           nodeId={nodeId}
-          fieldKey={String(field.key)}
-          value={String(value ?? "")}
-          options={field.options ?? []}
+          fieldKey={String(
+            field.key,
+          )}
+          value={String(
+            value ?? "",
+          )}
+          options={
+            field.options ??
+            []
+          }
         />
       );
 

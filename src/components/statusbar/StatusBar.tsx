@@ -59,27 +59,40 @@ export function StatusBar() {
         (state) => state.progress,
     );
 
-    const executedNodes =
+    const nodeStatus =
         useExecutionStore(
-            (state) =>
-                state.executedNodes,
+            (state) => state.nodeStatus,
         );
 
-    const totalNodes = useExecutionStore(
-        (state) => state.totalNodes,
-    );
+    const totalNodes =
+        useExecutionStore(
+            (state) => state.totalNodes,
+        );
+
+    const executedNodes =
+        Object.values(
+            nodeStatus,
+        ).filter(
+            (status) =>
+                status === "passed" ||
+                status === "failed",
+        ).length;
 
     const passedNodes =
-        useExecutionStore(
-            (state) =>
-                state.passedNodes,
-        );
+        Object.values(
+            nodeStatus,
+        ).filter(
+            (status) =>
+                status === "passed",
+        ).length;
 
     const failedNodes =
-        useExecutionStore(
-            (state) =>
-                state.failedNodes,
-        );
+        Object.values(
+            nodeStatus,
+        ).filter(
+            (status) =>
+                status === "failed",
+        ).length;
 
     const duration = useExecutionStore(
         (state) => state.duration,

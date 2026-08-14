@@ -65,11 +65,19 @@ export function ExecutionBar() {
         (state) => state.progress,
     );
 
-    const executedNodes =
+    const nodeStatus =
         useExecutionStore(
-            (state) =>
-                state.executedNodes,
+            (state) => state.nodeStatus,
         );
+
+    const executedNodes =
+        Object.values(
+            nodeStatus,
+        ).filter(
+            (status) =>
+                status === "passed" ||
+                status === "failed",
+        ).length;
 
     const totalNodes = useExecutionStore(
         (state) => state.totalNodes,
@@ -77,7 +85,7 @@ export function ExecutionBar() {
 
     const current =
         STATUS_CONFIG[
-            status as keyof typeof STATUS_CONFIG
+        status as keyof typeof STATUS_CONFIG
         ];
 
     return (
