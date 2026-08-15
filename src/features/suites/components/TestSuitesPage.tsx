@@ -24,10 +24,43 @@ import {
     typography,
 } from "../../../themes";
 
+import {
+    useProjectStore,
+} from "../../project/store/useProjectStore";
+
 export function TestSuitesPage() {
-    const suites = useSuiteStore(
-        (state) => state.suites,
-    );
+    const allSuites =
+        useSuiteStore(
+            (state) =>
+                state.suites,
+        );
+
+    const activeProjectId =
+        useProjectStore(
+            (state) =>
+                state.projectId,
+        );
+
+    const suites =
+        useMemo(
+            () => {
+                if (
+                    !activeProjectId
+                ) {
+                    return [];
+                }
+
+                return allSuites.filter(
+                    (suite) =>
+                        suite.projectId ===
+                        activeProjectId,
+                );
+            },
+            [
+                allSuites,
+                activeProjectId,
+            ],
+        );
 
     const selectedSuiteId =
         useSuiteStore(
@@ -64,24 +97,28 @@ export function TestSuitesPage() {
     const [deleteSuiteOpen, setDeleteSuiteOpen] =
         useState(false);
 
-    const filteredSuites = useMemo(() => {
-        const query =
-            search.trim().toLowerCase();
+    const filteredSuites =
+        useMemo(() => {
+            const query =
+                search.trim().toLowerCase();
 
-        if (!query) {
-            return suites;
-        }
+            if (!query) {
+                return suites;
+            }
 
-        return suites.filter(
-            (suite) =>
-                suite.name
-                    .toLowerCase()
-                    .includes(query) ||
-                suite.description
-                    .toLowerCase()
-                    .includes(query),
-        );
-    }, [search, suites]);
+            return suites.filter(
+                (suite) =>
+                    suite.name
+                        .toLowerCase()
+                        .includes(query) ||
+                    suite.description
+                        .toLowerCase()
+                        .includes(query),
+            );
+        }, [
+            search,
+            suites,
+        ]);
 
     const totalTestCases =
         suites.reduce(
@@ -340,7 +377,7 @@ export function TestSuitesPage() {
                         }}
                     >
                         {filteredSuites.length >
-                        0 ? (
+                            0 ? (
                             <div
                                 style={{
                                     display:
@@ -446,7 +483,7 @@ export function TestSuitesPage() {
                         <span>
                             {suites.length}{" "}
                             {suites.length ===
-                            1
+                                1
                                 ? "suite"
                                 : "suites"}
                         </span>
@@ -454,7 +491,7 @@ export function TestSuitesPage() {
                         <span>
                             {totalTestCases}{" "}
                             {totalTestCases ===
-                            1
+                                1
                                 ? "test"
                                 : "tests"}
                         </span>

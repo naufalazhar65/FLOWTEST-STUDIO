@@ -19,6 +19,8 @@ export interface SuiteTestCase {
 export interface TestSuite {
     id: string;
 
+    projectId: string;
+
     name: string;
 
     description: string;

@@ -2,12 +2,19 @@ import {
     Layers3,
     X,
 } from "lucide-react";
+
 import {
     useEffect,
     useState,
 } from "react";
 
-import { useSuiteStore } from "../store/useSuiteStore";
+import {
+    useSuiteStore,
+} from "../store/useSuiteStore";
+
+import {
+    useProjectStore,
+} from "../../project/store/useProjectStore";
 
 import {
     colors,
@@ -16,6 +23,7 @@ import {
 
 interface Props {
     open: boolean;
+
     onClose(): void;
 }
 
@@ -25,18 +33,32 @@ export function CreateSuiteDialog({
 }: Props) {
     const addSuite =
         useSuiteStore(
-            (state) => state.addSuite,
+            (state) =>
+                state.addSuite,
         );
 
     const selectSuite =
         useSuiteStore(
-            (state) => state.selectSuite,
+            (state) =>
+                state.selectSuite,
         );
 
-    const [name, setName] = useState("");
-    const [description, setDescription] =
+    const activeProjectId =
+        useProjectStore(
+            (state) =>
+                state.projectId,
+        );
+
+    const [name, setName] =
         useState("");
-    const [error, setError] = useState("");
+
+    const [
+        description,
+        setDescription,
+    ] = useState("");
+
+    const [error, setError] =
+        useState("");
 
     useEffect(() => {
         if (!open) {
@@ -44,7 +66,9 @@ export function CreateSuiteDialog({
         }
 
         setName("");
+
         setDescription("");
+
         setError("");
     }, [open]);
 
@@ -56,7 +80,10 @@ export function CreateSuiteDialog({
         const handleKeyDown = (
             event: KeyboardEvent,
         ) => {
-            if (event.key === "Escape") {
+            if (
+                event.key ===
+                "Escape"
+            ) {
                 onClose();
             }
         };
@@ -72,66 +99,101 @@ export function CreateSuiteDialog({
                 handleKeyDown,
             );
         };
-    }, [open, onClose]);
+    }, [
+        open,
+        onClose,
+    ]);
 
     if (!open) {
         return null;
     }
 
-    const handleCreate = () => {
-        const trimmedName = name.trim();
+    const handleCreate =
+        () => {
+            const trimmedName =
+                name.trim();
 
-        if (!trimmedName) {
-            setError(
-                "Suite name is required.",
+            if (!trimmedName) {
+                setError(
+                    "Suite name is required.",
+                );
+
+                return;
+            }
+
+            if (
+                !activeProjectId
+            ) {
+                setError(
+                    "No active project selected.",
+                );
+
+                return;
+            }
+
+            const suites =
+                useSuiteStore
+                    .getState()
+                    .suites;
+
+            const exists =
+                suites.some(
+                    (suite) =>
+                        suite.projectId ===
+                        activeProjectId,
+                );
+
+            if (exists) {
+                setError(
+                    "A suite with this name already exists in this project.",
+                );
+
+                return;
+            }
+
+            const now =
+                new Date().toISOString();
+
+            const suite = {
+                id: crypto.randomUUID(),
+
+                projectId:
+                    activeProjectId,
+
+                name: trimmedName,
+
+                description:
+                    description.trim(),
+
+                testCases: [],
+
+                createdAt: now,
+
+                updatedAt: now,
+            };
+
+            addSuite(
+                suite,
             );
-            return;
-        }
 
-        const suites =
-            useSuiteStore.getState()
-                .suites;
-
-        const exists = suites.some(
-            (suite) =>
-                suite.name
-                    .trim()
-                    .toLowerCase() ===
-                trimmedName.toLowerCase(),
-        );
-
-        if (exists) {
-            setError(
-                "A suite with this name already exists.",
+            selectSuite(
+                suite.id,
             );
-            return;
-        }
 
-        const now = new Date().toISOString();
-
-        const suite = {
-            id: crypto.randomUUID(),
-            name: trimmedName,
-            description: description.trim(),
-            testCases: [],
-            createdAt: now,
-            updatedAt: now,
+            onClose();
         };
-
-        addSuite(suite);
-        selectSuite(suite.id);
-        onClose();
-    };
 
     const handleKeyDown = (
         event: React.KeyboardEvent,
     ) => {
         if (
-            event.key === "Enter" &&
+            event.key ===
+            "Enter" &&
             (event.metaKey ||
                 event.ctrlKey)
         ) {
             event.preventDefault();
+
             handleCreate();
         }
     };
@@ -139,7 +201,9 @@ export function CreateSuiteDialog({
     return (
         <div
             role="presentation"
-            onMouseDown={(event) => {
+            onMouseDown={(
+                event,
+            ) => {
                 if (
                     event.target ===
                     event.currentTarget
@@ -148,68 +212,120 @@ export function CreateSuiteDialog({
                 }
             }}
             style={{
-                position: "fixed",
+                position:
+                    "fixed",
+
                 inset: 0,
+
                 zIndex: 1000,
+
                 display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
+
+                alignItems:
+                    "center",
+
+                justifyContent:
+                    "center",
+
                 padding: 20,
+
                 background:
                     "rgba(0, 0, 0, 0.58)",
-                backdropFilter: "blur(4px)",
+
+                backdropFilter:
+                    "blur(4px)",
             }}
         >
             <div
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="create-suite-title"
-                onKeyDown={handleKeyDown}
+                onKeyDown={
+                    handleKeyDown
+                }
                 style={{
-                    width: "100%",
+                    width:
+                        "100%",
+
                     maxWidth: 480,
+
                     border:
                         `1px solid ${colors.border}`,
-                    borderRadius: radius.lg,
-                    background: colors.panel,
+
+                    borderRadius:
+                        radius.lg,
+
+                    background:
+                        colors.panel,
+
                     boxShadow:
                         "0 24px 70px rgba(0,0,0,.45)",
-                    overflow: "hidden",
+
+                    overflow:
+                        "hidden",
                 }}
             >
                 <header
                     style={{
-                        display: "flex",
-                        alignItems: "center",
+                        display:
+                            "flex",
+
+                        alignItems:
+                            "center",
+
                         justifyContent:
                             "space-between",
-                        padding: "15px 16px",
+
+                        padding:
+                            "15px 16px",
+
                         borderBottom:
                             `1px solid ${colors.border}`,
                     }}
                 >
                     <div
                         style={{
-                            display: "flex",
-                            alignItems: "center",
+                            display:
+                                "flex",
+
+                            alignItems:
+                                "center",
+
                             gap: 9,
                         }}
                     >
                         <div
                             style={{
-                                width: 28,
-                                height: 28,
-                                display: "flex",
-                                alignItems: "center",
+                                width:
+                                    28,
+
+                                height:
+                                    28,
+
+                                display:
+                                    "flex",
+
+                                alignItems:
+                                    "center",
+
                                 justifyContent:
                                     "center",
-                                borderRadius: 7,
+
+                                borderRadius:
+                                    7,
+
                                 background:
                                     colors.panelHover,
-                                color: colors.accent,
+
+                                color:
+                                    colors.accent,
                             }}
                         >
-                            <Layers3 size={15} />
+                            <Layers3
+                                size={
+                                    15
+                                }
+                            />
                         </div>
 
                         <div>
@@ -218,8 +334,12 @@ export function CreateSuiteDialog({
                                 style={{
                                     color:
                                         colors.text,
-                                    fontSize: 13,
-                                    fontWeight: 650,
+
+                                    fontSize:
+                                        13,
+
+                                    fontWeight:
+                                        650,
                                 }}
                             >
                                 Create Test Suite
@@ -227,10 +347,14 @@ export function CreateSuiteDialog({
 
                             <div
                                 style={{
-                                    marginTop: 2,
+                                    marginTop:
+                                        2,
+
                                     color:
                                         colors.textMuted,
-                                    fontSize: 10,
+
+                                    fontSize:
+                                        10,
                                 }}
                             >
                                 Group flows for reusable
@@ -241,67 +365,117 @@ export function CreateSuiteDialog({
 
                     <button
                         type="button"
-                        onClick={onClose}
+                        onClick={
+                            onClose
+                        }
                         aria-label="Close"
                         style={{
-                            width: 28,
-                            height: 28,
-                            display: "flex",
-                            alignItems: "center",
+                            width:
+                                28,
+
+                            height:
+                                28,
+
+                            display:
+                                "flex",
+
+                            alignItems:
+                                "center",
+
                             justifyContent:
                                 "center",
+
                             border:
                                 "1px solid transparent",
-                            borderRadius: 6,
+
+                            borderRadius:
+                                6,
+
                             background:
                                 "transparent",
+
                             color:
                                 colors.textMuted,
-                            cursor: "pointer",
+
+                            cursor:
+                                "pointer",
                         }}
                     >
                         <X size={16} />
                     </button>
                 </header>
 
-                <div style={{ padding: 18 }}>
+                <div
+                    style={{
+                        padding:
+                            18,
+                    }}
+                >
                     <Field
                         label="Name"
                         required
                     >
                         <input
                             autoFocus
-                            value={name}
-                            onChange={(event) => {
+                            value={
+                                name
+                            }
+                            onChange={(
+                                event,
+                            ) => {
                                 setName(
-                                    event.target.value,
+                                    event
+                                        .target
+                                        .value,
                                 );
 
-                                if (error) {
-                                    setError("");
+                                if (
+                                    error
+                                ) {
+                                    setError(
+                                        "",
+                                    );
                                 }
                             }}
                             placeholder="e.g. Login Regression"
-                            style={inputStyle}
+                            style={
+                                inputStyle
+                            }
                         />
                     </Field>
 
                     <Field label="Description">
                         <textarea
-                            value={description}
-                            onChange={(event) =>
+                            value={
+                                description
+                            }
+                            onChange={(
+                                event,
+                            ) =>
                                 setDescription(
-                                    event.target.value,
+                                    event
+                                        .target
+                                        .value,
                                 )
                             }
                             placeholder="Describe what this suite validates..."
-                            rows={4}
+                            rows={
+                                4
+                            }
                             style={{
                                 ...inputStyle,
-                                minHeight: 92,
-                                padding: "9px 10px",
-                                resize: "vertical",
-                                lineHeight: 1.5,
+
+                                minHeight:
+                                    92,
+
+                                padding:
+                                    "9px 10px",
+
+                                resize:
+                                    "vertical",
+
+                                lineHeight:
+                                    1.5,
                             }}
                         />
                     </Field>
@@ -309,55 +483,93 @@ export function CreateSuiteDialog({
                     {error && (
                         <div
                             style={{
-                                marginTop: 2,
-                                padding: "8px 10px",
+                                marginTop:
+                                    2,
+
+                                padding:
+                                    "8px 10px",
+
                                 border:
                                     "1px solid rgba(248,81,73,.25)",
+
                                 borderRadius:
                                     radius.md,
+
                                 background:
                                     "rgba(248,81,73,.08)",
-                                color: "#F85149",
-                                fontSize: 11,
-                                lineHeight: 1.4,
+
+                                color:
+                                    "#F85149",
+
+                                fontSize:
+                                    11,
+
+                                lineHeight:
+                                    1.4,
                             }}
                         >
-                            {error}
+                            {
+                                error
+                            }
                         </div>
                     )}
                 </div>
 
                 <footer
                     style={{
-                        display: "flex",
-                        alignItems: "center",
+                        display:
+                            "flex",
+
+                        alignItems:
+                            "center",
+
                         justifyContent:
                             "flex-end",
+
                         gap: 8,
-                        padding: "12px 16px",
+
+                        padding:
+                            "12px 16px",
+
                         borderTop:
                             `1px solid ${colors.border}`,
+
                         background:
                             colors.background,
                     }}
                 >
                     <button
                         type="button"
-                        onClick={onClose}
+                        onClick={
+                            onClose
+                        }
                         style={{
-                            height: 32,
-                            padding: "0 11px",
+                            height:
+                                32,
+
+                            padding:
+                                "0 11px",
+
                             border:
                                 `1px solid ${colors.border}`,
+
                             borderRadius:
                                 radius.md,
+
                             background:
                                 colors.panel,
+
                             color:
                                 colors.textSecondary,
-                            cursor: "pointer",
-                            fontSize: 11,
-                            fontWeight: 600,
+
+                            cursor:
+                                "pointer",
+
+                            fontSize:
+                                11,
+
+                            fontWeight:
+                                600,
                         }}
                     >
                         Cancel
@@ -365,20 +577,36 @@ export function CreateSuiteDialog({
 
                     <button
                         type="button"
-                        onClick={handleCreate}
+                        onClick={
+                            handleCreate
+                        }
                         style={{
-                            height: 32,
-                            padding: "0 12px",
+                            height:
+                                32,
+
+                            padding:
+                                "0 12px",
+
                             border:
                                 "1px solid transparent",
+
                             borderRadius:
                                 radius.md,
+
                             background:
                                 colors.accent,
-                            color: "#FFFFFF",
-                            cursor: "pointer",
-                            fontSize: 11,
-                            fontWeight: 650,
+
+                            color:
+                                "#FFFFFF",
+
+                            cursor:
+                                "pointer",
+
+                            fontSize:
+                                11,
+
+                            fontWeight:
+                                650,
                         }}
                     >
                         Create Suite
@@ -395,23 +623,36 @@ function Field({
     children,
 }: {
     label: string;
+
     required?: boolean;
+
     children: React.ReactNode;
 }) {
     return (
         <label
             style={{
-                display: "flex",
-                flexDirection: "column",
+                display:
+                    "flex",
+
+                flexDirection:
+                    "column",
+
                 gap: 6,
-                marginBottom: 14,
+
+                marginBottom:
+                    14,
             }}
         >
             <span
                 style={{
-                    color: colors.textSecondary,
-                    fontSize: 11,
-                    fontWeight: 600,
+                    color:
+                        colors.textSecondary,
+
+                    fontSize:
+                        11,
+
+                    fontWeight:
+                        600,
                 }}
             >
                 {label}
@@ -419,8 +660,11 @@ function Field({
                 {required && (
                     <span
                         style={{
-                            marginLeft: 3,
-                            color: "#F85149",
+                            marginLeft:
+                                3,
+
+                            color:
+                                "#F85149",
                         }}
                     >
                         *
@@ -428,20 +672,43 @@ function Field({
                 )}
             </span>
 
-            {children}
+            {
+                children
+            }
         </label>
     );
 }
 
-const inputStyle: React.CSSProperties = {
-    width: "100%",
-    minHeight: 34,
-    boxSizing: "border-box",
-    padding: "0 10px",
-    border: `1px solid ${colors.border}`,
-    borderRadius: radius.md,
-    outline: "none",
-    background: colors.background,
-    color: colors.text,
-    fontSize: 12,
+const inputStyle:
+    React.CSSProperties =
+{
+    width:
+        "100%",
+
+    minHeight:
+        34,
+
+    boxSizing:
+        "border-box",
+
+    padding:
+        "0 10px",
+
+    border:
+        `1px solid ${colors.border}`,
+
+    borderRadius:
+        radius.md,
+
+    outline:
+        "none",
+
+    background:
+        colors.background,
+
+    color:
+        colors.text,
+
+    fontSize:
+        12,
 };

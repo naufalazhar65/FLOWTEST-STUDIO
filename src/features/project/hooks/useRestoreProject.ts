@@ -16,10 +16,6 @@ import {
     getActiveProject,
 } from "../storage/activeProject";
 
-import {
-    getRecentProject,
-} from "../storage/db/projects";
-
 export function useRestoreProject() {
     useEffect(() => {
         let cancelled = false;
@@ -37,50 +33,16 @@ export function useRestoreProject() {
             }
 
             try {
-                let fileHandle:
-                    | FileSystemFileHandle
-                    | null = null;
-
-                const recentProject =
-                    await getRecentProject(
-                        project.id,
-                    );
-
-                if (
-                    recentProject
-                        ?.handle
-                ) {
-                    try {
-                        const permission =
-                            await recentProject.handle.queryPermission(
-                                {
-                                    mode: "read",
-                                },
-                            );
-
-                        if (
-                            permission ===
-                            "granted"
-                        ) {
-                            fileHandle =
-                                recentProject.handle;
-                        }
-                    } catch (error) {
-                        console.warn(
-                            "Unable to restore project file handle:",
-                            error,
-                        );
-                    }
-                }
-
-                if (cancelled) {
-                    return;
-                }
-
                 useFlowStore
                     .getState()
                     .loadProject(
                         project,
+                    );
+
+                useProjectStore
+                    .getState()
+                    .setProjectId(
+                        project.id,
                     );
 
                 useProjectStore
@@ -92,7 +54,7 @@ export function useRestoreProject() {
                 useProjectStore
                     .getState()
                     .setFileHandle(
-                        fileHandle,
+                        null,
                     );
 
                 useProjectStore

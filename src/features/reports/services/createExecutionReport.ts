@@ -1,4 +1,8 @@
 import {
+    getActiveProjectId,
+} from "../../project/storage/activeProject";
+
+import {
     useExecutionLogStore,
 } from "../../execution/store/useExecutionLogStore";
 
@@ -8,53 +12,63 @@ import {
 
 import type {
     TestReport,
+    TestReportStatus,
 } from "../types/TestReport";
 
-export function createExecutionReport(): TestReport {
+export interface CreateExecutionReportInput {
+    status: TestReportStatus;
+
+    startedAt: number;
+
+    finishedAt: number;
+
+    duration: number;
+}
+
+export function createExecutionReport({
+    status,
+    startedAt,
+    finishedAt,
+    duration,
+}: CreateExecutionReportInput): TestReport {
+    const projectId =
+        getActiveProjectId();
+
+    if (!projectId) {
+        throw new Error(
+            "Cannot create execution report without an active project.",
+        );
+    }
+
     const execution =
         useExecutionStore.getState();
 
-    const logStore =
-        useExecutionLogStore.getState();
+    const logs =
+        useExecutionLogStore
+            .getState()
+            .logs;
 
-    /*
-     * ExecutionEnvironment uses:
-     *
-     * platform
-     * osVersion
-     * device
-     * automation
-     * sessionId
-     *
-     * TestReport uses:
-     *
-     * platform
-     * platformVersion
-     * deviceName
-     * automationName
-     * sessionId
-     */
     const environment = {
         platform:
-            execution.environment.platform ?? "",
+            execution.environment.platform ??
+            "",
 
         platformVersion:
-            execution.environment.osVersion ?? "",
+            execution.environment.osVersion ??
+            "",
 
         deviceName:
-            execution.environment.device ?? "",
+            execution.environment.device ??
+            "",
 
         automationName:
-            execution.environment.automation ?? "",
+            execution.environment.automation ??
+            "",
 
         sessionId:
-            execution.environment.sessionId,
+            execution.environment.sessionId ??
+            null,
     };
-
-    console.log(
-        "[Report Environment]",
-        environment,
-    );
 
     const nodes =
         Object.values(
@@ -66,59 +80,21 @@ export function createExecutionReport(): TestReport {
                     b.startedAt,
             )
             .map((node) => ({
-                nodeId:
-                    node.nodeId,
-
-                nodeType:
-                    node.nodeType,
-
-                nodeTitle:
-                    node.nodeTitle,
-
-                status:
-                    node.status,
-
-                startedAt:
-                    node.startedAt,
-
-                finishedAt:
-                    node.finishedAt,
-
-                duration:
-                    node.duration,
-
-                error:
-                    node.error,
-
-                screenshot:
-                    node.screenshot,
-
-                pageSource:
-                    node.pageSource,
+                ...node,
             }));
 
     return {
         id: crypto.randomUUID(),
 
-        status:
-            execution.status ===
-                "passed"
-                ? "passed"
-                : execution.status ===
-                    "stopped"
-                    ? "stopped"
-                    : "failed",
+        projectId,
 
-        startedAt:
-            execution.startedAt ??
-            0,
+        status,
 
-        finishedAt:
-            execution.finishedAt ??
-            performance.now(),
+        startedAt,
 
-        duration:
-            execution.duration,
+        finishedAt,
+
+        duration,
 
         totalNodes:
             execution.totalNodes,
@@ -136,35 +112,10 @@ export function createExecutionReport(): TestReport {
 
         nodes,
 
-        logs:
-            logStore.logs.map(
-                (log) => ({
-                    id: log.id,
-
-                    level:
-                        log.level,
-
-                    message:
-                        log.message,
-
-                    timestamp:
-                        log.timestamp,
-
-                    duration:
-                        log.duration,
-
-                    nodeId:
-                        log.nodeId,
-
-                    nodeType:
-                        log.nodeType,
-
-                    nodeTitle:
-                        log.nodeTitle,
-
-                    details:
-                        log.details,
-                }),
-            ),
+        logs: logs.map(
+            (log) => ({
+                ...log,
+            }),
+        ),
     };
 }

@@ -51,13 +51,67 @@ interface SuiteStore {
     clearSuites(): void;
 }
 
+type LegacyTestSuite =
+    Partial<TestSuite> & {
+        projectIds?: string[];
+    };
+
+function normalizeSuite(
+    suite: Partial<TestSuite>,
+): TestSuite {
+    const legacySuite =
+        suite as LegacyTestSuite;
+
+    const testCases =
+        suite.testCases ?? [];
+
+    const projectId =
+        suite.projectId ??
+        legacySuite.projectIds?.[0] ??
+        testCases[0]?.projectId ??
+        "";
+
+    return {
+        id:
+            suite.id ??
+            crypto.randomUUID(),
+
+        projectId,
+
+        name:
+            suite.name ??
+            "Untitled Suite",
+
+        description:
+            suite.description ??
+            "",
+
+        testCases,
+
+        createdAt:
+            suite.createdAt ??
+            new Date().toISOString(),
+
+        updatedAt:
+            suite.updatedAt ??
+            new Date().toISOString(),
+
+        lastRun:
+            suite.lastRun,
+
+        runHistory:
+            suite.runHistory ?? [],
+    };
+}
+
 export const useSuiteStore =
     create<SuiteStore>()(
         persist(
             (set) => ({
                 suites: [],
 
-                selectedSuiteId: null,
+                selectedSuiteId:
+                    null,
 
                 addSuite(suite) {
                     set((state) => ({
@@ -93,7 +147,8 @@ export const useSuiteStore =
                         suites:
                             state.suites.filter(
                                 (suite) =>
-                                    suite.id !== id,
+                                    suite.id !==
+                                    id,
                             ),
 
                         selectedSuiteId:
@@ -132,10 +187,12 @@ export const useSuiteStore =
 
                                     return {
                                         ...suite,
+
                                         testCases: [
                                             ...suite.testCases,
                                             testCase,
                                         ],
+
                                         updatedAt:
                                             new Date().toISOString(),
                                     };
@@ -166,7 +223,7 @@ export const useSuiteStore =
                                         return suite;
                                     }
 
-                                    const existingIds =
+                                    const existingProjectIds =
                                         new Set(
                                             suite.testCases.map(
                                                 (test) =>
@@ -176,16 +233,18 @@ export const useSuiteStore =
 
                                     const uniqueNewTestCases =
                                         testCases.filter(
-                                            (testCase) => {
+                                            (
+                                                testCase,
+                                            ) => {
                                                 if (
-                                                    existingIds.has(
+                                                    existingProjectIds.has(
                                                         testCase.projectId,
                                                     )
                                                 ) {
                                                     return false;
                                                 }
 
-                                                existingIds.add(
+                                                existingProjectIds.add(
                                                     testCase.projectId,
                                                 );
 
@@ -202,10 +261,12 @@ export const useSuiteStore =
 
                                     return {
                                         ...suite,
+
                                         testCases: [
                                             ...suite.testCases,
                                             ...uniqueNewTestCases,
                                         ],
+
                                         updatedAt:
                                             new Date().toISOString(),
                                     };
@@ -223,18 +284,26 @@ export const useSuiteStore =
                             state.suites.map(
                                 (suite) =>
                                     suite.id ===
-                                    suiteId
-                                        ? {
-                                            ...suite,
-                                            testCases:
+                                        suiteId
+                                        ? (() => {
+                                            const testCases =
                                                 suite.testCases.filter(
-                                                    (test) =>
+                                                    (
+                                                        test,
+                                                    ) =>
                                                         test.id !==
                                                         testCaseId,
-                                                ),
-                                            updatedAt:
-                                                new Date().toISOString(),
-                                        }
+                                                );
+
+                                            return {
+                                                ...suite,
+
+                                                testCases,
+
+                                                updatedAt:
+                                                    new Date().toISOString(),
+                                            };
+                                        })()
                                         : suite,
                             ),
                     }));
@@ -249,14 +318,17 @@ export const useSuiteStore =
                             state.suites.map(
                                 (suite) =>
                                     suite.id ===
-                                    suiteId
+                                        suiteId
                                         ? {
                                             ...suite,
+
                                             testCases:
                                                 suite.testCases.map(
-                                                    (test) =>
+                                                    (
+                                                        test,
+                                                    ) =>
                                                         test.id ===
-                                                        testCaseId
+                                                            testCaseId
                                                             ? {
                                                                 ...test,
                                                                 enabled:
@@ -264,6 +336,7 @@ export const useSuiteStore =
                                                             }
                                                             : test,
                                                 ),
+
                                             updatedAt:
                                                 new Date().toISOString(),
                                         }
@@ -274,14 +347,17 @@ export const useSuiteStore =
 
                 selectSuite(id) {
                     set({
-                        selectedSuiteId: id,
+                        selectedSuiteId:
+                            id,
                     });
                 },
 
                 clearSuites() {
                     set({
                         suites: [],
-                        selectedSuiteId: null,
+
+                        selectedSuiteId:
+                            null,
                     });
                 },
             }),
@@ -289,7 +365,39 @@ export const useSuiteStore =
                 name:
                     "flowtest-studio-suites",
 
-                version: 1,
+                version: 3,
+
+                migrate(
+                    persistedState,
+                ) {
+                    if (
+                        !persistedState
+                    ) {
+                        return persistedState;
+                    }
+
+                    const state =
+                        persistedState as {
+                            suites?: Array<
+                                Partial<TestSuite>
+                            >;
+
+                            selectedSuiteId?:
+                            string | null;
+                        };
+
+                    return {
+                        ...state,
+
+                        suites:
+                            (
+                                state.suites ??
+                                []
+                            ).map(
+                                normalizeSuite,
+                            ),
+                    };
+                },
             },
         ),
     );
