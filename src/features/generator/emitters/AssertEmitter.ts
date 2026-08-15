@@ -6,8 +6,7 @@ import type {
     NodeEmitter,
 } from "../types/NodeEmitter";
 
-import { emitInlineFunction } from "../utils/emitInlineFunction";
-import { quote } from "../utils/quote";
+import { emitExpression } from "../utils/emitExpression";
 
 const operatorMap: Record<
     AssertNodeData["operator"],
@@ -66,18 +65,17 @@ export const assertEmitter: NodeEmitter<
     AssertNodeData
 > = {
     emit(node) {
-        const data = node.data;
+        const data =
+            node.data;
 
         const actual =
-            emitInlineFunction(
-                "resolve_variables",
-                [quote(data.actual)],
+            emitExpression(
+                data.actual,
             );
 
         const expected =
-            emitInlineFunction(
-                "resolve_variables",
-                [quote(data.expected)],
+            emitExpression(
+                data.expected,
             );
 
         return operatorMap[

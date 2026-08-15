@@ -497,15 +497,22 @@ function generateBlock(
                 );
             }
 
-            const count =
-                Math.max(
-                    1,
-                    Math.floor(
-                        Number(
-                            current.data.count,
-                        ),
-                    ),
+            const parsedCount =
+                Number(
+                    current.data.count,
                 );
+
+            const count =
+                Number.isFinite(
+                    parsedCount,
+                )
+                    ? Math.max(
+                        1,
+                        Math.floor(
+                            parsedCount,
+                        ),
+                    )
+                    : 1;
 
             const exitNode =
                 nextTransition.nextNode;

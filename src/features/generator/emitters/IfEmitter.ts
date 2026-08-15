@@ -3,24 +3,24 @@ import type { IfNodeData } from "../../flow/types/flowNode";
 import type { NodeEmitter } from "../types/NodeEmitter";
 
 import { emitInlineFunction } from "../utils/emitInlineFunction";
+import { emitExpression } from "../utils/emitExpression";
 import { quote } from "../utils/quote";
 
 export const ifEmitter: NodeEmitter<
     IfNodeData
 > = {
     emit(node) {
-        const data = node.data;
+        const data =
+            node.data;
 
         const actual =
-            emitInlineFunction(
-                "resolve_variables",
-                [quote(data.actual)],
+            emitExpression(
+                data.actual,
             );
 
         const expected =
-            emitInlineFunction(
-                "resolve_variables",
-                [quote(data.expected)],
+            emitExpression(
+                data.expected,
             );
 
         const condition =
@@ -29,7 +29,9 @@ export const ifEmitter: NodeEmitter<
                 [
                     actual,
                     expected,
-                    quote(data.operator),
+                    quote(
+                        data.operator,
+                    ),
                 ],
             );
 

@@ -2,16 +2,21 @@ import type {
     InputNodeData,
 } from "../../flow/types/flowNode";
 
-import type { NodeEmitter } from "../types/NodeEmitter";
+import type {
+    NodeEmitter,
+} from "../types/NodeEmitter";
 
 import { emitFunction } from "../utils/emitFunction";
+import { emitExpression } from "../utils/emitExpression";
 import { locatorStrategy } from "../utils/locator";
 import { quote } from "../utils/quote";
 
-export const inputEmitter: NodeEmitter = {
+export const inputEmitter: NodeEmitter<
+    InputNodeData
+> = {
     emit(node) {
         const data =
-            node.data as InputNodeData;
+            node.data;
 
         return emitFunction(
             "input_text",
@@ -24,7 +29,7 @@ export const inputEmitter: NodeEmitter = {
                     data.locator,
                 ),
 
-                quote(
+                emitExpression(
                     data.text,
                 ),
             ],

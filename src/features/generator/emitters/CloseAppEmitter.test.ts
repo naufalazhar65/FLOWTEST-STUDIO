@@ -11,15 +11,22 @@ import type {
     FlowNode,
 } from "../../flow/types/flowNode";
 
-import type { GeneratorContext } from "../types/GeneratorContext";
+import type {
+    GeneratorContext,
+} from "../types/GeneratorContext";
 
 const context: GeneratorContext = {
-    framework: "selenium-python-mobile",
+    framework:
+        "selenium-python-mobile",
+
     indent: "    ",
+
     newline: "\n",
 };
 
-function createAndroidNode(): FlowNode & {
+function createAndroidNode(
+    appPackage = "com.demo.app",
+): FlowNode & {
     data: CloseAppNodeData;
 } {
     return {
@@ -45,7 +52,7 @@ function createAndroidNode(): FlowNode & {
 
             platform: "Android",
 
-            appPackage: "com.demo.app",
+            appPackage,
 
             bundleId: "",
         },
@@ -54,7 +61,9 @@ function createAndroidNode(): FlowNode & {
     };
 }
 
-function createIOSNode(): FlowNode & {
+function createIOSNode(
+    bundleId = "com.demo.ios",
+): FlowNode & {
     data: CloseAppNodeData;
 } {
     return {
@@ -82,41 +91,220 @@ function createIOSNode(): FlowNode & {
 
             appPackage: "",
 
-            bundleId: "com.demo.ios",
+            bundleId,
         },
     } as FlowNode & {
         data: CloseAppNodeData;
     };
 }
 
-describe("CloseAppEmitter", () => {
-    it("generates Android close_app()", () => {
-        const code =
-            closeAppEmitter.emit(
-                createAndroidNode(),
-                context,
-            );
+describe(
+    "CloseAppEmitter",
+    () => {
+        it(
+            "generates Android close_app()",
+            () => {
+                const code =
+                    closeAppEmitter.emit(
+                        createAndroidNode(),
+                        context,
+                    );
 
-        expect(code).toBe(
-            `close_app(
+                expect(code).toBe(
+                    `close_app(
     "Android",
     "com.demo.app",
-)`
+)`,
+                );
+            },
         );
-    });
 
-    it("generates iOS close_app()", () => {
-        const code =
-            closeAppEmitter.emit(
-                createIOSNode(),
-                context,
-            );
+        it(
+            "generates iOS close_app()",
+            () => {
+                const code =
+                    closeAppEmitter.emit(
+                        createIOSNode(),
+                        context,
+                    );
 
-        expect(code).toBe(
-            `close_app(
+                expect(code).toBe(
+                    `close_app(
     "iOS",
     "com.demo.ios",
-)`
+)`,
+                );
+            },
         );
-    });
-});
+
+        it(
+            "uses appPackage for Android",
+            () => {
+                const code =
+                    closeAppEmitter.emit(
+                        createAndroidNode(
+                            "com.example.android",
+                        ),
+                        context,
+                    );
+
+                expect(code).toBe(
+                    `close_app(
+    "Android",
+    "com.example.android",
+)`,
+                );
+            },
+        );
+
+        it(
+            "uses bundleId for iOS",
+            () => {
+                const code =
+                    closeAppEmitter.emit(
+                        createIOSNode(
+                            "com.example.ios",
+                        ),
+                        context,
+                    );
+
+                expect(code).toBe(
+                    `close_app(
+    "iOS",
+    "com.example.ios",
+)`,
+                );
+            },
+        );
+
+        it(
+            "does not use bundleId for Android",
+            () => {
+                const node =
+                    createAndroidNode();
+
+                node.data.bundleId =
+                    "com.should.not.be.used";
+
+                const code =
+                    closeAppEmitter.emit(
+                        node,
+                        context,
+                    );
+
+                expect(code).not.toContain(
+                    "com.should.not.be.used",
+                );
+
+                expect(code).toContain(
+                    "com.demo.app",
+                );
+            },
+        );
+
+        it(
+            "does not use appPackage for iOS",
+            () => {
+                const node =
+                    createIOSNode();
+
+                node.data.appPackage =
+                    "com.should.not.be.used";
+
+                const code =
+                    closeAppEmitter.emit(
+                        node,
+                        context,
+                    );
+
+                expect(code).not.toContain(
+                    "com.should.not.be.used",
+                );
+
+                expect(code).toContain(
+                    "com.demo.ios",
+                );
+            },
+        );
+
+        it(
+            "escapes special characters in Android package",
+            () => {
+                const code =
+                    closeAppEmitter.emit(
+                        createAndroidNode(
+                            'com.demo."app"',
+                        ),
+                        context,
+                    );
+
+                expect(code).toBe(
+                    `close_app(
+    "Android",
+    "com.demo.\\"app\\"",
+)`,
+                );
+            },
+        );
+
+        it(
+            "escapes special characters in iOS bundle id",
+            () => {
+                const code =
+                    closeAppEmitter.emit(
+                        createIOSNode(
+                            'com.demo."ios"',
+                        ),
+                        context,
+                    );
+
+                expect(code).toBe(
+                    `close_app(
+    "iOS",
+    "com.demo.\\"ios\\"",
+)`,
+                );
+            },
+        );
+
+        it(
+            "supports an empty Android package",
+            () => {
+                const code =
+                    closeAppEmitter.emit(
+                        createAndroidNode(
+                            "",
+                        ),
+                        context,
+                    );
+
+                expect(code).toBe(
+                    `close_app(
+    "Android",
+    "",
+)`,
+                );
+            },
+        );
+
+        it(
+            "supports an empty iOS bundle id",
+            () => {
+                const code =
+                    closeAppEmitter.emit(
+                        createIOSNode(
+                            "",
+                        ),
+                        context,
+                    );
+
+                expect(code).toBe(
+                    `close_app(
+    "iOS",
+    "",
+)`,
+                );
+            },
+        );
+    },
+);

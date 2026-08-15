@@ -81,29 +81,43 @@ describe("ScreenshotRunner", () => {
         vi.clearAllMocks();
     });
 
-    it("calls appiumClient.screenshot with file name", async () => {
-        const result =
-            await screenshotRunner.run(
-                createScreenshotNode(),
-                context,
+    it(
+        "calls appiumClient.screenshot with file name",
+        async () => {
+            const result =
+                await screenshotRunner.run(
+                    createScreenshotNode(),
+                    context,
+                );
+
+            expect(
+                screenshotMock,
+            ).toHaveBeenCalledTimes(
+                1,
             );
 
-        expect(screenshotMock).toHaveBeenCalledTimes(
-            1,
-        );
+            expect(
+                screenshotMock,
+            ).toHaveBeenCalledWith(
+                "login-page.png",
+            );
 
-        expect(screenshotMock).toHaveBeenCalledWith(
-            "login-page.png",
-        );
+            expect(
+                successMock,
+            ).toHaveBeenCalledTimes(
+                1,
+            );
 
-        expect(successMock).toHaveBeenCalledTimes(
-            1,
-        );
+            expect(result).toEqual({
+                outputs: ["next"],
 
-        expect(result).toEqual({
-            outputs: ["next"],
-        });
-    });
+                screenshot: undefined,
+
+                screenshotFileName:
+                    "login-page.png",
+            });
+        },
+    );
 
     it("returns immediately when action is not screenshot", async () => {
         const node =

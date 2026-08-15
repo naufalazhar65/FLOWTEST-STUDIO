@@ -11,7 +11,9 @@ import type {
     LongPressNodeData,
 } from "../../flow/types/flowNode";
 
-import type { GeneratorContext } from "../types/GeneratorContext";
+import type {
+    GeneratorContext,
+} from "../types/GeneratorContext";
 
 const context: GeneratorContext = {
     framework:
@@ -22,7 +24,13 @@ const context: GeneratorContext = {
     newline: "\n",
 };
 
-function createNode(): FlowNode & {
+function createNode(
+    locatorStrategy:
+        LongPressNodeData["locatorStrategy"] =
+        "id",
+    locator = "login_button",
+    duration = 1000,
+): FlowNode & {
     data: LongPressNodeData;
 } {
     return {
@@ -46,31 +54,198 @@ function createNode(): FlowNode & {
                 breakpoint: false,
             },
 
-            locatorStrategy: "id",
+            locatorStrategy,
 
-            locator: "login_button",
+            locator,
 
-            duration: 1000,
+            duration,
         },
     } as FlowNode & {
         data: LongPressNodeData;
     };
 }
 
-describe("LongPressEmitter", () => {
-    it("generates python long_press()", () => {
-        const code =
-            longPressEmitter.emit(
-                createNode(),
-                context,
-            );
+describe(
+    "LongPressEmitter",
+    () => {
+        it(
+            "generates python long_press()",
+            () => {
+                const code =
+                    longPressEmitter.emit(
+                        createNode(),
+                        context,
+                    );
 
-        expect(code).toBe(
-            `long_press(
+                expect(code).toBe(
+                    `long_press(
     AppiumBy.ID,
     "login_button",
     1000,
-)`
+)`,
+                );
+            },
         );
-    });
-});
+
+        it(
+            "supports accessibility id locator",
+            () => {
+                const code =
+                    longPressEmitter.emit(
+                        createNode(
+                            "accessibilityId",
+                            "Login Button",
+                            1500,
+                        ),
+                        context,
+                    );
+
+                expect(code).toBe(
+                    `long_press(
+    AppiumBy.ACCESSIBILITY_ID,
+    "Login Button",
+    1500,
+)`,
+                );
+            },
+        );
+
+        it(
+            "supports xpath locator",
+            () => {
+                const code =
+                    longPressEmitter.emit(
+                        createNode(
+                            "xpath",
+                            '//XCUIElementTypeButton[@name="Login"]',
+                            2000,
+                        ),
+                        context,
+                    );
+
+                expect(code).toBe(
+                    `long_press(
+    AppiumBy.XPATH,
+    "//XCUIElementTypeButton[@name=\\\"Login\\\"]",
+    2000,
+)`,
+                );
+            },
+        );
+
+        it(
+            "preserves decimal duration",
+            () => {
+                const code =
+                    longPressEmitter.emit(
+                        createNode(
+                            "id",
+                            "login_button",
+                            1500.5,
+                        ),
+                        context,
+                    );
+
+                expect(code).toBe(
+                    `long_press(
+    AppiumBy.ID,
+    "login_button",
+    1500.5,
+)`,
+                );
+            },
+        );
+
+        it(
+            "supports zero duration",
+            () => {
+                const code =
+                    longPressEmitter.emit(
+                        createNode(
+                            "id",
+                            "login_button",
+                            0,
+                        ),
+                        context,
+                    );
+
+                expect(code).toBe(
+                    `long_press(
+    AppiumBy.ID,
+    "login_button",
+    0,
+)`,
+                );
+            },
+        );
+
+        it(
+            "supports large duration",
+            () => {
+                const code =
+                    longPressEmitter.emit(
+                        createNode(
+                            "id",
+                            "login_button",
+                            10000,
+                        ),
+                        context,
+                    );
+
+                expect(code).toBe(
+                    `long_press(
+    AppiumBy.ID,
+    "login_button",
+    10000,
+)`,
+                );
+            },
+        );
+
+        it(
+            "does not quote numeric duration",
+            () => {
+                const code =
+                    longPressEmitter.emit(
+                        createNode(
+                            "id",
+                            "login_button",
+                            2000,
+                        ),
+                        context,
+                    );
+
+                expect(code).not.toContain(
+                    '"2000"',
+                );
+
+                expect(code).toContain(
+                    "2000",
+                );
+            },
+        );
+
+        it(
+            "escapes special characters in locator",
+            () => {
+                const code =
+                    longPressEmitter.emit(
+                        createNode(
+                            "id",
+                            'login "button"',
+                            1000,
+                        ),
+                        context,
+                    );
+
+                expect(code).toBe(
+                    `long_press(
+    AppiumBy.ID,
+    "login \\"button\\"",
+    1000,
+)`,
+                );
+            },
+        );
+    },
+);

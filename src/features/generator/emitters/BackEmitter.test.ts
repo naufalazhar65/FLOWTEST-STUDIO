@@ -1,4 +1,8 @@
-import { describe, expect, it } from "vitest";
+import {
+    describe,
+    expect,
+    it,
+} from "vitest";
 
 import { backEmitter } from "./BackEmitter";
 
@@ -7,11 +11,16 @@ import type {
     FlowNode,
 } from "../../flow/types/flowNode";
 
-import type { GeneratorContext } from "../types/GeneratorContext";
+import type {
+    GeneratorContext,
+} from "../types/GeneratorContext";
 
 const context: GeneratorContext = {
-    framework: "selenium-python-mobile",
+    framework:
+        "selenium-python-mobile",
+
     indent: "    ",
+
     newline: "\n",
 };
 
@@ -44,15 +53,112 @@ function createNode(): FlowNode & {
     };
 }
 
-describe("BackEmitter", () => {
-    it("generates back()", () => {
-        const code = backEmitter.emit(
-            createNode(),
-            context,
+describe(
+    "BackEmitter",
+    () => {
+        it(
+            "generates back()",
+            () => {
+                const code =
+                    backEmitter.emit(
+                        createNode(),
+                        context,
+                    );
+
+                expect(code).toBe(
+                    "back()",
+                );
+            },
         );
 
-        expect(code).toBe(
-            `back()`
+        it(
+            "generates an empty argument list",
+            () => {
+                const code =
+                    backEmitter.emit(
+                        createNode(),
+                        context,
+                    );
+
+                expect(code).toBe(
+                    "back()",
+                );
+
+                expect(code).not.toContain(
+                    "\n",
+                );
+            },
         );
-    });
-});
+
+        it(
+            "does not generate unexpected arguments",
+            () => {
+                const code =
+                    backEmitter.emit(
+                        createNode(),
+                        context,
+                    );
+
+                expect(code).not.toContain(
+                    "AppiumBy",
+                );
+
+                expect(code).not.toContain(
+                    "True",
+                );
+
+                expect(code).not.toContain(
+                    "False",
+                );
+            },
+        );
+
+        it(
+            "is independent of node position",
+            () => {
+                const node =
+                    createNode();
+
+                node.position = {
+                    x: 500,
+                    y: 300,
+                };
+
+                const code =
+                    backEmitter.emit(
+                        node,
+                        context,
+                    );
+
+                expect(code).toBe(
+                    "back()",
+                );
+            },
+        );
+
+        it(
+            "produces the same output consistently",
+            () => {
+                const first =
+                    backEmitter.emit(
+                        createNode(),
+                        context,
+                    );
+
+                const second =
+                    backEmitter.emit(
+                        createNode(),
+                        context,
+                    );
+
+                expect(first).toBe(
+                    second,
+                );
+
+                expect(first).toBe(
+                    "back()",
+                );
+            },
+        );
+    },
+);

@@ -11,7 +11,9 @@ import type {
     FlowNode,
 } from "../../flow/types/flowNode";
 
-import type { GeneratorContext } from "../types/GeneratorContext";
+import type {
+    GeneratorContext,
+} from "../types/GeneratorContext";
 
 const context: GeneratorContext = {
     framework:
@@ -22,7 +24,12 @@ const context: GeneratorContext = {
     newline: "\n",
 };
 
-function createNode(): FlowNode & {
+function createNode(
+    locatorStrategy:
+        DoubleTapNodeData["locatorStrategy"] =
+        "id",
+    locator = "login_button",
+): FlowNode & {
     data: DoubleTapNodeData;
 } {
     return {
@@ -46,28 +53,139 @@ function createNode(): FlowNode & {
                 breakpoint: false,
             },
 
-            locatorStrategy: "id",
+            locatorStrategy,
 
-            locator: "login_button",
+            locator,
         },
     } as FlowNode & {
         data: DoubleTapNodeData;
     };
 }
 
-describe("DoubleTapEmitter", () => {
-    it("generates python double_tap()", () => {
-        const code =
-            doubleTapEmitter.emit(
-                createNode(),
-                context,
-            );
+describe(
+    "DoubleTapEmitter",
+    () => {
+        it(
+            "generates python double_tap()",
+            () => {
+                const code =
+                    doubleTapEmitter.emit(
+                        createNode(),
+                        context,
+                    );
 
-        expect(code).toBe(
-            `double_tap(
+                expect(code).toBe(
+                    `double_tap(
     AppiumBy.ID,
     "login_button",
-)`
+)`,
+                );
+            },
         );
-    });
-});
+
+        it(
+            "supports accessibility id locator",
+            () => {
+                const code =
+                    doubleTapEmitter.emit(
+                        createNode(
+                            "accessibilityId",
+                            "Login Button",
+                        ),
+                        context,
+                    );
+
+                expect(code).toBe(
+                    `double_tap(
+    AppiumBy.ACCESSIBILITY_ID,
+    "Login Button",
+)`,
+                );
+            },
+        );
+
+        it(
+            "supports xpath locator",
+            () => {
+                const code =
+                    doubleTapEmitter.emit(
+                        createNode(
+                            "xpath",
+                            '//XCUIElementTypeButton[@name="Login"]',
+                        ),
+                        context,
+                    );
+
+                expect(code).toBe(
+                    `double_tap(
+    AppiumBy.XPATH,
+    "//XCUIElementTypeButton[@name=\\\"Login\\\"]",
+)`,
+                );
+            },
+        );
+
+        it(
+            "supports class name locator",
+            () => {
+                const code =
+                    doubleTapEmitter.emit(
+                        createNode(
+                            "className",
+                            "XCUIElementTypeButton",
+                        ),
+                        context,
+                    );
+
+                expect(code).toBe(
+                    `double_tap(
+    AppiumBy.CLASS_NAME,
+    "XCUIElementTypeButton",
+)`,
+                );
+            },
+        );
+
+        it(
+            "supports empty locator",
+            () => {
+                const code =
+                    doubleTapEmitter.emit(
+                        createNode(
+                            "id",
+                            "",
+                        ),
+                        context,
+                    );
+
+                expect(code).toBe(
+                    `double_tap(
+    AppiumBy.ID,
+    "",
+)`,
+                );
+            },
+        );
+
+        it(
+            "escapes special characters in locator",
+            () => {
+                const code =
+                    doubleTapEmitter.emit(
+                        createNode(
+                            "id",
+                            'login "button"',
+                        ),
+                        context,
+                    );
+
+                expect(code).toBe(
+                    `double_tap(
+    AppiumBy.ID,
+    "login \\"button\\"",
+)`,
+                );
+            },
+        );
+    },
+);

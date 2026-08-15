@@ -64,126 +64,197 @@ function createNode(
     };
 }
 
-describe("AssertEmitter", () => {
-    it.each([
-        [
-            "equals",
-            'assert resolve_variables("username") == resolve_variables("admin")',
-        ],
-        [
-            "notEquals",
-            'assert resolve_variables("username") != resolve_variables("admin")',
-        ],
-        [
-            "contains",
-            'assert resolve_variables("admin") in resolve_variables("username")',
-        ],
-        [
-            "notContains",
-            'assert resolve_variables("admin") not in resolve_variables("username")',
-        ],
-        [
-            "startsWith",
-            'assert resolve_variables("username").startswith(resolve_variables("admin"))',
-        ],
-        [
-            "endsWith",
-            'assert resolve_variables("username").endswith(resolve_variables("admin"))',
-        ],
-        [
-            "greaterThan",
-            'assert resolve_variables("username") > resolve_variables("admin")',
-        ],
-        [
-            "greaterThanOrEqual",
-            'assert resolve_variables("username") >= resolve_variables("admin")',
-        ],
-        [
-            "lessThan",
-            'assert resolve_variables("username") < resolve_variables("admin")',
-        ],
-        [
-            "lessThanOrEqual",
-            'assert resolve_variables("username") <= resolve_variables("admin")',
-        ],
-        [
-            "isTrue",
-            'assert resolve_variables("username")',
-        ],
-        [
-            "isFalse",
-            'assert not resolve_variables("username")',
-        ],
-        [
-            "isEmpty",
-            'assert len(resolve_variables("username")) == 0',
-        ],
-        [
-            "isNotEmpty",
-            'assert len(resolve_variables("username")) > 0',
-        ],
-        [
-            "matches",
-            'assert re.match(resolve_variables("admin"), resolve_variables("username"))',
-        ],
-    ] as const)(
-        "generates %s assertion",
-        (
-            operator,
-            expected,
-        ) => {
-            expect(
-                assertEmitter.emit(
-                    createNode(operator),
-                    context,
-                ),
-            ).toBe(expected);
-        },
-    );
-
-    it("resolves runtime variables", () => {
-        const code =
-            assertEmitter.emit(
-                createNode(
-                    "equals",
-                    "${usernameText}",
-                    "Select a username from the list below",
-                ),
-                context,
-            );
-
-        expect(code).toBe(
-            'assert resolve_variables("${usernameText}") == resolve_variables("Select a username from the list below")',
+describe(
+    "AssertEmitter",
+    () => {
+        it.each([
+            [
+                "equals",
+                'assert "username" == "admin"',
+            ],
+            [
+                "notEquals",
+                'assert "username" != "admin"',
+            ],
+            [
+                "contains",
+                'assert "admin" in "username"',
+            ],
+            [
+                "notContains",
+                'assert "admin" not in "username"',
+            ],
+            [
+                "startsWith",
+                'assert "username".startswith("admin")',
+            ],
+            [
+                "endsWith",
+                'assert "username".endswith("admin")',
+            ],
+            [
+                "greaterThan",
+                'assert "username" > "admin"',
+            ],
+            [
+                "greaterThanOrEqual",
+                'assert "username" >= "admin"',
+            ],
+            [
+                "lessThan",
+                'assert "username" < "admin"',
+            ],
+            [
+                "lessThanOrEqual",
+                'assert "username" <= "admin"',
+            ],
+            [
+                "isTrue",
+                'assert "username"',
+            ],
+            [
+                "isFalse",
+                'assert not "username"',
+            ],
+            [
+                "isEmpty",
+                'assert len("username") == 0',
+            ],
+            [
+                "isNotEmpty",
+                'assert len("username") > 0',
+            ],
+            [
+                "matches",
+                'assert re.match("admin", "username")',
+            ],
+        ] as const)(
+            "generates %s assertion",
+            (
+                operator,
+                expected,
+            ) => {
+                expect(
+                    assertEmitter.emit(
+                        createNode(operator),
+                        context,
+                    ),
+                ).toBe(expected);
+            },
         );
-    });
 
-    it("quotes values correctly", () => {
-        expect(
-            assertEmitter.emit(
-                createNode(
-                    "equals",
-                    "hello world",
-                    "flow test",
-                ),
-                context,
-            ),
-        ).toBe(
-            'assert resolve_variables("hello world") == resolve_variables("flow test")',
-        );
-    });
+        it(
+            "resolves runtime variables",
+            () => {
+                const code =
+                    assertEmitter.emit(
+                        createNode(
+                            "equals",
+                            "${usernameText}",
+                            "Select a username from the list below",
+                        ),
+                        context,
+                    );
 
-    it("supports empty expected value", () => {
-        expect(
-            assertEmitter.emit(
-                createNode(
-                    "equals",
-                    "username",
-                    "",
-                ),
-                context,
-            ),
-        ).toBe(
-            'assert resolve_variables("username") == resolve_variables("")',
+                expect(code).toBe(
+                    'assert resolve_variables("${usernameText}") == "Select a username from the list below"',
+                );
+            },
         );
-    });
-});
+
+        it(
+            "resolves runtime variables on both sides",
+            () => {
+                const code =
+                    assertEmitter.emit(
+                        createNode(
+                            "equals",
+                            "${actualValue}",
+                            "${expectedValue}",
+                        ),
+                        context,
+                    );
+
+                expect(code).toBe(
+                    'assert resolve_variables("${actualValue}") == resolve_variables("${expectedValue}")',
+                );
+            },
+        );
+
+        it(
+            "quotes literal values correctly",
+            () => {
+                const code =
+                    assertEmitter.emit(
+                        createNode(
+                            "equals",
+                            "hello world",
+                            "flow test",
+                        ),
+                        context,
+                    );
+
+                expect(code).toBe(
+                    'assert "hello world" == "flow test"',
+                );
+            },
+        );
+
+        it(
+            "preserves empty literal values",
+            () => {
+                const code =
+                    assertEmitter.emit(
+                        createNode(
+                            "equals",
+                            "username",
+                            "",
+                        ),
+                        context,
+                    );
+
+                expect(code).toBe(
+                    'assert "username" == ""',
+                );
+            },
+        );
+
+        it(
+            "preserves special characters in literal values",
+            () => {
+                const code =
+                    assertEmitter.emit(
+                        createNode(
+                            "equals",
+                            'hello "world"',
+                            "line\nbreak",
+                        ),
+                        context,
+                    );
+
+                expect(code).toBe(
+                    'assert "hello \\"world\\"" == "line\\nbreak"',
+                );
+            },
+        );
+
+        it(
+            "does not treat partial variable syntax as a variable",
+            () => {
+                const code =
+                    assertEmitter.emit(
+                        createNode(
+                            "equals",
+                            "username ${value",
+                            "admin",
+                        ),
+                        context,
+                    );
+
+                expect(code).toBe(
+                    'assert "username ${value" == "admin"',
+                );
+            },
+        );
+    },
+);

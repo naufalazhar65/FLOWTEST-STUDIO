@@ -87,4 +87,52 @@ describe("SetVariableEmitter", () => {
 )`,
         );
     });
+
+    it(
+        "resolves runtime variables in values",
+        () => {
+            const node =
+                createNode();
+
+            node.data.value =
+                "${usernameText}";
+
+            const code =
+                setVariableEmitter.emit(
+                    node,
+                    context,
+                );
+
+            expect(code).toBe(
+                `set_variable(
+    "username",
+    resolve_variables("\${usernameText}"),
+)`,
+            );
+        },
+    );
+
+    it(
+        "keeps partial variable syntax as a literal",
+        () => {
+            const node =
+                createNode();
+
+            node.data.value =
+                "hello ${username";
+
+            const code =
+                setVariableEmitter.emit(
+                    node,
+                    context,
+                );
+
+            expect(code).toBe(
+                `set_variable(
+    "username",
+    "hello \${username",
+)`,
+            );
+        },
+    );
 });
