@@ -3,16 +3,24 @@ import { create } from "zustand";
 export interface ProjectState {
     name: string;
 
-    fileHandle: FileSystemFileHandle | null;
+    projectId: string | null;
+
+    fileHandle:
+    FileSystemFileHandle | null;
 
     isModified: boolean;
+
+    setProjectId(
+        projectId: string | null,
+    ): void;
 
     setProjectName(
         name: string,
     ): void;
 
     setFileHandle(
-        handle: FileSystemFileHandle | null,
+        handle:
+            FileSystemFileHandle | null,
     ): void;
 
     markModified(): void;
@@ -23,44 +31,59 @@ export interface ProjectState {
 }
 
 export const useProjectStore =
-    create<ProjectState>((set) => ({
-        name: "Untitled.flow",
+    create<ProjectState>(
+        (set) => ({
+            name: "Untitled.flow",
 
-        fileHandle: null,
+            projectId: null,
 
-        isModified: false,
+            fileHandle: null,
 
-        setProjectName(name) {
-            set({
-                name,
-            });
-        },
+            isModified: false,
 
-        setFileHandle(handle) {
-            set({
-                fileHandle: handle,
-            });
-        },
+            setProjectId(
+                projectId,
+            ) {
+                set({
+                    projectId,
+                });
+            },
 
-        markModified() {
-            set({
-                isModified: true,
-            });
-        },
+            setProjectName(name) {
+                set({
+                    name,
+                });
+            },
 
-        markSaved() {
-            set({
-                isModified: false,
-            });
-        },
+            setFileHandle(handle) {
+                set({
+                    fileHandle:
+                        handle,
+                });
+            },
 
-        reset() {
-            set({
-                name: "Untitled.flow",
+            markModified() {
+                set({
+                    isModified: true,
+                });
+            },
 
-                fileHandle: null,
+            markSaved() {
+                set({
+                    isModified: false,
+                });
+            },
 
-                isModified: false,
-            });
-        },
-    }));
+            reset() {
+                set({
+                    name: "Untitled.flow",
+
+                    projectId: null,
+
+                    fileHandle: null,
+
+                    isModified: false,
+                });
+            },
+        }),
+    );

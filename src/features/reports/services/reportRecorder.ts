@@ -14,6 +14,10 @@ import type {
     TestReportStatus,
 } from "../types/TestReport";
 
+import {
+    getActiveProjectId,
+} from "../../project/storage/activeProject";
+
 interface RecordExecutionReportInput {
     status: TestReportStatus;
 
@@ -30,6 +34,17 @@ export function recordExecutionReport({
     finishedAt,
     duration,
 }: RecordExecutionReportInput): void {
+
+    const projectId =
+        getActiveProjectId();
+
+    if (!projectId) {
+        console.warn(
+            "[Report Recorder] No active project ID. Report will not be saved.",
+        );
+
+        return;
+    }
     const execution =
         useExecutionStore.getState();
 
@@ -93,6 +108,8 @@ export function recordExecutionReport({
 
     const report = {
         id: crypto.randomUUID(),
+
+        projectId,
 
         status,
 

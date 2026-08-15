@@ -38,10 +38,36 @@ import {
     ConfirmDialog,
 } from "../../../components/ui/ConfirmDialog";
 
+import {
+    useProjectStore,
+} from "../../project/store/useProjectStore";
+
 export function ReportsPage() {
     const reports =
         useReportStore(
             (state) => state.reports,
+        );
+
+    const activeProjectId =
+        useProjectStore(
+            (state) =>
+                state.projectId,
+        );
+
+    const projectReports =
+        useMemo(
+            () =>
+                activeProjectId
+                    ? reports.filter(
+                        (report) =>
+                            report.projectId ===
+                            activeProjectId,
+                    )
+                    : [],
+            [
+                reports,
+                activeProjectId,
+            ],
         );
 
     const [
@@ -86,7 +112,7 @@ export function ReportsPage() {
     );
 
     const selectedReport =
-        reports.find(
+        projectReports.find(
             (report) =>
                 report.id ===
                 selectedReportId,
@@ -103,24 +129,24 @@ export function ReportsPage() {
         );
 
     const totalRuns =
-        reports.length;
+        projectReports.length;
 
     const passedRuns =
-        reports.filter(
+        projectReports.filter(
             (report) =>
                 report.status ===
                 "passed",
         ).length;
 
     const failedRuns =
-        reports.filter(
+        projectReports.filter(
             (report) =>
                 report.status ===
                 "failed",
         ).length;
 
     const totalDuration =
-        reports.reduce(
+        projectReports.reduce(
             (total, report) =>
                 total +
                 report.duration,
@@ -141,7 +167,7 @@ export function ReportsPage() {
                     .toLowerCase();
 
             const result =
-                reports.filter(
+                projectReports.filter(
                     (report) => {
                         if (
                             filter !==
@@ -224,7 +250,7 @@ export function ReportsPage() {
                 },
             );
         }, [
-            reports,
+            projectReports,
             search,
             filter,
             sort,
@@ -233,7 +259,9 @@ export function ReportsPage() {
     if (comparisonOpen) {
         return (
             <ReportComparison
-                reports={reports}
+                reports={
+                    projectReports
+                }
                 onBack={() =>
                     setComparisonOpen(
                         false,
@@ -307,7 +335,8 @@ export function ReportsPage() {
                     <div
                         style={{
                             display: "flex",
-                            alignItems: "center",
+                            alignItems:
+                                "center",
                             justifyContent:
                                 "space-between",
                             gap: 16,
@@ -316,8 +345,10 @@ export function ReportsPage() {
                         <div
                             style={{
                                 display: "flex",
-                                alignItems: "center",
-                                justifyContent: "space-between",
+                                alignItems:
+                                    "center",
+                                justifyContent:
+                                    "space-between",
                                 gap: 16,
                                 width: "100%",
                             }}
@@ -337,29 +368,36 @@ export function ReportsPage() {
                             <button
                                 type="button"
                                 disabled={
-                                    reports.length === 0
+                                    projectReports.length ===
+                                    0
                                 }
                                 onClick={() =>
-                                    setClearReportsOpen(true)
+                                    setClearReportsOpen(
+                                        true,
+                                    )
                                 }
                                 style={{
                                     height: 34,
-                                    padding: "0 12px",
+                                    padding:
+                                        "0 12px",
                                     border:
                                         "1px solid #30363D",
                                     borderRadius: 7,
                                     background:
-                                        reports.length === 0
+                                        projectReports.length ===
+                                            0
                                             ? "#161B22"
                                             : "#21262D",
                                     color:
-                                        reports.length === 0
+                                        projectReports.length ===
+                                            0
                                             ? "#6E7681"
                                             : "#F85149",
                                     fontSize: 10,
                                     fontWeight: 600,
                                     cursor:
-                                        reports.length === 0
+                                        projectReports.length ===
+                                            0
                                             ? "not-allowed"
                                             : "pointer",
                                 }}
@@ -371,7 +409,8 @@ export function ReportsPage() {
                         <button
                             type="button"
                             disabled={
-                                reports.length < 2
+                                projectReports.length <
+                                2
                             }
                             onClick={() =>
                                 setComparisonOpen(
@@ -386,20 +425,20 @@ export function ReportsPage() {
                                     "1px solid #30363D",
                                 borderRadius: 7,
                                 background:
-                                    reports.length <
-                                    2
+                                    projectReports.length <
+                                        2
                                         ? "#161B22"
                                         : "#21262D",
                                 color:
-                                    reports.length <
-                                    2
+                                    projectReports.length <
+                                        2
                                         ? "#6E7681"
                                         : "#E6EDF3",
                                 fontSize: 10,
                                 fontWeight: 600,
                                 cursor:
-                                    reports.length <
-                                    2
+                                    projectReports.length <
+                                        2
                                         ? "not-allowed"
                                         : "pointer",
                             }}
@@ -470,7 +509,9 @@ export function ReportsPage() {
 
                 {/* Analytics */}
                 <ReportAnalytics
-                    reports={reports}
+                    reports={
+                        projectReports
+                    }
                 />
 
                 {/* Reports */}
@@ -556,36 +597,55 @@ export function ReportsPage() {
             </div>
 
             <ConfirmDialog
-                open={deleteReportId !== null}
+                open={
+                    deleteReportId !==
+                    null
+                }
                 title="Delete Report"
                 message="Are you sure you want to delete this report? This action cannot be undone."
                 confirmLabel="Delete"
                 cancelLabel="Cancel"
                 onCancel={() =>
-                    setDeleteReportId(null)
+                    setDeleteReportId(
+                        null,
+                    )
                 }
                 onConfirm={() => {
                     if (deleteReportId) {
-                        removeReport(deleteReportId);
+                        removeReport(
+                            deleteReportId,
+                        );
                     }
 
-                    setDeleteReportId(null);
+                    setDeleteReportId(
+                        null,
+                    );
                 }}
             />
 
             <ConfirmDialog
-                open={clearReportsOpen}
+                open={
+                    clearReportsOpen
+                }
                 title="Clear Reports"
                 message="Are you sure you want to delete all saved reports? This action cannot be undone."
                 confirmLabel="Clear All"
                 cancelLabel="Cancel"
                 onCancel={() =>
-                    setClearReportsOpen(false)
+                    setClearReportsOpen(
+                        false,
+                    )
                 }
                 onConfirm={() => {
                     clearReports();
-                    setClearReportsOpen(false);
-                    setSelectedReportId(null);
+
+                    setClearReportsOpen(
+                        false,
+                    );
+
+                    setSelectedReportId(
+                        null,
+                    );
                 }}
             />
         </div>
@@ -679,7 +739,8 @@ function ReportRow({
             style={{
                 width: "100%",
                 display: "flex",
-                alignItems: "center",
+                alignItems:
+                    "center",
                 borderBottom:
                     "1px solid #21262D",
             }}
@@ -691,30 +752,41 @@ function ReportRow({
                     flex: 1,
                     minWidth: 0,
                     display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
+                    alignItems:
+                        "center",
+                    justifyContent:
+                        "space-between",
                     gap: 16,
-                    padding: "14px 16px",
+                    padding:
+                        "14px 16px",
                     border: "none",
-                    background: "transparent",
+                    background:
+                        "transparent",
                     color: "#E6EDF3",
                     cursor: "pointer",
                     textAlign: "left",
-                    transition: "background .15s ease",
+                    transition:
+                        "background .15s ease",
                 }}
-                onMouseEnter={(event) => {
+                onMouseEnter={(
+                    event,
+                ) => {
                     event.currentTarget.style.background =
                         "#1C2128";
                 }}
-                onMouseLeave={(event) => {
+                onMouseLeave={(
+                    event,
+                ) => {
                     event.currentTarget.style.background =
                         "transparent";
                 }}
             >
                 <div
                     style={{
-                        display: "flex",
-                        alignItems: "center",
+                        display:
+                            "flex",
+                        alignItems:
+                            "center",
                         gap: 12,
                         minWidth: 0,
                     }}
@@ -736,7 +808,11 @@ function ReportRow({
                         />
                     )}
 
-                    <div style={{ minWidth: 0 }}>
+                    <div
+                        style={{
+                            minWidth: 0,
+                        }}
+                    >
                         <div
                             style={{
                                 fontSize: 13,
@@ -767,15 +843,21 @@ function ReportRow({
 
                 <div
                     style={{
-                        display: "flex",
-                        alignItems: "center",
+                        display:
+                            "flex",
+                        alignItems:
+                            "center",
                         gap: 20,
                         flexShrink: 0,
                     }}
                 >
                     <StatusBadge
-                        status={report.status}
-                        color={statusColor}
+                        status={
+                            report.status
+                        }
+                        color={
+                            statusColor
+                        }
                     />
 
                     <span
@@ -783,7 +865,8 @@ function ReportRow({
                             color: "#8B949E",
                             fontSize: 12,
                             minWidth: 60,
-                            textAlign: "right",
+                            textAlign:
+                                "right",
                         }}
                     >
                         {formatDuration(
@@ -802,17 +885,24 @@ function ReportRow({
                     width: 34,
                     height: 34,
                     marginRight: 10,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    border: "1px solid transparent",
+                    display:
+                        "flex",
+                    alignItems:
+                        "center",
+                    justifyContent:
+                        "center",
+                    border:
+                        "1px solid transparent",
                     borderRadius: 7,
-                    background: "transparent",
+                    background:
+                        "transparent",
                     color: "#6E7681",
                     cursor: "pointer",
                     flexShrink: 0,
                 }}
-                onMouseEnter={(event) => {
+                onMouseEnter={(
+                    event,
+                ) => {
                     event.currentTarget.style.color =
                         "#F85149";
                     event.currentTarget.style.background =
@@ -820,7 +910,9 @@ function ReportRow({
                     event.currentTarget.style.borderColor =
                         "#F8514933";
                 }}
-                onMouseLeave={(event) => {
+                onMouseLeave={(
+                    event,
+                ) => {
                     event.currentTarget.style.color =
                         "#6E7681";
                     event.currentTarget.style.background =
@@ -875,7 +967,8 @@ function EmptyReports({
         <div
             style={{
                 padding: 48,
-                textAlign: "center",
+                textAlign:
+                    "center",
                 color: "#8B949E",
             }}
         >

@@ -31,6 +31,10 @@ function normalizeReport(
             report.id ??
             crypto.randomUUID(),
 
+        projectId:
+            report.projectId ??
+            "",
+
         status:
             report.status ??
             "failed",
@@ -144,11 +148,10 @@ export const useReportStore =
                 name:
                     "flowtest-studio-reports",
 
-                version: 2,
+                version: 3,
 
                 migrate(
                     persistedState,
-                    version,
                 ) {
                     if (!persistedState) {
                         return persistedState;
@@ -161,31 +164,6 @@ export const useReportStore =
                             >;
                         };
 
-                    /*
-                     * Version 0/1 → Version 2
-                     *
-                     * Reports created before
-                     * Environment was added may
-                     * not contain environment.
-                     */
-                    if (version < 2) {
-                        return {
-                            ...state,
-
-                            reports:
-                                (
-                                    state.reports ??
-                                    []
-                                ).map(
-                                    normalizeReport,
-                                ),
-                        };
-                    }
-
-                    /*
-                     * Also normalize the current
-                     * state defensively.
-                     */
                     return {
                         ...state,
 

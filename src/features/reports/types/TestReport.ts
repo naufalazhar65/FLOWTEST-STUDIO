@@ -71,6 +71,8 @@ export interface ReportEnvironment {
 export interface TestReport {
     id: string;
 
+    projectId: string;
+
     status: TestReportStatus;
 
     startedAt: number;

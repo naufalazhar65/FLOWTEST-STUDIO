@@ -1,4 +1,10 @@
-import type { FlowProject } from "../../flow/types/FlowProject";
+import type {
+    FlowProject,
+} from "../../flow/types/FlowProject";
+
+import {
+    useProjectStore,
+} from "../store/useProjectStore";
 
 const ACTIVE_PROJECT_KEY =
     "flowtest.active-project";
@@ -18,6 +24,12 @@ export function setActiveProject(
         ACTIVE_PROJECT_DATA_KEY,
         JSON.stringify(project),
     );
+
+    useProjectStore
+        .getState()
+        .setProjectId(
+            project.id,
+        );
 }
 
 export function getActiveProjectId():
@@ -55,4 +67,8 @@ export function clearActiveProject(): void {
     localStorage.removeItem(
         ACTIVE_PROJECT_DATA_KEY,
     );
+
+    useProjectStore
+        .getState()
+        .setProjectId(null);
 }
