@@ -9,6 +9,7 @@ import type { NodeType } from "../types/NodePlugin";
 
 import { createNode } from "../factories/nodeFactory";
 import { createEdge } from "../factories/edgeFactory";
+import { plugins } from "../plugins";
 
 interface InsertNodeWithDataResult {
     nodes: FlowNode[];
@@ -20,12 +21,12 @@ interface InsertNodeWithDataResult {
 
 interface NodeCreateOverrides {
     locatorStrategy?: FlowNode["data"] extends infer T
-    ? T extends {
-        locatorStrategy: infer S;
-    }
-    ? S
-    : never
-    : never;
+        ? T extends {
+            locatorStrategy: infer S;
+        }
+        ? S
+        : never
+        : never;
 
     locator?: string;
 
@@ -68,6 +69,19 @@ function toCreateNodeOverrides(
     return overrides;
 }
 
+function getDefaultSourceHandle(
+    type: NodeType,
+): string | undefined {
+    const plugin =
+        plugins.find(
+            (item) =>
+                item.type ===
+                type,
+        );
+
+    return plugin?.handles?.outputs?.[0];
+}
+
 export function insertNodeWithDataAction(
     nodes: FlowNode[],
     edges: Edge[],
@@ -81,19 +95,17 @@ export function insertNodeWithDataAction(
      * --------------------------------------------------
      * Insert before a specific node.
      *
-     * Normal case:
-     *
      * source -> target
      *
      * becomes:
      *
      * source -> new -> target
      *
-     * This also works when the target is the
-     * root node by reconnecting all incoming
-     * edges. A root node normally has none.
+     * The new node's source handle is resolved from
+     * its plugin definition.
      * --------------------------------------------------
      */
+
     if (beforeNodeId) {
         const targetNode =
             nodes.find(
@@ -133,6 +145,11 @@ export function insertNodeWithDataAction(
                 },
             );
 
+        const newNodeSourceHandle =
+            getDefaultSourceHandle(
+                type,
+            );
+
         /*
          * Root node:
          *
@@ -154,9 +171,11 @@ export function insertNodeWithDataAction(
 
                 edges: [
                     ...edges,
+
                     createEdge(
                         node.id,
                         targetNode.id,
+                        newNodeSourceHandle,
                     ),
                 ],
 
@@ -204,7 +223,7 @@ export function insertNodeWithDataAction(
                     createEdge(
                         node.id,
                         edge.target,
-                        undefined,
+                        newNodeSourceHandle,
                         edge.targetHandle ??
                         undefined,
                     ),
@@ -237,6 +256,7 @@ export function insertNodeWithDataAction(
      * source -> new -> target
      * --------------------------------------------------
      */
+
     if (edgeId) {
         const edge =
             edges.find(
@@ -306,6 +326,11 @@ export function insertNodeWithDataAction(
                 position,
             );
 
+        const newNodeSourceHandle =
+            getDefaultSourceHandle(
+                type,
+            );
+
         const remainingEdges =
             edges.filter(
                 (item) =>
@@ -326,7 +351,7 @@ export function insertNodeWithDataAction(
             createEdge(
                 node.id,
                 edge.target,
-                undefined,
+                newNodeSourceHandle,
                 edge.targetHandle ??
                 undefined,
             ),
@@ -348,11 +373,11 @@ export function insertNodeWithDataAction(
      * --------------------------------------------------
      * Terminal-node case.
      *
-     * There is no outgoing edge, so
-     * append the new node after the
-     * requested target node.
+     * There is no outgoing edge, so append the
+     * new node after the requested target node.
      * --------------------------------------------------
      */
+
     if (afterNodeId) {
         const targetNode =
             nodes.find(
@@ -385,6 +410,11 @@ export function insertNodeWithDataAction(
                 },
             );
 
+        const newNodeSourceHandle =
+            getDefaultSourceHandle(
+                type,
+            );
+
         const nextEdges: Edge[] = [
             ...edges,
 
@@ -393,6 +423,13 @@ export function insertNodeWithDataAction(
                 node.id,
             ),
         ];
+
+        /*
+         * The new node has no outgoing edge yet,
+         * so its source handle is intentionally not
+         * used here.
+         */
+        void newNodeSourceHandle;
 
         return {
             nodes: [

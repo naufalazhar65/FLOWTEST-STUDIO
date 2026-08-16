@@ -1,3 +1,7 @@
+import {
+    resolveModificationTarget,
+} from "./resolveModificationTarget.mjs";
+
 const baseUrl =
     process.env.OLLAMA_BASE_URL ??
     "http://localhost:11434";
@@ -2928,44 +2932,15 @@ function normalizeModificationPlan(
  * --------------------------------------------------
  */
 
-const normalizedMessage =
-    typeof message ===
-        "string"
-        ? message.toLowerCase()
-        : "";
-
-const refersToSelectedNode =
-    normalizedMessage.includes(
-        "node yang dipilih",
-    ) ||
-    normalizedMessage.includes(
-        "selected node",
-    ) ||
-    normalizedMessage.includes(
-        "node terpilih",
-    );
-
-const selectedNodeId =
-    typeof context?.selectedNodeId ===
-        "string" &&
-    context.selectedNodeId.trim()
-        ? context.selectedNodeId
-        : null;
-
-const explicitTargetNodeId =
-    typeof rawOperation.targetNodeId ===
-        "string" &&
-    rawOperation.targetNodeId.trim()
-        ? rawOperation.targetNodeId
-        : null;
-
 const targetNodeId =
-    refersToSelectedNode &&
-    operationIndex === 0 &&
-    selectedNodeId
-        ? selectedNodeId
-        : explicitTargetNodeId;
+    resolveModificationTarget({
+        operation:
+            rawOperation,
 
+        context,
+
+        message,
+    });
         /*
          * Make sure the target exists in the
          * current FlowTest Studio context.
