@@ -1,21 +1,30 @@
 import { useState } from "react";
 
 import {
-    animation,
-    colors,
-    radius,
-    spacing,
-    typography,
-} from "../../themes";
+    Sparkles,
+} from "lucide-react";
 
-import { InspectorPanel } from "../inspector/InspectorPanel";
-import { GeneratorPanel } from "../../features/generator/components/GeneratorPanel";
-import { ElementInspector } from "../../features/inspector/components/ElementInspector";
+import {
+    InspectorPanel,
+} from "../inspector/InspectorPanel";
+
+import {
+    GeneratorPanel,
+} from "../../features/generator/components/GeneratorPanel";
+
+import {
+    ElementInspector,
+} from "../../features/inspector/components/ElementInspector";
+
+import {
+    AIAssistant,
+} from "../../features/ai/components/AIAssistant";
 
 type RightPanelTab =
     | "properties"
     | "element"
-    | "generator";
+    | "generator"
+    | "ai";
 
 export function RightPanel() {
     const [tab, setTab] =
@@ -24,43 +33,26 @@ export function RightPanel() {
         );
 
     return (
-        <aside
+        <div
             style={{
                 height: "100%",
-
                 display: "flex",
-
                 flexDirection:
                     "column",
-
                 minHeight: 0,
-
                 background:
-                    colors.background,
-
-                borderLeft:
-                    `1px solid ${colors.border}`,
+                    "#0D1117",
             }}
         >
             {/* Tabs */}
             <div
-                role="tablist"
-                aria-label="Inspector panels"
                 style={{
                     display: "flex",
-
                     flexShrink: 0,
-
-                    padding:
-                        `${spacing.xs}px ${spacing.sm}px 0`,
-
-                    gap: spacing.xs,
-
                     borderBottom:
-                        `1px solid ${colors.border}`,
-
+                        "1px solid #30363D",
                     background:
-                        colors.panel,
+                        "#161B22",
                 }}
             >
                 <TabButton
@@ -103,18 +95,41 @@ export function RightPanel() {
                 >
                     Generator
                 </TabButton>
+
+                <TabButton
+                    active={
+                        tab === "ai"
+                    }
+                    onClick={() =>
+                        setTab("ai")
+                    }
+                >
+                    <span
+                        style={{
+                            display:
+                                "inline-flex",
+                            alignItems:
+                                "center",
+                            gap: 5,
+                        }}
+                    >
+                        <Sparkles
+                            size={13}
+                        />
+
+                        AI
+                    </span>
+                </TabButton>
             </div>
 
             {/* Panel */}
             <div
                 style={{
                     flex: 1,
-
                     display: "flex",
-
                     minHeight: 0,
-
-                    overflow: "hidden",
+                    overflow:
+                        "hidden",
                 }}
             >
                 {tab ===
@@ -122,13 +137,9 @@ export function RightPanel() {
                     <div
                         style={{
                             flex: 1,
-
                             minHeight: 0,
-
-                            overflowY: "auto",
-
-                            overscrollBehavior:
-                                "contain",
+                            overflow:
+                                "auto",
                         }}
                     >
                         <InspectorPanel />
@@ -139,10 +150,9 @@ export function RightPanel() {
                     <div
                         style={{
                             flex: 1,
-
                             minHeight: 0,
-
-                            overflow: "hidden",
+                            overflow:
+                                "hidden",
                         }}
                     >
                         <ElementInspector />
@@ -154,11 +164,9 @@ export function RightPanel() {
                     <div
                         style={{
                             flex: 1,
-
                             minHeight: 0,
-
-                            display: "flex",
-
+                            display:
+                                "flex",
                             overflow:
                                 "hidden",
                         }}
@@ -166,15 +174,29 @@ export function RightPanel() {
                         <GeneratorPanel />
                     </div>
                 )}
+
+                {tab === "ai" && (
+                    <div
+                        style={{
+                            flex: 1,
+                            minHeight: 0,
+                            overflow:
+                                "hidden",
+                        }}
+                    >
+                        <AIAssistant />
+                    </div>
+                )}
             </div>
-        </aside>
+        </div>
     );
 }
 
 interface TabButtonProps {
     active: boolean;
 
-    children: React.ReactNode;
+    children:
+        | React.ReactNode;
 
     onClick(): void;
 }
@@ -187,109 +209,30 @@ function TabButton({
     return (
         <button
             type="button"
-            role="tab"
-            aria-selected={active}
             onClick={onClick}
             style={{
-                position: "relative",
-
                 flex: 1,
-
                 minWidth: 0,
-
                 padding:
-                    `${spacing.sm}px ${spacing.sm}px`,
-
-                border: "none",
-
-                borderRadius:
-                    `${radius.sm}px ${radius.sm}px 0 0`,
-
-                background:
-                    active
-                        ? colors.panelHover
-                        : "transparent",
-
-                color:
-                    active
-                        ? colors.text
-                        : colors.textSecondary,
-
-                fontSize:
-                    typography.caption
-                        .fontSize,
-
-                fontWeight:
-                    active
-                        ? typography.subtitle
-                              .fontWeight
-                        : typography.caption
-                              .fontWeight,
-
+                    "12px 10px",
                 cursor: "pointer",
-
+                border: "none",
+                background:
+                    "transparent",
+                borderBottom:
+                    active
+                        ? "2px solid #3B82F6"
+                        : "2px solid transparent",
+                color: active
+                    ? "#FFFFFF"
+                    : "#8B949E",
+                fontWeight: 600,
+                fontSize: 12,
                 transition:
-                    `background ${animation.fast}, color ${animation.fast}`,
-
-                outline: "none",
-
-                whiteSpace:
-                    "nowrap",
-            }}
-            onMouseEnter={(event) => {
-                if (active) {
-                    return;
-                }
-
-                event.currentTarget.style
-                    .background =
-                    colors.panelHover;
-
-                event.currentTarget.style
-                    .color =
-                    colors.text;
-            }}
-            onMouseLeave={(event) => {
-                if (active) {
-                    return;
-                }
-
-                event.currentTarget.style
-                    .background =
-                    "transparent";
-
-                event.currentTarget.style
-                    .color =
-                    colors.textSecondary;
+                    "all .2s",
             }}
         >
             {children}
-
-            {active && (
-                <span
-                    aria-hidden="true"
-                    style={{
-                        position:
-                            "absolute",
-
-                        left:
-                            spacing.sm,
-
-                        right:
-                            spacing.sm,
-
-                        bottom: 0,
-
-                        height: 2,
-
-                        borderRadius:
-                            radius.full,
-
-                        background:
-                            colors.accent,
-                    }}
-                />
-            )}
         </button>
     );
 }

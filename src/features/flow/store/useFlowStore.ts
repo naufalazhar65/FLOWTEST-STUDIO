@@ -67,6 +67,10 @@ import {
   pushHistory,
 } from "./historyHelpers";
 
+import {
+  insertNodeWithDataAction,
+} from "../actions/insertNodeWithData";
+
 interface FlowStore {
   nodes: FlowNode[];
 
@@ -85,6 +89,10 @@ interface FlowStore {
   undo(): void;
 
   redo(): void;
+
+  runInHistoryBatch(
+    callback: () => void,
+  ): void;
 
   copyNode(): void;
 
@@ -108,6 +116,14 @@ interface FlowStore {
 
   addNode(
     type: NodeType,
+  ): void;
+
+  insertNodeWithData(
+    edgeId: string | null,
+    type: NodeType,
+    data: FlowNodeDataPatch,
+    afterNodeId?: string,
+    beforeNodeId?: string,
   ): void;
 
   addNodeWithLocator(
@@ -239,6 +255,32 @@ export const useFlowStore =
       });
 
       markProjectModified();
+    },
+
+    runInHistoryBatch: (
+      callback,
+    ) => {
+      const historyLength =
+        get().history.length;
+
+      callback();
+
+      set((state) => {
+        if (
+          state.history.length <=
+          historyLength
+        ) {
+          return state;
+        }
+
+        return {
+          history:
+            state.history.slice(
+              0,
+              historyLength + 1,
+            ),
+        };
+      });
     },
 
     undo: () => {
@@ -616,4 +658,51 @@ export const useFlowStore =
         future: [],
       });
     },
+    insertNodeWithData: (
+      edgeId,
+      type,
+      data,
+      afterNodeId,
+      beforeNodeId,
+    ) => {
+      set((state) => {
+        const result =
+          insertNodeWithDataAction(
+            state.nodes,
+            state.edges,
+            edgeId,
+            type,
+            data,
+            afterNodeId,
+            beforeNodeId,
+          );
+
+        if (!result.node) {
+          return state;
+        }
+
+        return {
+          nodes:
+            result.nodes,
+
+          edges:
+            result.edges,
+
+          selectedNodeId:
+            result.node.id,
+
+          history:
+            pushHistory(
+              state.history,
+              state.nodes,
+              state.edges,
+            ),
+
+          future: [],
+        };
+      });
+
+      markProjectModified();
+    },
   }));
+
