@@ -311,6 +311,193 @@ Review / Compare
 
 ---
 
+# 🤖 AI Assistant & AI Flow Modification
+
+FlowTest Studio now includes an AI Assistant for understanding the current flow context and generating targeted modifications without recreating the entire workflow.
+
+The AI modification pipeline uses the current FlowTest Studio state as the source of truth.
+
+## AI Capabilities
+
+### Flow Analysis
+
+- Current flow context analysis
+- Selected node analysis
+- Node and edge context awareness
+- Current selected-node tracking
+
+### AI Flow Modification
+
+The AI Assistant supports targeted modifications to the existing flow:
+
+- Add Node Before
+- Add Node After
+- Update Node
+- Delete Node
+- Single-operation modifications
+- Multi-operation modifications
+- Selected-node targeting
+- Action-specific field validation
+- Modification preview before applying
+- Apply changes directly to the current flow
+- Undo AI modifications through flow history
+
+### Supported Modification Examples
+
+```text
+Tambahkan wait 1000ms sebelum node yang dipilih
+```
+
+```text
+Hapus node yang dipilih
+```
+
+```text
+Ubah assertion menjadi contains Dashboard
+```
+
+Multiple modifications can also be handled in a single request:
+
+```text
+Tambahkan wait 1000ms sebelum node yang dipilih,
+lalu ubah assertion setelahnya menjadi contains Dashboard
+```
+
+The resulting modification plan can contain multiple ordered operations:
+
+```text
+Modification Request
+        │
+        ▼
+AI / Ollama
+        │
+        ▼
+Raw Modification Plan
+        │
+        ▼
+Normalization
+        │
+        ▼
+Validation
+        │
+        ▼
+Modification Preview
+        │
+        ▼
+Apply Changes
+        │
+        ▼
+Flow Store
+        │
+        ▼
+Updated Canvas
+```
+
+### Selected Node Resolution
+
+The current FlowTest Studio selection is authoritative when the user refers to:
+
+- "node yang dipilih"
+- "selected node"
+- "node terpilih"
+
+The AI server can correct an AI-generated target node ID using the current `selectedNodeId` from the FlowTest Studio context.
+
+### Modification Validation
+
+AI modification plans are validated before they are applied.
+
+Validation includes:
+
+- Supported modification operation
+- Target node existence
+- Required step fields
+- Locator requirements
+- Input text requirements
+- Assertion requirements
+- Delay duration requirements
+- Wait timeout validation
+- Wait polling interval validation
+- Delete-node operation without a step
+
+### Wait Defaults
+
+For generated `wait` nodes:
+
+- `timeout` uses the requested timeout
+- `pollingInterval` defaults to `500 ms` when not explicitly provided
+
+For example:
+
+```json
+{
+  "action": "wait",
+  "timeout": 1000,
+  "pollingInterval": 500
+}
+```
+
+### AI Modification History
+
+Multiple AI operations are applied through the FlowTest Studio history system so an AI request can be reverted through Undo.
+
+Example:
+
+```text
+AI Request
+   │
+   ├── Add Wait
+   │
+   └── Update Assertion
+          │
+          ▼
+       One Apply
+          │
+          ▼
+       History Entry
+          │
+          ▼
+       Undo
+          │
+          ▼
+   Restore Previous Flow
+```
+
+### AI Technology
+
+The AI server is implemented as a separate service and integrates with Ollama for local model-based responses.
+
+The AI flow is separated into:
+
+```text
+AI Client
+    │
+    ▼
+AI Server
+    │
+    ▼
+Ollama
+    │
+    ▼
+Intent Detection
+    │
+    ├── Analyze Flow
+    ├── Analyze Selected Node
+    ├── Generate Flow
+    └── Modify Flow
+           │
+           ▼
+Modification Normalizer
+           │
+           ▼
+Modification Validator
+           │
+           ▼
+Flow Store
+```
+
+---
+
 # 🤖 Code Generator
 
 FlowTest Studio can generate production-oriented Appium automation project structures from visual workflows.
@@ -582,6 +769,10 @@ FlowTest Studio uses **Vitest** for unit testing.
 - Type Guards
 - Report Services
 - Report Persistence
+- AI Modification Validation
+- AI Modification Application
+- AI Flow Context
+- AI Flow Modification Workflows
 
 ### Current Coverage
 
@@ -621,6 +812,15 @@ Coverage continues to improve as additional Appium integration tests, mobile ins
 ## Testing
 
 - Vitest
+
+## AI
+
+- Ollama
+- Local AI Server
+- AI Intent Detection
+- AI Flow Context
+- AI Modification Normalization
+- AI Modification Validation
 
 ---
 
@@ -663,6 +863,26 @@ npm run dev
 npm run build
 ```
 
+## Run AI Development Server
+
+FlowTest Studio's AI Assistant can be run with the local AI service:
+
+```bash
+npm run dev:ai
+```
+
+The AI service runs on:
+
+```text
+http://localhost:8787
+```
+
+The frontend sends AI requests to:
+
+```text
+POST /api/ai
+```
+
 ---
 
 # 🗺 Roadmap
@@ -697,6 +917,26 @@ npm run build
 - Add Locator to Flow
 - Press Return Node
 - Hide Keyboard Node
+
+### AI Assistant
+
+- AI Assistant
+- AI Flow Context
+- AI Intent Detection
+- Analyze Current Flow
+- Analyze Selected Node
+- AI Modify Flow
+- Add Node Before
+- Add Node After
+- Update Node
+- Delete Node
+- Single Modification Operations
+- Multiple Modification Operations
+- Selected Node Resolution
+- Modification Validation
+- Modification Preview
+- AI Apply Changes
+- AI Modification History / Undo
 
 ### Execution & Reporting
 
@@ -738,7 +978,7 @@ npm run build
 - Export ZIP
 - Import Existing Project
 - Project Templates
-- AI Flow Generator
+- Advanced AI Flow Generation Improvements
 - Plugin Marketplace
 - Cloud Device Execution
 - Team Collaboration
