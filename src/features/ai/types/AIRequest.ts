@@ -61,6 +61,38 @@ export interface AIRequest {
     message: string;
 
     context: AIFlowContext;
+
+    clarification?:
+        AIPendingClarification;
+}
+
+export interface AIClarificationCandidate {
+    nodeId: string;
+
+    title: string | null;
+
+    action: string | null;
+
+    subtitle: string | null;
+}
+
+export interface AIClarification {
+    type:
+        | "target_node";
+
+    question: string;
+
+    candidates:
+        AIClarificationCandidate[];
+}
+
+export interface AIPendingClarification {
+    originalMessage: string;
+
+    clarification:
+        AIClarification;
+
+    selectedCandidateIndex?: number | null;
 }
 
 export interface AIResponse {
@@ -70,5 +102,9 @@ export interface AIResponse {
 
     flowPlan?: AIFlowPlan;
 
-    modificationPlan?: AIModificationPlan;
+    modificationPlan?:
+        AIModificationPlan;
+
+    clarification?:
+        AIClarification;
 }

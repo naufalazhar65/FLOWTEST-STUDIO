@@ -1,8 +1,293 @@
+function createTargetCandidate(
+    node,
+) {
+    if (!node) {
+        return null;
+    }
+
+    return {
+        nodeId: node.id,
+        action: node.action ?? null,
+        title: node.title ?? null,
+        subtitle:
+            node.subtitle ?? null,
+    };
+}
+
+export function findAmbiguousModificationTargets({
+    context,
+    message = "",
+}) {
+    const nodes =
+        Array.isArray(
+            context?.nodes,
+        )
+            ? context.nodes
+            : [];
+
+    if (
+        nodes.length === 0 ||
+        typeof message !==
+            "string"
+    ) {
+        return [];
+    }
+
+    const normalizedMessage =
+        message
+            .toLowerCase()
+            .trim();
+
+    /*
+     * --------------------------------------------------
+     * Explicit ordinal references are already
+     * deterministic.
+     *
+     * Examples:
+     * "Login pertama"
+     * "Login kedua"
+     * "Login terakhir"
+     * --------------------------------------------------
+     */
+
+    const hasOrdinalReference =
+        /\b(pertama|kedua|ketiga|keempat|kelima|terakhir|first|second|third|fourth|fifth|last)\b/i.test(
+            normalizedMessage,
+        ) ||
+        /\bke[-\s]?\d+\b/i.test(
+            normalizedMessage,
+        ) ||
+        /\b\d+(?:st|nd|rd|th)\b/i.test(
+            normalizedMessage,
+        );
+
+    if (
+        hasOrdinalReference
+    ) {
+        return [];
+    }
+
+    /*
+     * --------------------------------------------------
+     * Build searchable node values.
+     *
+     * Keep this aligned with the main target
+     * resolver:
+     *
+     * title
+     * action
+     * locator
+     * details.elementName
+     * details.text
+     * details.value
+     * --------------------------------------------------
+     */
+
+    function getSearchValues(
+        node,
+    ) {
+        const values = [];
+
+        if (
+            typeof node?.title ===
+            "string"
+        ) {
+            values.push(
+                node.title,
+            );
+        }
+
+        if (
+            typeof node?.action ===
+            "string"
+        ) {
+            values.push(
+                node.action,
+            );
+        }
+
+        if (
+            typeof node?.locator ===
+            "string"
+        ) {
+            values.push(
+                node.locator,
+            );
+        }
+
+        if (
+            node?.details &&
+            typeof node.details ===
+                "object"
+        ) {
+            for (
+                const [
+                    key,
+                    value,
+                ] of Object.entries(
+                    node.details,
+                )
+            ) {
+                if (
+                    typeof value ===
+                    "string"
+                ) {
+                    values.push(
+                        value,
+                    );
+
+                    if (
+                        key ===
+                            "elementName" ||
+                        key ===
+                            "text" ||
+                        key ===
+                            "value"
+                    ) {
+                        values.push(
+                            value,
+                        );
+                    }
+                }
+            }
+        }
+
+        return values
+            .map(
+                (value) =>
+                    value
+                        .toLowerCase()
+                        .trim(),
+            )
+            .filter(Boolean);
+    }
+
+    /*
+     * --------------------------------------------------
+     * Extract a likely human-readable target
+     * from the request.
+     *
+     * Example:
+     *
+     * "Tambahkan wait sebelum Login"
+     *
+     * target = "login"
+     * --------------------------------------------------
+     */
+
+    const referenceMatch =
+        normalizedMessage.match(
+            /(?:sebelum|before|setelah|after|hapus|delete|remove|ubah|update|edit|modify)\s+(?:node\s+)?(.+?)(?:\s+(?:setelah|after|sebelum|before)\s+.+)?$/i,
+        );
+
+    let reference =
+        referenceMatch?.[1] ??
+        "";
+
+    reference =
+        reference
+            .replace(
+                /^(tambahkan|tambah|add|insert|masukkan|buat|create)\s+/i,
+                "",
+            )
+            .replace(
+                /^(wait|delay)\s+/i,
+                "",
+            )
+            .trim();
+
+    if (
+        !reference
+    ) {
+        return [];
+    }
+
+    /*
+     * Remove trailing operation words that are
+     * not part of the node reference.
+     */
+    reference =
+        reference
+            .replace(
+                /\s+(setelah|after|sebelum|before)\s+.+$/i,
+                "",
+            )
+            .trim();
+
+    if (
+        !reference
+    ) {
+        return [];
+    }
+
+    /*
+     * --------------------------------------------------
+     * Find candidate nodes.
+     * --------------------------------------------------
+     */
+
+    const candidates =
+        nodes.filter(
+            (node) => {
+                const values =
+                    getSearchValues(
+                        node,
+                    );
+
+                return values.some(
+                    (value) =>
+                        value ===
+                            reference ||
+                        value.includes(
+                            reference,
+                        ) ||
+                        reference.includes(
+                            value,
+                        ),
+                );
+            },
+        );
+
+    /*
+     * --------------------------------------------------
+     * Only ambiguity with multiple candidates
+     * matters.
+     * --------------------------------------------------
+     */
+
+    if (
+        candidates.length <=
+        1
+    ) {
+        return [];
+    }
+
+    return candidates.map(
+        (node) => ({
+            nodeId:
+                node.id,
+
+            title:
+                node.title ??
+                null,
+
+            action:
+                node.action ??
+                null,
+
+            subtitle:
+                node.subtitle ??
+                null,
+        }),
+    );
+}
+
 export function resolveModificationTarget({
     operation,
     context,
     message = "",
 }) {
+
     if (
         !operation ||
         typeof operation !==

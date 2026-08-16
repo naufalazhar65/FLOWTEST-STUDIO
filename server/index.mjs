@@ -40,9 +40,10 @@ app.post(
     async (req, res) => {
         try {
             const {
-                message,
-                context,
-            } = req.body;
+    message,
+    context,
+    clarification,
+} = req.body;
 
             if (
                 typeof message !== "string" ||
@@ -66,11 +67,16 @@ app.post(
             }
 
             const result =
-                await generateAIResponse({
-                    message:
-                        message.trim(),
-                    context,
-                });
+    await generateAIResponse({
+        message:
+            message.trim(),
+
+        context,
+
+        clarification:
+            clarification ??
+            null,
+    });
 
             return res.json(result);
         } catch (error) {

@@ -2,6 +2,10 @@ import {
     resolveModificationTarget,
 } from "./resolveModificationTarget.mjs";
 
+import {
+    findAmbiguousModificationTargets,
+} from "./resolveModificationTarget.mjs";
+
 const baseUrl =
     process.env.OLLAMA_BASE_URL ??
     "http://localhost:11434";
@@ -3631,13 +3635,322 @@ if (
     };
 }
 
+export function resolveClarificationTarget({
+    message,
+    candidates,
+}) {
+    const clarificationCandidates =
+        Array.isArray(candidates)
+            ? candidates
+            : [];
 
+    if (
+        clarificationCandidates.length === 0 ||
+        typeof message !== "string"
+    ) {
+        return {
+            candidateIndex: null,
+            targetNodeId: null,
+        };
+    }
+
+    const normalizedMessage =
+        message
+            .toLowerCase()
+            .trim();
+
+    let candidateIndex =
+        null;
+
+    if (
+        /\bpertama\b|\bfirst\b/i.test(
+            normalizedMessage,
+        )
+    ) {
+        candidateIndex = 0;
+    } else if (
+        /\bkedua\b|\bsecond\b/i.test(
+            normalizedMessage,
+        )
+    ) {
+        candidateIndex = 1;
+    } else if (
+        /\bketiga\b|\bthird\b/i.test(
+            normalizedMessage,
+        )
+    ) {
+        candidateIndex = 2;
+    } else if (
+        /\bkeempat\b|\bfourth\b/i.test(
+            normalizedMessage,
+        )
+    ) {
+        candidateIndex = 3;
+    } else if (
+        /\bkelima\b|\bfifth\b/i.test(
+            normalizedMessage,
+        )
+    ) {
+        candidateIndex = 4;
+    } else if (
+        /\bterakhir\b|\blast\b/i.test(
+            normalizedMessage,
+        )
+    ) {
+        candidateIndex =
+            clarificationCandidates.length - 1;
+    } else {
+        const numericMatch =
+            normalizedMessage.match(
+                /\b(?:ke[-\s]?)?(\d+)\b/i,
+            );
+
+        if (
+            numericMatch
+        ) {
+            candidateIndex =
+                Number(
+                    numericMatch[1],
+                ) - 1;
+        }
+    }
+
+    if (
+        candidateIndex === null ||
+        candidateIndex < 0 ||
+        candidateIndex >=
+            clarificationCandidates.length
+    ) {
+        return {
+            candidateIndex: null,
+            targetNodeId: null,
+        };
+    }
+
+    return {
+        candidateIndex,
+
+        targetNodeId:
+            clarificationCandidates[
+                candidateIndex
+            ]?.nodeId ?? null,
+    };
+}
 
 export async function generateAIResponse({
-    
     message,
     context,
+    clarification = null,
 }) {
+
+    /*
+     * --------------------------------------------------
+     * Resolve pending clarification
+     * --------------------------------------------------
+     *
+     * Example:
+     *
+     * original request:
+     * "Tambahkan wait sebelum Login"
+     *
+     * follow-up:
+     * "yang kedua"
+     *
+     * The follow-up itself is NOT the modification
+     * instruction. It only selects one of the
+     * previously detected candidates.
+     * --------------------------------------------------
+     */
+
+    const clarificationOriginalMessage =
+        typeof clarification?.originalMessage ===
+            "string" &&
+        clarification.originalMessage.trim()
+            ? clarification.originalMessage.trim()
+            : null;
+
+    const clarificationCandidates =
+        Array.isArray(
+            clarification?.clarification?.candidates,
+        )
+            ? clarification.clarification
+                .candidates
+            : [];
+
+    const normalizedClarificationMessage =
+        typeof message ===
+            "string"
+            ? message
+                .toLowerCase()
+                .trim()
+            : "";
+
+    function resolveClarificationCandidateIndex() {
+        if (
+            clarificationCandidates.length ===
+            0
+        ) {
+            return null;
+        }
+
+        /*
+         * --------------------------------------------------
+         * Indonesian ordinal
+         * --------------------------------------------------
+         */
+
+        if (
+            /\bpertama\b/i.test(
+                normalizedClarificationMessage,
+            )
+        ) {
+            return 0;
+        }
+
+        if (
+            /\bkedua\b/i.test(
+                normalizedClarificationMessage,
+            )
+        ) {
+            return 1;
+        }
+
+        if (
+            /\bketiga\b/i.test(
+                normalizedClarificationMessage,
+            )
+        ) {
+            return 2;
+        }
+
+        if (
+            /\bkeempat\b/i.test(
+                normalizedClarificationMessage,
+            )
+        ) {
+            return 3;
+        }
+
+        if (
+            /\bkelima\b/i.test(
+                normalizedClarificationMessage,
+            )
+        ) {
+            return 4;
+        }
+
+        /*
+         * --------------------------------------------------
+         * English ordinal
+         * --------------------------------------------------
+         */
+
+        if (
+            /\bfirst\b/i.test(
+                normalizedClarificationMessage,
+            )
+        ) {
+            return 0;
+        }
+
+        if (
+            /\bsecond\b/i.test(
+                normalizedClarificationMessage,
+            )
+        ) {
+            return 1;
+        }
+
+        if (
+            /\bthird\b/i.test(
+                normalizedClarificationMessage,
+            )
+        ) {
+            return 2;
+        }
+
+        if (
+            /\bfourth\b/i.test(
+                normalizedClarificationMessage,
+            )
+        ) {
+            return 3;
+        }
+
+        if (
+            /\bfifth\b/i.test(
+                normalizedClarificationMessage,
+            )
+        ) {
+            return 4;
+        }
+
+        /*
+         * --------------------------------------------------
+         * Numeric references
+         * --------------------------------------------------
+         *
+         * Examples:
+         *
+         * "node 2"
+         * "yang ke-2"
+         * "number 2"
+         * --------------------------------------------------
+         */
+
+        const numericMatch =
+            normalizedClarificationMessage.match(
+                /\b(?:ke[-\s]?)?(\d+)\b/i,
+            );
+
+        if (
+            numericMatch
+        ) {
+            const numericIndex =
+                Number(
+                    numericMatch[1],
+                ) - 1;
+
+            if (
+                numericIndex >= 0 &&
+                numericIndex <
+                    clarificationCandidates.length
+            ) {
+                return numericIndex;
+            }
+        }
+
+        return null;
+    }
+
+    const clarificationTarget =
+    clarificationOriginalMessage &&
+    clarificationCandidates.length > 0
+        ? resolveClarificationTarget({
+            message,
+            candidates:
+                clarificationCandidates,
+        })
+        : {
+            candidateIndex: null,
+            targetNodeId: null,
+        };
+
+const clarificationCandidateIndex =
+    clarificationTarget.candidateIndex;
+
+const clarificationTargetNodeId =
+    clarificationTarget.targetNodeId;
+
+    /*
+     * The original modification request is the
+     * effective instruction when the user is answering
+     * a pending clarification.
+     */
+    const effectiveMessage =
+        clarificationOriginalMessage ??
+        message;
+
     const systemPrompt = `
 You are the AI Assistant for FlowTest Studio.
 
@@ -4076,14 +4389,16 @@ For analyzeSelectedNode:
                         },
 
                         {
-                            role: "user",
+    role: "user",
 
-                            content:
-                                JSON.stringify({
-                                    message,
-                                    context,
-                                }),
-                        },
+    content:
+        JSON.stringify({
+            message:
+                effectiveMessage,
+
+            context,
+        }),
+},
                     ],
 
                     format: "json",
@@ -4162,7 +4477,7 @@ For analyzeSelectedNode:
     normalizeIntent(
         undefined,
         null,
-        message,
+        effectiveMessage,
     );
     const userLanguage =
     /[^\x00-\x7F]/.test(
@@ -4239,20 +4554,185 @@ if (
         parsed.flowPlan ??
         null;
 
-    console.log(
-        "[AI raw modification plan]",
-        JSON.stringify(
-            rawModificationPlan,
-            null,
-            2,
-        ),
-    );
+        /*
+     * --------------------------------------------------
+     * Apply deterministic clarification target
+     * --------------------------------------------------
+     *
+     * The AI may choose a different target when
+     * regenerating the modification plan.
+     *
+     * When clarificationTargetNodeId exists,
+     * the user's explicit selection is authoritative.
+     * --------------------------------------------------
+     */
 
-   const modificationPlan =
+    if (
+        clarificationTargetNodeId &&
+        rawModificationPlan &&
+        typeof rawModificationPlan ===
+            "object"
+    ) {
+        if (
+            Array.isArray(
+                rawModificationPlan.operations,
+            )
+        ) {
+            rawModificationPlan.operations =
+                rawModificationPlan.operations.map(
+                    (
+                        operation,
+                        index,
+                    ) =>
+                        index === 0
+                            ? {
+                                ...operation,
+
+                                targetNodeId:
+                                    clarificationTargetNodeId,
+                            }
+                            : operation,
+                );
+        } else {
+            rawModificationPlan.targetNodeId =
+                clarificationTargetNodeId;
+
+            if (
+                rawModificationPlan.operation &&
+                typeof rawModificationPlan.operation ===
+                    "object"
+            ) {
+                rawModificationPlan.operation = {
+                    ...rawModificationPlan.operation,
+
+                    targetNodeId:
+                        clarificationTargetNodeId,
+                };
+            }
+        }
+    }
+
+    console.log(
+    "[AI clarification target]",
+    JSON.stringify(
+        {
+            originalMessage:
+                clarificationOriginalMessage,
+
+            reply:
+                message,
+
+            candidateIndex:
+                clarificationCandidateIndex,
+
+            targetNodeId:
+                clarificationTargetNodeId,
+        },
+        null,
+        2,
+    ),
+);
+
+    /*
+     * --------------------------------------------------
+     * Log raw AI modification plan
+     * --------------------------------------------------
+     */
+    
+
+    /*
+     * --------------------------------------------------
+     * Ambiguity detection
+     *
+     * Do not interfere with explicit selected-node
+     * references because those already have a
+     * deterministic target.
+     * --------------------------------------------------
+     */
+    const ambiguousTargets =
+        !/node yang dipilih|selected node|node terpilih/i.test(
+            message,
+        )
+            ? findAmbiguousModificationTargets({
+                context,
+                message,
+            })
+            : [];
+
+    /*
+     * --------------------------------------------------
+     * Ambiguous target
+     *
+     * Stop here and ask the user to clarify.
+     * No modification plan is generated/applied yet.
+     * --------------------------------------------------
+     */
+    if (
+        ambiguousTargets.length >
+        1
+    ) {
+        console.log(
+            "[AI clarification]",
+            JSON.stringify(
+                ambiguousTargets,
+                null,
+                2,
+            ),
+        );
+
+        const candidateLines =
+            ambiguousTargets
+                .map(
+                    (
+                        candidate,
+                        index,
+                    ) =>
+                        `${index + 1}. ${
+                            candidate.title ??
+                            candidate.action ??
+                            "Node"
+                        }`,
+                )
+                .join(
+                    "\n",
+                );
+
+        return {
+            message:
+                `Saya menemukan ${ambiguousTargets.length} node yang cocok dengan permintaan Anda.\n\n${candidateLines}\n\nSilakan tentukan node yang dimaksud, misalnya "yang pertama" atau "yang kedua".`,
+
+            intent:
+                "modifyFlow",
+
+            flowPlan:
+                null,
+
+            modificationPlan:
+                null,
+
+            clarification: {
+                type:
+                    "target_node",
+
+                question:
+                    "Node mana yang Anda maksud?",
+
+                candidates:
+                    ambiguousTargets,
+            },
+        };
+    }
+
+    /*
+     * --------------------------------------------------
+     * Normalize modification plan
+     * --------------------------------------------------
+     */
+    const modificationPlan =
     normalizeModificationPlan(
         rawModificationPlan,
         context,
-        message,
+        effectiveMessage,
     );
 
     console.log(
@@ -4264,12 +4744,26 @@ if (
         ),
     );
 
+    /*
+     * --------------------------------------------------
+     * Invalid modification plan
+     * --------------------------------------------------
+     *
+     * At this point ambiguity has already been checked.
+     * Therefore null here means the plan itself is invalid.
+     * --------------------------------------------------
+     */
     if (!modificationPlan) {
         throw new Error(
             "AI modifyFlow response does not contain a valid modification plan.",
         );
     }
 
+    /*
+     * --------------------------------------------------
+     * Return modification plan
+     * --------------------------------------------------
+     */
     return {
         message:
             typeof parsed.message ===
@@ -4286,8 +4780,6 @@ if (
         modificationPlan,
     };
 }
-
-let flowPlan = null;
 
 if (
     intent ===
@@ -4317,14 +4809,7 @@ if (
             message,
         );
 
-    console.log(
-    "[AI raw modification plan]",
-    JSON.stringify(
-        rawModificationPlan,
-        null,
-        2,
-    ),
-);
+    
 
     console.log(
         "[AI normalized flowPlan]",
@@ -4335,14 +4820,7 @@ if (
         ),
     );
 
-    console.log(
-    "[AI normalized modification plan]",
-    JSON.stringify(
-        modificationPlan,
-        null,
-        2,
-    ),
-);
+    
 
     flowPlan =
         validateNormalizedPlan(
