@@ -144,10 +144,6 @@ export function resolveModificationTarget({
                         value,
                     );
 
-                    /*
-                     * Some details are named
-                     * elementName / text / value.
-                     */
                     if (
                         key ===
                             "elementName" ||
@@ -189,10 +185,6 @@ export function resolveModificationTarget({
             normalizedReference,
         ];
 
-        /*
-         * "Login action" should resolve to
-         * "Login".
-         */
         if (
             normalizedReference.endsWith(
                 " action",
@@ -233,15 +225,204 @@ export function resolveModificationTarget({
         );
     }
 
+    function extractOrdinal(
+        text,
+    ) {
+        const normalized =
+            normalizeReference(
+                text,
+            );
+
+        const ordinalPatterns = [
+            {
+                pattern:
+                    /\bpertama\b/,
+                value: 1,
+            },
+            {
+                pattern:
+                    /\bkedua\b/,
+                value: 2,
+            },
+            {
+                pattern:
+                    /\bketiga\b/,
+                value: 3,
+            },
+            {
+                pattern:
+                    /\bkeempat\b/,
+                value: 4,
+            },
+            {
+                pattern:
+                    /\bkelima\b/,
+                value: 5,
+            },
+            {
+                pattern:
+                    /\bpertama\b/,
+                value: 1,
+            },
+        ];
+
+        for (
+            const item of
+            ordinalPatterns
+        ) {
+            if (
+                item.pattern.test(
+                    normalized,
+                )
+            ) {
+                return item.value;
+            }
+        }
+
+        const numericMatch =
+            normalized.match(
+                /\bke[-\s]?(\d+)\b/,
+            );
+
+        if (
+            numericMatch
+        ) {
+            return Number(
+                numericMatch[1],
+            );
+        }
+
+        const numericSuffixMatch =
+            normalized.match(
+                /\b(\d+)(?:st|nd|rd|th)\b/,
+            );
+
+        if (
+            numericSuffixMatch
+        ) {
+            return Number(
+                numericSuffixMatch[1],
+            );
+        }
+
+        return null;
+    }
+
+    function extractReferenceCore(
+        reference,
+    ) {
+        return normalizeReference(
+            reference
+                .replace(
+                    /\bpertama\b/gi,
+                    "",
+                )
+                .replace(
+                    /\bkedua\b/gi,
+                    "",
+                )
+                .replace(
+                    /\bketiga\b/gi,
+                    "",
+                )
+                .replace(
+                    /\bkeempat\b/gi,
+                    "",
+                )
+                .replace(
+                    /\bkelima\b/gi,
+                    "",
+                )
+                .replace(
+                    /\bke[-\s]?\d+\b/gi,
+                    "",
+                )
+                .replace(
+                    /\b\d+(?:st|nd|rd|th)\b/gi,
+                    "",
+                ),
+        );
+    }
+
+    function extractPositionQualifier() {
+        if (
+            /\bterakhir\b/i.test(
+                normalizedMessage,
+            ) ||
+            /\blast\b/i.test(
+                normalizedMessage,
+            ) ||
+            /\blast\s+one\b/i.test(
+                normalizedMessage,
+            )
+        ) {
+            return "last";
+        }
+
+        const ordinal =
+            extractOrdinal(
+                normalizedMessage,
+            );
+
+        if (
+            ordinal !== null
+        ) {
+            return ordinal;
+        }
+
+        return null;
+    }
+
+    function stripPositionQualifier(
+        reference,
+    ) {
+        return normalizeReference(
+            reference
+                .replace(
+                    /\bterakhir\b/gi,
+                    "",
+                )
+                .replace(
+                    /\blast\b/gi,
+                    "",
+                )
+                .replace(
+                    /\blast\s+one\b/gi,
+                    "",
+                )
+                .replace(
+                    /\bpertama\b/gi,
+                    "",
+                )
+                .replace(
+                    /\bkedua\b/gi,
+                    "",
+                )
+                .replace(
+                    /\bketiga\b/gi,
+                    "",
+                )
+                .replace(
+                    /\bkeempat\b/gi,
+                    "",
+                )
+                .replace(
+                    /\bkelima\b/gi,
+                    "",
+                )
+                .replace(
+                    /\bke[-\s]?\d+\b/gi,
+                    "",
+                )
+                .replace(
+                    /\b\d+(?:st|nd|rd|th)\b/gi,
+                    "",
+                ),
+        );
+    }
+
     function extractExplicitNodeReference() {
         const patterns = [
-            /*
-             * IMPORTANT:
-             * Put "before/after" patterns first,
-             * because "Tambahkan wait sebelum Login"
-             * must extract Login, not the whole sentence.
-             */
-
             /(?:sebelum|before)\s+(?:node\s+)?(.+?)(?:\.|,|$)/i,
 
             /(?:setelah|after)\s+(?:node\s+)?(.+?)(?:\.|,|$)/i,
@@ -394,51 +575,16 @@ export function resolveModificationTarget({
         ]);
     }
 
-    /*
-     * --------------------------------------------------
-     * Resolve explicit node reference
-     * --------------------------------------------------
-     */
-
-    const explicitNodeReference =
-        extractExplicitNodeReference();
-
-    const referencedNodes =
-        explicitNodeReference
-            ? findNodesByReference(
-                explicitNodeReference,
-            )
-            : [];
-
-    /*
-     * --------------------------------------------------
-     * 1. Assertion after selected node
-     * --------------------------------------------------
-     */
-
-    if (
-        selectedNodeId &&
-        mentionsSelectedNode() &&
-        mentionsAfter() &&
-        mentionsAssertion()
+    function findRelativeNode(
+        anchorNodeId,
+        direction,
+        expectedAction = null,
     ) {
-        const nextNode =
-            findFirstNextNode(
-                selectedNodeId,
-            );
-
-        if (
-            nextNode?.action ===
-            "assert"
-        ) {
-            return nextNode.id;
-        }
-
         const visited =
             new Set();
 
         const queue = [
-            selectedNodeId,
+            anchorNodeId,
         ];
 
         while (
@@ -461,37 +607,311 @@ export function resolveModificationTarget({
                 currentId,
             );
 
-            const nextIds =
-                getNextNodeIds(
-                    currentId,
-                );
+            const relatedIds =
+                direction ===
+                "after"
+                    ? getNextNodeIds(
+                        currentId,
+                    )
+                    : getPreviousNodeIds(
+                        currentId,
+                    );
 
             for (
-                const nextId of
-                nextIds
+                const relatedId of
+                relatedIds
             ) {
-                const node =
+                const relatedNode =
                     getNodeById(
-                        nextId,
+                        relatedId,
                     );
 
                 if (
-                    node?.action ===
-                    "assert"
+                    relatedNode &&
+                    (
+                        !expectedAction ||
+                        relatedNode.action ===
+                            expectedAction
+                    )
                 ) {
-                    return node.id;
+                    return relatedNode;
                 }
 
                 queue.push(
-                    nextId,
+                    relatedId,
                 );
             }
+        }
+
+        return null;
+    }
+
+   /*
+ * --------------------------------------------------
+ * Explicit graph relation
+ * --------------------------------------------------
+ *
+ * Examples:
+ *
+ * "Tambahkan wait sebelum Login setelah Get Text"
+ *
+ * target  = Login
+ * anchor  = Get Text
+ * direction = after
+ *
+ * "Tambahkan delay setelah Tap sebelum Assert"
+ *
+ * target  = Tap
+ * anchor  = Assert
+ * direction = before
+ * --------------------------------------------------
+ */
+
+function resolveExplicitGraphRelation() {
+    const patterns = [
+        {
+            pattern:
+                /(?:sebelum|before)\s+(.+?)\s+(?:setelah|after)\s+(.+)$/i,
+
+            direction:
+                "after",
+        },
+
+        {
+            pattern:
+                /(?:setelah|after)\s+(.+?)\s+(?:sebelum|before)\s+(.+)$/i,
+
+            direction:
+                "before",
+        },
+    ];
+
+    for (
+        const relation of
+        patterns
+    ) {
+        const match =
+            normalizedMessage.match(
+                relation.pattern,
+            );
+
+        if (
+            !match
+        ) {
+            continue;
+        }
+
+        const targetReference =
+            normalizeReference(
+                match[1]
+                    .replace(
+                        /^(node|the)\s+/i,
+                        "",
+                    )
+                    .trim(),
+            );
+
+        const anchorReference =
+            normalizeReference(
+                match[2]
+                    .replace(
+                        /^(node|the)\s+/i,
+                        "",
+                    )
+                    .trim(),
+            );
+
+        /*
+         * Remove command words that can be
+         * captured by the first regex group.
+         *
+         * Example:
+         * "Tambahkan wait sebelum Login"
+         * -> "Login"
+         */
+        const cleanedTargetReference =
+            targetReference
+                .replace(
+                    /^(tambahkan|add|insert|buat|create)\s+(?:wait|delay)\s+/i,
+                    "",
+                )
+                .trim();
+
+        const targetCandidates =
+            findNodesByReference(
+                cleanedTargetReference,
+            );
+
+        const anchorCandidates =
+            findNodesByReference(
+                anchorReference,
+            );
+
+        /*
+         * The anchor must be unique.
+         */
+        if (
+            anchorCandidates.length !==
+            1
+        ) {
+            continue;
+        }
+
+        const anchorNode =
+            anchorCandidates[0];
+
+        const relativeNode =
+            findRelativeNode(
+                anchorNode.id,
+                relation.direction,
+            );
+
+        if (
+            !relativeNode
+        ) {
+            continue;
+        }
+
+        /*
+         * If the relative node itself matches
+         * the requested target, use it.
+         */
+        const relativeValues =
+            getNodeSearchValues(
+                relativeNode,
+            );
+
+        const targetMatchesRelative =
+            relativeValues.some(
+                (value) =>
+                    value ===
+                        cleanedTargetReference ||
+                    value.includes(
+                        cleanedTargetReference,
+                    ) ||
+                    cleanedTargetReference.includes(
+                        value,
+                    ),
+            );
+
+        if (
+            targetMatchesRelative
+        ) {
+            return relativeNode.id;
+        }
+
+        /*
+         * If exactly one explicit target candidate
+         * exists and it is the graph-relative node,
+         * use it.
+         */
+        if (
+            targetCandidates.length ===
+                1 &&
+            targetCandidates[0].id ===
+                relativeNode.id
+        ) {
+            return targetCandidates[0]
+                .id;
+        }
+    }
+
+    return null;
+}
+    /*
+     * --------------------------------------------------
+     * Explicit reference information
+     * --------------------------------------------------
+     */
+
+    const explicitNodeReference =
+        extractExplicitNodeReference();
+
+    const positionQualifier =
+        extractPositionQualifier();
+
+    const referenceCore =
+        explicitNodeReference
+            ? extractReferenceCore(
+                explicitNodeReference,
+            )
+            : null;
+
+    const referencedNodes =
+        referenceCore
+            ? findNodesByReference(
+                referenceCore,
+            )
+            : [];
+
+    const explicitGraphRelation =
+    resolveExplicitGraphRelation();
+
+if (
+    explicitGraphRelation
+) {
+    return explicitGraphRelation;
+}
+
+    /*
+     * --------------------------------------------------
+     * Relative explicit references
+     * --------------------------------------------------
+     *
+     * Examples:
+     *
+     * "Login setelah Get Text"
+     * "Assert setelah Get Text"
+     * "Login sebelum Assert"
+     * --------------------------------------------------
+     */
+
+    const afterMatch =
+        normalizedMessage.match(
+            /(?:after|setelah)\s+(.+?)\s+(?:before|sebelum|menjadi|to|menambah|tambahkan|ubah|update|hapus|delete|remove|$)/i,
+        );
+
+    const beforeMatch =
+        normalizedMessage.match(
+            /(?:before|sebelum)\s+(.+?)\s+(?:after|setelah|menjadi|to|menambah|tambahkan|ubah|update|hapus|delete|remove|$)/i,
+        );
+
+    /*
+     * --------------------------------------------------
+     * 1. Assertion after selected node
+     * --------------------------------------------------
+     */
+
+    if (
+        selectedNodeId &&
+        mentionsSelectedNode() &&
+        mentionsAfter() &&
+        mentionsAssertion()
+    ) {
+        const nextNode =
+            findRelativeNode(
+                selectedNodeId,
+                "after",
+                "assert",
+            );
+
+        if (
+            nextNode
+        ) {
+            return nextNode.id;
         }
     }
 
     /*
      * --------------------------------------------------
-     * 2. Explicit node reference
+     * 2. Explicit reference with positional
+     * qualifier.
+     *
+     * Examples:
+     *
+     * "Login pertama"
+     * "Login kedua"
+     * "Login terakhir"
      * --------------------------------------------------
      */
 
@@ -499,31 +919,207 @@ export function resolveModificationTarget({
         referencedNodes.length >
         0
     ) {
-        const referencedNode =
-            referencedNodes[0];
-
         if (
-            operation.type ===
-                "addNodeBefore" ||
-            operation.type ===
-                "addNodeAfter"
+            positionQualifier ===
+            "last"
         ) {
-            return referencedNode.id;
+            return referencedNodes.at(
+                -1,
+            )?.id ?? null;
         }
 
         if (
-            operation.type ===
-                "updateNode" ||
-            operation.type ===
-                "deleteNode"
+            typeof positionQualifier ===
+                "number" &&
+            positionQualifier >
+                0
         ) {
-            return referencedNode.id;
+            const index =
+                positionQualifier -
+                1;
+
+            return (
+                referencedNodes[
+                    index
+                ]?.id ?? null
+            );
         }
     }
 
     /*
      * --------------------------------------------------
-     * 3. Node after selected node
+     * 3. Explicit reference with graph relation
+     * --------------------------------------------------
+     *
+     * "Login setelah Get Text"
+     * --------------------------------------------------
+     */
+
+    if (
+        referenceCore &&
+        referencedNodes.length ===
+            0
+    ) {
+        const relationPatterns = [
+            {
+                pattern:
+                    /(.+?)\s+(?:setelah|after)\s+(.+)/i,
+                direction:
+                    "after",
+            },
+
+            {
+                pattern:
+                    /(.+?)\s+(?:sebelum|before)\s+(.+)/i,
+                direction:
+                    "before",
+            },
+        ];
+
+        for (
+            const relation of
+            relationPatterns
+        ) {
+            const match =
+                normalizedMessage.match(
+                    relation.pattern,
+                );
+
+            if (
+                !match
+            ) {
+                continue;
+            }
+
+            const targetReference =
+                normalizeReference(
+                    match[1],
+                );
+
+            const anchorReference =
+                normalizeReference(
+                    match[2],
+                );
+
+            const anchorCandidates =
+                findNodesByReference(
+                    anchorReference,
+                );
+
+            if (
+                anchorCandidates.length !==
+                1
+            ) {
+                continue;
+            }
+
+            const targetCandidates =
+                findNodesByReference(
+                    targetReference,
+                );
+
+            if (
+                targetCandidates.length ===
+                1
+            ) {
+                return targetCandidates[0]
+                    .id;
+            }
+
+            const relativeNode =
+                findRelativeNode(
+                    anchorCandidates[0]
+                        .id,
+                    relation.direction,
+                );
+
+            if (
+                relativeNode
+            ) {
+                const targetValues =
+                    getNodeSearchValues(
+                        relativeNode,
+                    );
+
+                if (
+                    targetValues.some(
+                        (value) =>
+                            value.includes(
+                                targetReference,
+                            ),
+                    )
+                ) {
+                    return relativeNode.id;
+                }
+            }
+        }
+    }
+
+    /*
+     * --------------------------------------------------
+     * 4. Explicit node reference
+     * --------------------------------------------------
+     *
+     * Only resolve automatically when:
+     *
+     * - exactly one candidate exists
+     * - OR a positional qualifier selected one
+     *
+     * If multiple candidates exist without
+     * disambiguation, return null instead of
+     * modifying a random node.
+     * --------------------------------------------------
+     */
+
+    if (
+        referencedNodes.length ===
+        1
+    ) {
+        return referencedNodes[0].id;
+    }
+
+    if (
+    referencedNodes.length >
+    1
+) {
+    /*
+     * If the AI provided an explicit target and
+     * that target is one of the matching candidates,
+     * trust that specific target.
+     *
+     * This prevents a valid AI target from being
+     * discarded merely because several nodes share
+     * the same human-readable reference.
+     */
+    if (
+        typeof operation.targetNodeId ===
+            "string" &&
+        operation.targetNodeId.trim()
+    ) {
+        const explicitTarget =
+            referencedNodes.find(
+                (node) =>
+                    node?.id ===
+                    operation.targetNodeId,
+            );
+
+        if (
+            explicitTarget
+        ) {
+            return explicitTarget.id;
+        }
+    }
+
+    /*
+     * Still refuse to guess when multiple candidates
+     * exist and the AI did not identify one of them.
+     */
+    return null;
+}
+
+    /*
+     * --------------------------------------------------
+     * 5. Node after selected node
      * --------------------------------------------------
      */
 
@@ -546,7 +1142,7 @@ export function resolveModificationTarget({
 
     /*
      * --------------------------------------------------
-     * 4. Node before selected node
+     * 6. Node before selected node
      * --------------------------------------------------
      */
 
@@ -569,7 +1165,7 @@ export function resolveModificationTarget({
 
     /*
      * --------------------------------------------------
-     * 5. Generic selected-node semantics
+     * 7. Generic selected-node semantics
      * --------------------------------------------------
      */
 
@@ -593,7 +1189,7 @@ export function resolveModificationTarget({
 
     /*
      * --------------------------------------------------
-     * 6. Explicit AI target fallback
+     * 8. Explicit AI target fallback
      * --------------------------------------------------
      */
 
@@ -616,7 +1212,7 @@ export function resolveModificationTarget({
 
     /*
      * --------------------------------------------------
-     * 7. Selected node fallback
+     * 9. Selected node fallback
      * --------------------------------------------------
      */
 

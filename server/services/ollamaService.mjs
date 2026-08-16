@@ -2941,6 +2941,66 @@ const targetNodeId =
 
         message,
     });
+
+    /*
+ * --------------------------------------------------
+ * Normalize operation direction from the user's
+ * natural-language request.
+ *
+ * The user's explicit "before"/"after" wording
+ * has priority over an incorrect operation type
+ * returned by the model.
+ * --------------------------------------------------
+ */
+
+const normalizedRequest =
+    typeof message ===
+        "string"
+        ? message
+            .toLowerCase()
+            .trim()
+        : "";
+
+const explicitlyBefore =
+    /\b(sebelum|before)\b/i.test(
+        normalizedRequest,
+    );
+
+const explicitlyAfter =
+    /\b(setelah|after)\b/i.test(
+        normalizedRequest,
+    );
+
+let normalizedOperationType =
+    operationType;
+
+if (
+    (
+        operationType ===
+            "addNodeBefore" ||
+        operationType ===
+            "addNodeAfter"
+    ) &&
+    explicitlyBefore &&
+    !explicitlyAfter
+) {
+    normalizedOperationType =
+        "addNodeBefore";
+}
+
+if (
+    (
+        operationType ===
+            "addNodeBefore" ||
+        operationType ===
+            "addNodeAfter"
+    ) &&
+    explicitlyAfter &&
+    !explicitlyBefore
+) {
+    normalizedOperationType =
+        "addNodeAfter";
+}
         /*
          * Make sure the target exists in the
          * current FlowTest Studio context.
@@ -3171,12 +3231,12 @@ const targetNodeId =
          */
 
         return {
-            type:
-                operationType,
+    type:
+        normalizedOperationType,
 
-            targetNodeId,
+    targetNodeId,
 
-            step: {
+    step: {
                 action,
 
                 title:
