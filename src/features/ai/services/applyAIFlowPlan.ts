@@ -105,6 +105,11 @@ function applyStep(
 
                     subtitle:
                         planStep.description,
+
+                    semanticTarget:
+                        planStep.semanticTarget ??
+                        planStep.locator ??
+                        planStep.title,
                 },
             );
 
@@ -157,6 +162,11 @@ function applyStep(
 
                     subtitle:
                         planStep.description,
+
+                    semanticTarget:
+                        planStep.semanticTarget ??
+                        planStep.locator ??
+                        planStep.title,
 
                     text:
                         planStep.text,

@@ -21,11 +21,11 @@ function isResolvedFlowLocatorStrategy(
 ): strategy is ResolvedFlowLocatorStrategy {
     return (
         strategy ===
-            "id" ||
+        "id" ||
         strategy ===
-            "xpath" ||
+        "xpath" ||
         strategy ===
-            "accessibilityId"
+        "accessibilityId"
     );
 }
 
@@ -41,14 +41,14 @@ export interface AILocatorApplyResult {
     target: string;
 
     status:
-        AILocatorApplyStatus;
+    AILocatorApplyStatus;
 
     locatorStrategy:
-        ResolvedFlowLocatorStrategy |
-        null;
+    | ResolvedFlowLocatorStrategy
+    | null;
 
     locator:
-        string | null;
+    string | null;
 
     error?: string;
 }
@@ -61,7 +61,7 @@ export interface ApplyResolvedAILocatorsResult {
     unresolved: number;
 
     results:
-        AILocatorApplyResult[];
+    AILocatorApplyResult[];
 
     error?: string;
 }
@@ -97,26 +97,157 @@ function getSemanticTarget(
     node: ReturnType<
         typeof useFlowStore.getState
     >["nodes"][number],
+    useSemanticTarget: boolean,
 ): string | null {
     const data =
         node.data;
 
+    /*
+     * AI-scoped resolution:
+     *
+     * semanticTarget is preferred because the
+     * generated locator may still be a placeholder
+     * such as XCUIElementTypeTextField.
+     */
     if (
-        !("locator" in data) ||
-        typeof data.locator !==
-            "string"
+        useSemanticTarget &&
+        typeof data.semanticTarget ===
+        "string" &&
+        data.semanticTarget.trim()
+    ) {
+        return normalizeSemanticTarget(
+            data.semanticTarget,
+        );
+    }
+
+    /*
+     * AI-scoped fallback:
+     *
+     * Older AI nodes may not have semanticTarget,
+     * so derive the semantic target from the title.
+     */
+    if (
+        useSemanticTarget
+    ) {
+        const title =
+            typeof data.title ===
+                "string"
+                ? data.title.trim()
+                : "";
+
+        if (title) {
+            const normalizedTitle =
+                normalizeSemanticTarget(
+                    title,
+                );
+
+            if (
+                normalizedTitle
+            ) {
+                return normalizedTitle;
+            }
+        }
+    }
+
+    /*
+     * Legacy behavior:
+     *
+     * When nodeIds are not supplied, preserve the
+     * existing locator-based resolver behavior.
+     */
+    if (
+        "locator" in data &&
+        typeof data.locator ===
+        "string"
+    ) {
+        const locator =
+            data.locator.trim();
+
+        if (locator) {
+            return locator;
+        }
+    }
+
+    return null;
+}
+function normalizeSemanticTarget(
+    value: string,
+): string | null {
+    let normalized =
+        value.trim();
+
+    if (!normalized) {
+        return null;
+    }
+
+    /*
+     * Ignore generic UI titles that don't
+     * identify a real semantic target.
+     */
+    const genericTitles =
+        new Set([
+            "input text",
+            "tap element",
+            "verify value",
+            "wait until element",
+            "long press",
+            "double tap",
+            "get text",
+            "element exists",
+            "get displayed",
+            "get enabled",
+            "get selected",
+            "get attribute",
+            "get location",
+            "get rect",
+            "get size",
+        ]);
+
+    if (
+        genericTitles.has(
+            normalized.toLowerCase(),
+        )
     ) {
         return null;
     }
 
-    const locator =
-        data.locator.trim();
+    /*
+     * Remove common action prefixes.
+     *
+     * Example:
+     *   "Input Username"
+     *       → "Username"
+     *
+     *   "Tap Login Button"
+     *       → "Login"
+     */
+    normalized =
+        normalized
+            .replace(
+                /^(enter|input|type|tap|click|press|verify|check|assert|select|choose)\s+/i,
+                "",
+            )
+            .trim();
 
-    if (!locator) {
-        return null;
-    }
+    /*
+     * Remove common UI suffixes.
+     *
+     * Example:
+     *   "Username Field"
+     *       → "Username"
+     *
+     *   "Login Button"
+     *       → "Login"
+     */
+    normalized =
+        normalized
+            .replace(
+                /\s+(button|field|element|input|textbox|text field)$/i,
+                "",
+            )
+            .trim();
 
-    return locator;
+    return normalized || null;
 }
 
 export async function applyResolvedAILocatorsToFlow(
@@ -125,22 +256,30 @@ export async function applyResolvedAILocatorsToFlow(
     const store =
         useFlowStore.getState();
 
-   const nodes =
-    store.nodes.filter(
-        (node) =>
-            isLocatorNode(
-                node,
-            ) &&
-            (
-                !nodeIds ||
-                nodeIds.has(
-                    node.id,
-                )
-            ),
-    );
+    /*
+     * If nodeIds are supplied, only those nodes
+     * belong to the current AI-generated flow.
+     *
+     * If nodeIds are omitted, preserve legacy
+     * behavior for existing callers/tests.
+     */
+    const nodes =
+        store.nodes.filter(
+            (node) =>
+                isLocatorNode(
+                    node,
+                ) &&
+                (
+                    !nodeIds ||
+                    nodeIds.has(
+                        node.id,
+                    )
+                ),
+        );
 
     if (
-        nodes.length === 0
+        nodes.length ===
+        0
     ) {
         return {
             success:
@@ -164,13 +303,13 @@ export async function applyResolvedAILocatorsToFlow(
     const resolvedPatches:
         Array<{
             nodeId:
-                string;
+            string;
 
             locatorStrategy:
-                ResolvedFlowLocatorStrategy;
+            ResolvedFlowLocatorStrategy;
 
             locator:
-                string;
+            string;
         }> = [];
 
     for (
@@ -179,9 +318,16 @@ export async function applyResolvedAILocatorsToFlow(
         const target =
             getSemanticTarget(
                 node,
+                nodeIds !==
+                undefined,
             );
 
         if (!target) {
+            /*
+             * Nodes such as Assert may intentionally
+             * not have a locator. They are not part
+             * of the locator-resolution operation.
+             */
             continue;
         }
 
@@ -298,8 +444,8 @@ export async function applyResolvedAILocatorsToFlow(
     /*
      * Do not partially modify the flow.
      *
-     * If one generated AI node cannot be
-     * resolved, leave every generated node
+     * If one generated AI locator cannot be
+     * resolved, leave all generated nodes
      * untouched.
      */
     if (
@@ -318,8 +464,8 @@ export async function applyResolvedAILocatorsToFlow(
     }
 
     /*
-     * Commit the locator changes only after
-     * every selected AI node has been resolved.
+     * Commit locator changes only after
+     * every selected locator has resolved.
      */
     for (
         const patch of

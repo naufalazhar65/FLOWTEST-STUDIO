@@ -157,6 +157,9 @@ Return exactly:
         "action": "tap | input | assert | delay | wait",
         "title": "string",
         "description": "string",
+        "semanticTarget": "string | null",
+        "locatorStrategy": "...",
+        "locator": "string | null",
         "locatorStrategy": "accessibilityId | id | xpath | className | androidUiAutomator | iOSPredicateString | iOSClassChain | null",
         "locator": "string | null",
         "text": "string | null",
@@ -202,6 +205,28 @@ For wait:
 - locator is required.
 - timeout must be positive.
 - pollingInterval must be positive.
+
+For locator-based actions:
+
+- semanticTarget MUST represent the human-readable target element.
+- semanticTarget MUST NOT be a generic UI class name.
+- Do not use values such as:
+  XCUIElementTypeTextField
+  XCUIElementTypeSecureTextField
+  XCUIElementTypeButton
+  android.widget.EditText
+  android.widget.Button
+
+Examples:
+
+"Enter a valid username into the username field."
+→ semanticTarget = "username"
+
+"Enter a valid password into the password field."
+→ semanticTarget = "password"
+
+"Tap the Login button."
+→ semanticTarget = "login"
 
 ==================================================
 CONTEXT RULES

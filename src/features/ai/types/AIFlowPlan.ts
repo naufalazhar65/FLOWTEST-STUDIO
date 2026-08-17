@@ -16,9 +16,11 @@ export interface AIFlowStep {
 
     description: string;
 
+    semanticTarget?: string | null;
+
     locatorStrategy?:
-        | LocatorStrategy
-        | null;
+    | LocatorStrategy
+    | null;
 
     locator?: string | null;
 
@@ -31,8 +33,8 @@ export interface AIFlowStep {
     actual?: string | null;
 
     operator?:
-        | AssertOperator
-        | null;
+    | AssertOperator
+    | null;
 
     expected?: string | null;
 
@@ -51,11 +53,11 @@ export interface AIFlowStep {
     count?: number | null;
 
     direction?:
-        | "up"
-        | "down"
-        | "left"
-        | "right"
-        | null;
+    | "up"
+    | "down"
+    | "left"
+    | "right"
+    | null;
 
     distance?: number | null;
 
@@ -68,9 +70,9 @@ export interface AIFlowStep {
     fileName?: string | null;
 
     platform?:
-        | "Android"
-        | "iOS"
-        | null;
+    | "Android"
+    | "iOS"
+    | null;
 
     bundleId?: string | null;
 

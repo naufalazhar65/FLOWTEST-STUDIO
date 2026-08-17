@@ -70,6 +70,15 @@ export interface BaseNodeData {
   subtitle: string;
 
   debug: NodeDebug;
+
+  /**
+   * Semantic target used by AI locator resolution.
+   *
+   * This is intentionally separate from `locator`
+   * because `locator` may initially contain an AI
+   * placeholder or previously resolved locator.
+   */
+  semanticTarget?: string;
 }
 
 export interface LocatorNodeData extends BaseNodeData {
