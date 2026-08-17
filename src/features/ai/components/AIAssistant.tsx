@@ -4,8 +4,8 @@ import {
 
 import {
     CheckCircle2,
-    X,
     Sparkles,
+    X,
 } from "lucide-react";
 
 import {
@@ -24,6 +24,10 @@ import {
     AIChat,
 } from "./AIChat";
 
+import {
+    AITestCasePreview,
+} from "./AITestCasePreview";
+
 interface AIAssistantProps {
     onClose?: () => void;
 }
@@ -38,6 +42,11 @@ export function AIAssistant({
         null,
     );
 
+    const [
+        requirement,
+        setRequirement,
+    ] = useState("");
+
     const draftPlan =
         useAIStore(
             (state) =>
@@ -48,6 +57,24 @@ export function AIAssistant({
         useAIStore(
             (state) =>
                 state.draftModificationPlan,
+        );
+
+    const draftTestCases =
+        useAIStore(
+            (state) =>
+                state.draftTestCases,
+        );
+
+    const isGenerating =
+        useAIStore(
+            (state) =>
+                state.isGenerating,
+        );
+
+    const error =
+        useAIStore(
+            (state) =>
+                state.error,
         );
 
     const setDraftPlan =
@@ -62,11 +89,82 @@ export function AIAssistant({
                 state.setDraftModificationPlan,
         );
 
+    const setDraftTestCases =
+        useAIStore(
+            (state) =>
+                state.setDraftTestCases,
+        );
+
+    const generateTestCases =
+        useAIStore(
+            (state) =>
+                state.generateTestCases,
+        );
+
     const addMessage =
         useAIStore(
             (state) =>
                 state.addMessage,
         );
+
+    async function handleGenerateTestCases() {
+        const value =
+            requirement.trim();
+
+        if (!value) {
+            return;
+        }
+
+        setApplyResult(null);
+
+        try {
+            await generateTestCases(
+                value,
+            );
+        } catch {
+            /*
+             * The store already exposes
+             * the normalized error.
+             */
+        }
+    }
+
+    function handleApproveTestCases() {
+        if (
+            !draftTestCases ||
+            draftTestCases.length === 0
+        ) {
+            return;
+        }
+
+        addMessage({
+            id:
+                crypto.randomUUID(),
+
+            role:
+                "assistant",
+
+            content:
+                `Approved ${draftTestCases.length} generated test case${draftTestCases.length === 1
+                    ? ""
+                    : "s"
+                }. They are ready for the next Test Case → Flow phase.`,
+
+            createdAt:
+                Date.now(),
+        });
+
+        setDraftTestCases(
+            null,
+        );
+
+        setApplyResult(
+            `Approved ${draftTestCases.length} test case${draftTestCases.length === 1
+                ? ""
+                : "s"
+            }.`,
+        );
+    }
 
     function handleApply() {
         if (
@@ -180,6 +278,12 @@ export function AIAssistant({
         setDraftModificationPlan(
             null,
         );
+
+        setDraftTestCases(
+            null,
+        );
+
+        setRequirement("");
 
         setApplyResult(
             null,
@@ -319,74 +423,280 @@ export function AIAssistant({
                         "column",
                 }}
             >
-                <AIChat
-                    draftPlan={
-                        draftPlan
-                    }
+                <div
+                    style={{
+                        flexShrink:
+                            0,
 
-                    draftModificationPlan={
-                        draftModificationPlan
-                    }
-
-                    onApply={
-                        handleApply
-                    }
-
-                    onCancel={
-                        handleCancel
-                    }
-                />
-
-                {applyResult && (
+                        padding:
+                            "12px 12px 0",
+                    }}
+                >
                     <div
                         style={{
-                            flexShrink:
-                                0,
+                            marginBottom:
+                                7,
 
-                            display:
-                                "flex",
+                            color:
+                                "#E6EDF3",
 
-                            alignItems:
-                                "center",
+                            fontSize:
+                                12,
 
-                            gap: 7,
+                            fontWeight:
+                                600,
+                        }}
+                    >
+                        Generate Test Cases
+                    </div>
 
-                            margin:
-                                "0 12px 10px",
+                    <textarea
+                        value={
+                            requirement
+                        }
+                        onChange={(
+                            event,
+                        ) =>
+                            setRequirement(
+                                event
+                                    .target
+                                    .value,
+                            )
+                        }
+                        placeholder="Describe the requirement you want to turn into QA test cases..."
+                        rows={4}
+                        disabled={
+                            isGenerating
+                        }
+                        style={{
+                            width:
+                                "100%",
+
+                            resize:
+                                "vertical",
+
+                            boxSizing:
+                                "border-box",
 
                             padding:
-                                "8px 10px",
+                                "9px 10px",
 
                             border:
-                                "1px solid #238636",
+                                "1px solid #30363D",
 
                             borderRadius:
                                 8,
 
+                            outline:
+                                "none",
+
                             background:
-                                "rgba(35,134,54,.12)",
+                                "#161B22",
 
                             color:
-                                "#3FB950",
+                                "#E6EDF3",
 
                             fontSize:
-                                11,
+                                12,
 
                             lineHeight:
-                                1.4,
+                                1.5,
+
+                            fontFamily:
+                                "inherit",
+                        }}
+                    />
+
+                    <div
+                        style={{
+                            display:
+                                "flex",
+
+                            justifyContent:
+                                "flex-end",
+
+                            marginTop:
+                                8,
                         }}
                     >
-                        <CheckCircle2
-                            size={14}
-                        />
-
-                        <span>
-                            {
-                                applyResult
+                        <button
+                            type="button"
+                            onClick={
+                                handleGenerateTestCases
                             }
-                        </span>
+                            disabled={
+                                isGenerating ||
+                                !requirement.trim()
+                            }
+                            style={{
+                                padding:
+                                    "7px 12px",
+
+                                border:
+                                    "1px solid #8957E5",
+
+                                borderRadius:
+                                    7,
+
+                                background:
+                                    isGenerating ||
+                                        !requirement.trim()
+                                        ? "#21262D"
+                                        : "#6E40C9",
+
+                                color:
+                                    isGenerating ||
+                                        !requirement.trim()
+                                        ? "#8B949E"
+                                        : "#FFFFFF",
+
+                                fontSize:
+                                    12,
+
+                                fontWeight:
+                                    600,
+
+                                cursor:
+                                    isGenerating ||
+                                        !requirement.trim()
+                                        ? "not-allowed"
+                                        : "pointer",
+                            }}
+                        >
+                            {isGenerating
+                                ? "Generating..."
+                                : "Generate Test Cases"}
+                        </button>
                     </div>
-                )}
+
+                    {error && (
+                        <div
+                            style={{
+                                marginTop:
+                                    8,
+
+                                padding:
+                                    "8px 10px",
+
+                                border:
+                                    "1px solid #8E1519",
+
+                                borderRadius:
+                                    8,
+
+                                background:
+                                    "rgba(248,81,73,.10)",
+
+                                color:
+                                    "#F85149",
+
+                                fontSize:
+                                    11,
+
+                                lineHeight:
+                                    1.4,
+                            }}
+                        >
+                            {error}
+                        </div>
+                    )}
+                </div>
+
+                <div
+                    style={{
+                        flex: 1,
+
+                        minHeight: 0,
+
+                        overflowY:
+                            "auto",
+
+                        padding:
+                            "0 12px 12px",
+                    }}
+                >
+                    {draftTestCases &&
+                        draftTestCases.length >
+                        0 && (
+                            <AITestCasePreview
+                                testCases={
+                                    draftTestCases
+                                }
+                                onApprove={
+                                    handleApproveTestCases
+                                }
+                                onCancel={
+                                    handleCancel
+                                }
+                            />
+                        )}
+
+                    <AIChat
+                        draftPlan={
+                            draftPlan
+                        }
+                        draftModificationPlan={
+                            draftModificationPlan
+                        }
+                        onApply={
+                            handleApply
+                        }
+                        onCancel={
+                            handleCancel
+                        }
+                    />
+
+                    {applyResult && (
+                        <div
+                            style={{
+                                flexShrink:
+                                    0,
+
+                                display:
+                                    "flex",
+
+                                alignItems:
+                                    "center",
+
+                                gap: 7,
+
+                                margin:
+                                    "0 0 10px",
+
+                                padding:
+                                    "8px 10px",
+
+                                border:
+                                    "1px solid #238636",
+
+                                borderRadius:
+                                    8,
+
+                                background:
+                                    "rgba(35,134,54,.12)",
+
+                                color:
+                                    "#3FB950",
+
+                                fontSize:
+                                    11,
+
+                                lineHeight:
+                                    1.4,
+                            }}
+                        >
+                            <CheckCircle2
+                                size={14}
+                            />
+
+                            <span>
+                                {
+                                    applyResult
+                                }
+                            </span>
+                        </div>
+                    )}
+                </div>
             </div>
         </section>
     );

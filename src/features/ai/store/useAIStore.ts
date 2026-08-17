@@ -18,6 +18,7 @@ import type {
 } from "../types/AIRequest";
 
 import {
+    generateAITestCases,
     requestQAFixPlan,
     sendAIRequest,
 } from "../services/aiClient";
@@ -30,26 +31,33 @@ import {
     validateAIFlowPlan,
 } from "../services/validateAIFlowPlan";
 
+import type {
+    AITestCase,
+} from "../types/AITestCase";
+
 interface AIStore {
     messages: AIMessage[];
 
     draftPlan:
-        AIFlowPlan | null;
+    AIFlowPlan | null;
 
     draftModificationPlan:
-        AIModificationPlan | null;
+    AIModificationPlan | null;
+
+    draftTestCases:
+    AITestCase[] | null;
 
     qaRecommendations:
-        AIQARecommendation[];
+    AIQARecommendation[];
 
     pendingClarification:
-        AIPendingClarification | null;
+    AIPendingClarification | null;
 
     isGenerating:
-        boolean;
+    boolean;
 
     error:
-        string | null;
+    string | null;
 
     addMessage: (
         message: AIMessage,
@@ -66,6 +74,15 @@ interface AIStore {
         plan:
             AIModificationPlan | null,
     ) => void;
+
+    setDraftTestCases: (
+        testCases:
+            AITestCase[] | null,
+    ) => void;
+
+    generateTestCases: (
+        requirement: string,
+    ) => Promise<void>;
 
     setPendingClarification: (
         clarification:
@@ -90,7 +107,6 @@ interface AIStore {
             AIQARecommendation,
     ) => Promise<void>;
 }
-
 function createMessageId(): string {
     return crypto.randomUUID();
 }
@@ -107,6 +123,9 @@ export const useAIStore =
                 null,
 
             draftModificationPlan:
+                null,
+
+            draftTestCases:
                 null,
 
             qaRecommendations:
@@ -142,6 +161,9 @@ export const useAIStore =
                     draftPlan:
                         null,
 
+                    draftTestCases:
+                        null,
+
                     draftModificationPlan:
                         null,
 
@@ -165,6 +187,71 @@ export const useAIStore =
                     draftPlan:
                         plan,
                 }),
+
+            setDraftTestCases: (
+                testCases,
+            ) =>
+                set({
+                    draftTestCases:
+                        testCases,
+                }),
+
+            generateTestCases: async (
+                requirement,
+            ) => {
+                const message =
+                    requirement.trim();
+
+                if (!message) {
+                    return;
+                }
+
+                set({
+                    error: null,
+
+                    isGenerating:
+                        true,
+
+                    draftTestCases:
+                        null,
+                });
+
+                try {
+                    const result =
+                        await generateAITestCases(
+                            message,
+                        );
+
+                    set({
+                        draftTestCases:
+                            result.testCases,
+
+                        error:
+                            null,
+
+                        isGenerating:
+                            false,
+                    });
+                } catch (error) {
+                    const errorMessage =
+                        error instanceof Error
+                            ? error.message
+                            : String(error);
+
+                    set({
+                        error:
+                            errorMessage,
+
+                        isGenerating:
+                            false,
+
+                        draftTestCases:
+                            null,
+                    });
+
+                    throw error;
+                }
+            },
 
             setDraftModificationPlan: (
                 plan,
@@ -376,7 +463,7 @@ export const useAIStore =
                             }),
                         );
                     } catch (
-                        error
+                    error
                     ) {
                         const errorMessage =
                             error instanceof Error
@@ -488,7 +575,7 @@ export const useAIStore =
                                 false,
                         });
                     } catch (
-                        error
+                    error
                     ) {
                         const errorMessage =
                             error instanceof Error

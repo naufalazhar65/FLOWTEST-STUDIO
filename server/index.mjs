@@ -11,6 +11,10 @@ import {
     buildQAFixPlan,
 } from "./services/qaIntelligence/buildQAFixPlan.mjs";
 
+import {
+    generateAITestCases,
+} from "./services/qaIntelligence/generateAITestCases.mjs";
+
 const app = express();
 
 const port = Number(
@@ -173,6 +177,55 @@ app.post(
         } catch (error) {
             console.error(
                 "[QA Fix API]",
+                error,
+            );
+
+            return res
+                .status(500)
+                .json({
+                    error:
+                        error instanceof Error
+                            ? error.message
+                            : String(
+                                error,
+                            ),
+                });
+        }
+    },
+);
+
+app.post(
+    "/api/ai/test-cases",
+    async (req, res) => {
+        try {
+            const {
+                requirement,
+            } = req.body;
+
+            if (
+                typeof requirement !==
+                    "string" ||
+                !requirement.trim()
+            ) {
+                return res
+                    .status(400)
+                    .json({
+                        error:
+                            "requirement is required.",
+                    });
+            }
+
+            const result =
+                await generateAITestCases(
+                    requirement.trim(),
+                );
+
+            return res.json(
+                result,
+            );
+        } catch (error) {
+            console.error(
+                "[AI Test Cases API]",
                 error,
             );
 
