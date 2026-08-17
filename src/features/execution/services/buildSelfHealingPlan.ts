@@ -1,10 +1,14 @@
 import type {
-    AIModificationPlan,
-} from "../../ai/types/AIModificationPlan";
-
-import type {
     ExecutionFailureAnalysis,
 } from "./analyzeExecutionFailure";
+
+import {
+    buildFailureModificationPlan,
+} from "./buildFailureModificationPlan";
+
+import type {
+    AIModificationPlan,
+} from "../../ai/types/AIModificationPlan";
 
 export interface SelfHealingPlan {
     canAutoApply: boolean;
@@ -22,7 +26,8 @@ export interface SelfHealingPlan {
     reason: string;
 
     modificationPlan:
-        AIModificationPlan | null;
+        | AIModificationPlan
+        | null;
 
     targetNodeId:
         string | null;
@@ -31,19 +36,30 @@ export interface SelfHealingPlan {
 export function buildSelfHealingPlan(
     analysis:
         ExecutionFailureAnalysis,
-    modificationPlan:
-        AIModificationPlan | null =
-            null,
 ): SelfHealingPlan {
     const fix =
         analysis.suggestedFix;
 
     /*
-     * Only allow automatic healing when
-     * the suggested fix explicitly says
-     * that it is auto-applicable and an
-     * actual deterministic modification
-     * plan exists.
+     * --------------------------------------------------
+     * Attempt to build a deterministic modification
+     * plan from the failure analysis.
+     * --------------------------------------------------
+     */
+    const modificationPlan =
+        buildFailureModificationPlan(
+            analysis,
+        );
+
+    /*
+     * --------------------------------------------------
+     * Automatic healing is allowed only when:
+     *
+     * 1. The suggested fix explicitly allows it.
+     * 2. A deterministic modification plan exists.
+     *
+     * This keeps diagnosis and repair separate.
+     * --------------------------------------------------
      */
     if (
         fix.autoApplicable &&
@@ -70,8 +86,13 @@ export function buildSelfHealingPlan(
     }
 
     /*
-     * A suggested fix exists, but it is
-     * not safe to apply automatically.
+     * --------------------------------------------------
+     * A fix exists, but it cannot currently be
+     * applied automatically.
+     *
+     * The deterministic builder may return null
+     * because the fix requires additional evidence.
+     * --------------------------------------------------
      */
     if (
         fix.type !==
@@ -88,10 +109,12 @@ export function buildSelfHealingPlan(
                 fix.confidence,
 
             reason:
-                fix.description,
+                modificationPlan
+                    ? `The suggested fix "${fix.title}" requires manual review before it can be applied automatically.`
+                    : fix.description,
 
             modificationPlan:
-                null,
+                modificationPlan,
 
             targetNodeId:
                 fix.targetNodeId,

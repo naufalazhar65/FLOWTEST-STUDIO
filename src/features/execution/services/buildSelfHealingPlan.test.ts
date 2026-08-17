@@ -12,14 +12,36 @@ import type {
     ExecutionFailureAnalysis,
 } from "./analyzeExecutionFailure";
 
-import type {
-    AIModificationPlan,
-} from "../../ai/types/AIModificationPlan";
-
 function createAnalysis(
-    autoApplicable: boolean,
-    fixType = "reviewLocator",
+    options?: {
+        fixType?:
+            | "addWait"
+            | "reviewLocator"
+            | "none";
+
+        autoApplicable?:
+            boolean;
+
+        action?: string;
+
+        locatorStrategy?:
+            string | null;
+
+        locator?:
+            string | null;
+    },
 ): ExecutionFailureAnalysis {
+    const fixType =
+        options?.fixType ??
+        "addWait";
+
+    const autoApplicable =
+        options?.autoApplicable ??
+        (
+            fixType ===
+            "addWait"
+        );
+
     return {
         context: {
             node: {
@@ -27,6 +49,7 @@ function createAnalysis(
                     "node-1",
 
                 action:
+                    options?.action ??
                     "tap",
 
                 title:
@@ -36,10 +59,16 @@ function createAnalysis(
                     "Tap login",
 
                 locatorStrategy:
-                    "accessibilityId",
+                    options?.locatorStrategy ===
+                    undefined
+                        ? "accessibilityId"
+                        : options.locatorStrategy,
 
                 locator:
-                    "Login",
+                    options?.locator ===
+                    undefined
+                        ? "Login"
+                        : options.locator,
             },
 
             execution: {
@@ -47,6 +76,7 @@ function createAnalysis(
                     "node-1",
 
                 nodeType:
+                    options?.action ??
                     "tap",
 
                 nodeTitle:
@@ -65,119 +95,104 @@ function createAnalysis(
                     500,
 
                 error:
-                    "Element not found",
+                    "Operation timed out",
             },
 
-            previousNodeIds: [],
+            previousNodeIds:
+                [],
 
-            nextNodeIds: [],
+            nextNodeIds:
+                [],
         },
 
         classification: {
             category:
-                "elementNotFound",
+                "timeout",
 
             confidence:
                 "high",
 
             evidence: [
-                "Element not found",
+                "Operation timed out",
             ],
         },
 
         rootCause: {
             category:
-                "staleLocator",
+                "elementNotReady",
 
             title:
-                "Target element could not be located",
+                "Operation timed out",
 
             explanation:
-                "The locator did not resolve.",
+                "Target was not ready.",
 
             confidence:
                 "high",
 
             evidence: [
-                "Element not found",
+                "Operation timed out",
             ],
 
             likelyCauses: [
-                "Stale locator",
+                "Element was not ready.",
             ],
         },
 
         suggestedFix: {
             type:
-                fixType as
-                    "reviewLocator",
+                fixType,
 
             title:
-                "Review locator",
+                fixType ===
+                "addWait"
+                    ? "Add synchronization"
+                    : fixType ===
+                        "reviewLocator"
+                        ? "Review locator"
+                        : "Manual investigation required",
 
             description:
-                "Review locator",
+                fixType ===
+                "addWait"
+                    ? "Add wait."
+                    : fixType ===
+                        "reviewLocator"
+                        ? "Review locator."
+                        : "Manual investigation required.",
 
             targetNodeId:
-                "node-1",
+                fixType ===
+                "none"
+                    ? null
+                    : "node-1",
 
             confidence:
                 "high",
 
             reason:
-                "Test reason",
+                "Test reason.",
 
             autoApplicable,
         },
     };
 }
 
-const modificationPlan:
-    AIModificationPlan = {
-        type:
-            "modification_plan",
-
-        summary:
-            "Test modification",
-
-        operation: {
-            type:
-                "updateNode",
-
-            targetNodeId:
-                "node-1",
-
-            step: {
-                action:
-                    "tap",
-
-                title:
-                    "Tap Login",
-
-                description:
-                    "Tap login",
-
-                locatorStrategy:
-                    "accessibilityId",
-
-                locator:
-                    "Login",
-            },
-        },
-    };
-
 describe(
     "buildSelfHealingPlan",
     () => {
         it(
-            "allows auto apply when a deterministic plan exists",
+            "creates an auto-applicable modification plan when a deterministic repair exists",
             () => {
                 const result =
                     buildSelfHealingPlan(
-                        createAnalysis(
-                            true,
-                        ),
-                        modificationPlan,
+                        createAnalysis({
+                            fixType:
+                                "addWait",
+
+                            autoApplicable:
+                                true,
+                        }),
                     );
 
                 expect(
@@ -194,8 +209,14 @@ describe(
 
                 expect(
                     result.modificationPlan,
-                ).toEqual(
-                    modificationPlan,
+                ).not.toBeNull();
+
+                expect(
+                    result.modificationPlan &&
+                        "operation" in
+                            result.modificationPlan,
+                ).toBe(
+                    true,
                 );
 
                 expect(
@@ -207,14 +228,55 @@ describe(
         );
 
         it(
-            "requires manual review when no deterministic plan exists",
+            "requires manual review when the fix is not auto applicable",
             () => {
                 const result =
                     buildSelfHealingPlan(
-                        createAnalysis(
-                            true,
-                        ),
-                        null,
+                        createAnalysis({
+                            fixType:
+                                "addWait",
+
+                            autoApplicable:
+                                false,
+                        }),
+                    );
+
+                expect(
+                    result.canAutoApply,
+                ).toBe(
+                    false,
+                );
+
+                expect(
+                    result.strategy,
+                ).toBe(
+                    "manual",
+                );
+
+                expect(
+                    result.modificationPlan,
+                ).not.toBeNull();
+            },
+        );
+
+        it(
+            "requires manual review when no deterministic plan can be built",
+            () => {
+                const result =
+                    buildSelfHealingPlan(
+                        createAnalysis({
+                            fixType:
+                                "addWait",
+
+                            autoApplicable:
+                                true,
+
+                            locatorStrategy:
+                                null,
+
+                            locator:
+                                null,
+                        }),
                     );
 
                 expect(
@@ -236,14 +298,17 @@ describe(
         );
 
         it(
-            "requires manual review when the fix is not auto applicable",
+            "returns manual review for fixes that are not currently supported for automatic healing",
             () => {
                 const result =
                     buildSelfHealingPlan(
-                        createAnalysis(
-                            false,
-                        ),
-                        modificationPlan,
+                        createAnalysis({
+                            fixType:
+                                "reviewLocator",
+
+                            autoApplicable:
+                                false,
+                        }),
                     );
 
                 expect(
@@ -269,11 +334,13 @@ describe(
             () => {
                 const result =
                     buildSelfHealingPlan(
-                        createAnalysis(
-                            false,
-                            "none",
-                        ),
-                        null,
+                        createAnalysis({
+                            fixType:
+                                "none",
+
+                            autoApplicable:
+                                false,
+                        }),
                     );
 
                 expect(
@@ -287,6 +354,14 @@ describe(
                 ).toBe(
                     "none",
                 );
+
+                expect(
+                    result.modificationPlan,
+                ).toBeNull();
+
+                expect(
+                    result.targetNodeId,
+                ).toBeNull();
             },
         );
     },
