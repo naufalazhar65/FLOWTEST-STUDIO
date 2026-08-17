@@ -12,6 +12,11 @@ import type {
     AITestCaseGenerationResult,
 } from "../types/AITestCase";
 
+import type {
+    AITestCaseFlowRequest,
+    AITestCaseFlowResponse,
+} from "../types/AITestCaseFlow";
+
 const AI_API_URL =
     import.meta.env.VITE_AI_API_URL ??
     "http://localhost:8787";
@@ -86,7 +91,7 @@ export async function requestQAFixPlan(
     if (
         !data?.modificationPlan ||
         typeof data.modificationPlan !==
-            "object"
+        "object"
     ) {
         throw new Error(
             "QA fix response did not contain a valid modification plan.",
@@ -130,7 +135,7 @@ export async function generateAITestCases(
     if (
         !data ||
         typeof data !==
-            "object" ||
+        "object" ||
         !Array.isArray(
             data.testCases,
         )
@@ -141,4 +146,53 @@ export async function generateAITestCases(
     }
 
     return data as AITestCaseGenerationResult;
+}
+
+export async function convertAITestCaseToFlow(
+    request: AITestCaseFlowRequest,
+): Promise<AITestCaseFlowResponse> {
+    const response = await fetch(
+        `${AI_API_URL}/api/ai/test-cases/to-flow`,
+        {
+            method: "POST",
+
+            headers: {
+                "Content-Type":
+                    "application/json",
+            },
+
+            body: JSON.stringify(
+                request,
+            ),
+        },
+    );
+
+    const data =
+        await response.json();
+
+    if (!response.ok) {
+        throw new Error(
+            typeof data?.error ===
+                "string"
+                ? data.error
+                : `AI test-case flow request failed with status ${response.status}.`,
+        );
+    }
+
+    if (
+        !data ||
+        typeof data !==
+            "object" ||
+        typeof data.testCaseId !==
+            "string" ||
+        !data.flowPlan ||
+        typeof data.flowPlan !==
+            "object"
+    ) {
+        throw new Error(
+            "AI test-case flow response did not contain a valid flow plan.",
+        );
+    }
+
+    return data as AITestCaseFlowResponse;
 }

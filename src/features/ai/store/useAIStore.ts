@@ -18,6 +18,7 @@ import type {
 } from "../types/AIRequest";
 
 import {
+    convertAITestCaseToFlow,
     generateAITestCases,
     requestQAFixPlan,
     sendAIRequest,
@@ -82,6 +83,10 @@ interface AIStore {
 
     generateTestCases: (
         requirement: string,
+    ) => Promise<void>;
+
+    convertTestCaseToFlow: (
+        testCase: AITestCase,
     ) => Promise<void>;
 
     setPendingClarification: (
@@ -246,6 +251,81 @@ export const useAIStore =
                             false,
 
                         draftTestCases:
+                            null,
+                    });
+
+                    throw error;
+                }
+            },
+
+            convertTestCaseToFlow: async (
+                testCase,
+            ) => {
+                set({
+                    error: null,
+
+                    isGenerating:
+                        true,
+                });
+
+                try {
+                    const context =
+                        buildFlowContext();
+
+                    const result =
+                        await convertAITestCaseToFlow(
+                            {
+                                testCase,
+
+                                context,
+                            },
+                        );
+
+                    const validation =
+                        validateAIFlowPlan(
+                            result.flowPlan,
+                        );
+
+                    if (
+                        !validation.valid
+                    ) {
+                        throw new Error(
+                            validation.errors.join(
+                                " ",
+                            ),
+                        );
+                    }
+
+                    set({
+                        draftPlan:
+                            result.flowPlan,
+
+                        draftTestCases:
+                            null,
+
+                        draftModificationPlan:
+                            null,
+
+                        error:
+                            null,
+
+                        isGenerating:
+                            false,
+                    });
+                } catch (error) {
+                    const errorMessage =
+                        error instanceof Error
+                            ? error.message
+                            : String(error);
+
+                    set({
+                        error:
+                            errorMessage,
+
+                        isGenerating:
+                            false,
+
+                        draftPlan:
                             null,
                     });
 

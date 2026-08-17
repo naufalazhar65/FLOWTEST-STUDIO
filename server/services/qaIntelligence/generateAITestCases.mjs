@@ -24,6 +24,23 @@ Do not generate executable FlowTest Studio nodes yet.
 Do not generate locators unless the requirement explicitly provides them.
 Do not invent application details that are not present in the requirement.
 
+IMPORTANT STEP COVERAGE RULES:
+
+- Every distinct user action, system action, validation, or expected observable behavior explicitly described in the requirement MUST be represented by a test step.
+- Never skip a meaningful requirement step.
+- Never merge multiple distinct requirement actions into one step.
+- Preserve the logical order described by the requirement.
+- A successful end-state described by the requirement MUST normally become an explicit verification/assertion step.
+- If the requirement describes:
+  1. entering username,
+  2. entering password,
+  3. tapping Login,
+  4. seeing the Dashboard,
+  then the generated test case MUST contain four corresponding steps.
+- The final verification must not exist only inside expectedResult when it represents a distinct observable behavior.
+- The number of steps should reflect the number of distinct actions and observable outcomes in the requirement, not an arbitrary compact summary.
+- Do not omit a step merely because another step implies it.
+
 Return ONLY valid JSON.
 
 The top-level JSON must contain:
@@ -58,15 +75,46 @@ Rules:
 - Use concise and testable step actions.
 - Keep the step order sequential starting from 1.
 - Include test data only when relevant.
-- Include expected behavior for important steps when useful.
-- The final expectedResult must describe the observable outcome.
+- Include expected behavior for meaningful intermediate steps when useful.
+- The final expectedResult must describe the observable final outcome.
+- When the requirement explicitly contains a sequence of actions, preserve the complete sequence.
+- Include a final verification step when the requirement specifies a visible, measurable, or otherwise observable success condition.
 - Priority should reflect business/test risk implied by the requirement.
 - Use "functional" for normal positive behavior.
 - Use "negative" for invalid input or rejected behavior.
 - Use "validation" for validation rules or field constraints.
 - Use "edge" for boundary or unusual conditions.
 - Do not invent requirements that are not supported by the input.
-- Prefer a small number of high-quality test cases over many repetitive cases.
+- Multiple test cases may cover genuinely different scenarios, but do not remove required steps from a scenario merely to keep the test case short.
+
+CRITICAL EXAMPLE:
+
+Requirement:
+
+"User should be able to log in with valid credentials.
+
+The user is on the login screen.
+Enter a valid username into the username field.
+Enter a valid password into the password field.
+Tap the Login button.
+After successful login, the Dashboard screen should be displayed."
+
+The correct functional test case MUST contain:
+
+Step 1:
+Enter a valid username into the username field.
+
+Step 2:
+Enter a valid password into the password field.
+
+Step 3:
+Tap the Login button.
+
+Step 4:
+Verify that the Dashboard screen is displayed.
+
+Do NOT return only three steps.
+Do NOT put the Dashboard verification only in expectedResult.
 `;
 }
 
@@ -75,7 +123,7 @@ function normalizeRequirement(
 ) {
     if (
         typeof requirement !==
-            "string"
+        "string"
     ) {
         return null;
     }

@@ -95,6 +95,12 @@ export function AIAssistant({
                 state.setDraftTestCases,
         );
 
+    const convertTestCaseToFlow =
+    useAIStore(
+        (state) =>
+            state.convertTestCaseToFlow,
+    );
+
     const generateTestCases =
         useAIStore(
             (state) =>
@@ -129,44 +135,34 @@ export function AIAssistant({
         }
     }
 
-    function handleApproveTestCases() {
-        if (
-            !draftTestCases ||
-            draftTestCases.length === 0
-        ) {
-            return;
-        }
-
-        addMessage({
-            id:
-                crypto.randomUUID(),
-
-            role:
-                "assistant",
-
-            content:
-                `Approved ${draftTestCases.length} generated test case${draftTestCases.length === 1
-                    ? ""
-                    : "s"
-                }. They are ready for the next Test Case → Flow phase.`,
-
-            createdAt:
-                Date.now(),
-        });
-
-        setDraftTestCases(
-            null,
-        );
-
-        setApplyResult(
-            `Approved ${draftTestCases.length} test case${draftTestCases.length === 1
-                ? ""
-                : "s"
-            }.`,
-        );
+async function handleApproveTestCases() {
+    if (
+        !draftTestCases ||
+        draftTestCases.length === 0
+    ) {
+        return;
     }
 
-    function handleApply() {
+    const testCase =
+        draftTestCases[0];
+
+    setApplyResult(
+        null,
+    );
+
+    try {
+        await convertTestCaseToFlow(
+            testCase,
+        );
+    } catch {
+        /*
+         * The store already exposes
+         * the normalized error.
+         */
+    }
+}
+
+function handleApply() {
         if (
             draftModificationPlan
         ) {

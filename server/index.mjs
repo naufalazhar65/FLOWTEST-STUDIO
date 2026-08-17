@@ -15,6 +15,10 @@ import {
     generateAITestCases,
 } from "./services/qaIntelligence/generateAITestCases.mjs";
 
+import {
+    convertTestCaseToFlow,
+} from "./services/qaIntelligence/convertTestCaseToFlow.mjs";
+
 const app = express();
 
 const port = Number(
@@ -226,6 +230,70 @@ app.post(
         } catch (error) {
             console.error(
                 "[AI Test Cases API]",
+                error,
+            );
+
+            return res
+                .status(500)
+                .json({
+                    error:
+                        error instanceof Error
+                            ? error.message
+                            : String(
+                                error,
+                            ),
+                });
+        }
+    },
+);
+
+app.post(
+    "/api/ai/test-cases/to-flow",
+    async (req, res) => {
+        try {
+            const {
+                testCase,
+                context,
+            } = req.body;
+
+            if (
+                !testCase ||
+                typeof testCase !==
+                    "object"
+            ) {
+                return res
+                    .status(400)
+                    .json({
+                        error:
+                            "testCase is required.",
+                    });
+            }
+
+            if (
+                !context ||
+                typeof context !==
+                    "object"
+            ) {
+                return res
+                    .status(400)
+                    .json({
+                        error:
+                            "context is required.",
+                    });
+            }
+
+            const result =
+                await convertTestCaseToFlow(
+                    testCase,
+                    context,
+                );
+
+            return res.json(
+                result,
+            );
+        } catch (error) {
+            console.error(
+                "[AI Test Case Flow API]",
                 error,
             );
 

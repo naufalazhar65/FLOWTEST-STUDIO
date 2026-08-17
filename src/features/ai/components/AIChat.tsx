@@ -43,7 +43,7 @@ function ModificationOperationPreview({
     operation,
 }: {
     operation:
-        AIModificationOperationData;
+    AIModificationOperationData;
 }) {
     const step =
         "step" in operation
@@ -81,7 +81,7 @@ function ModificationOperationPreview({
                     style={{
                         color:
                             operation.type ===
-                            "deleteNode"
+                                "deleteNode"
                                 ? "#F85149"
                                 : "#E6EDF3",
                         fontSize: 12,
@@ -135,7 +135,7 @@ function ModificationOperationPreview({
             </div>
 
             {operation.type ===
-            "deleteNode" ? (
+                "deleteNode" ? (
                 <div
                     style={{
                         padding: 10,
@@ -301,7 +301,7 @@ function ModificationOperationPreview({
                         {step.text !==
                             undefined &&
                             step.text !==
-                                null && (
+                            null && (
                                 <span
                                     style={{
                                         maxWidth:
@@ -399,7 +399,7 @@ function ModificationPreview({
 
             {plan.warnings &&
                 plan.warnings.length >
-                    0 && (
+                0 && (
                     <div
                         style={{
                             marginBottom:
@@ -609,8 +609,9 @@ export function AIChat({
                         "16px 16px 20px",
                 }}
             >
-                {messages.length ===
-                    0 ? (
+                {messages.length === 0 &&
+                    !draftPlan &&
+                    !draftModificationPlan ? (
                     <div
                         style={{
                             minHeight:
