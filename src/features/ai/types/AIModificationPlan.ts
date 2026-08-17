@@ -51,6 +51,8 @@ export type AIModificationOperationData =
         targetNodeId: string;
 
         step: AIModificationStep;
+
+        resultId?: string;
     }
     | {
         type: "deleteNode";

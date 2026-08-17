@@ -79,6 +79,30 @@ function buildCreateData(
                 step.text,
         }),
 
+        ...(step.variableName !==
+            undefined && {
+            variableName:
+                step.variableName,
+        }),
+
+        ...(step.actual !==
+            undefined && {
+            actual:
+                step.actual,
+        }),
+
+        ...(step.operator !==
+            undefined && {
+            operator:
+                step.operator,
+        }),
+
+        ...(step.expected !==
+            undefined && {
+            expected:
+                step.expected,
+        }),
+
         ...(step.action ===
             "wait" && {
             timeout:
@@ -98,7 +122,6 @@ function buildCreateData(
         }),
     };
 }
-
 /*
  * --------------------------------------------------
  * Update patch
@@ -160,32 +183,32 @@ function buildUpdatePatch(
             break;
 
         case "assert":
-        case "if":
-            if (
-                step.actual !==
-                undefined
-            ) {
-                patch.actual =
-                    step.actual;
-            }
+case "if":
+    if (
+        step.actual !==
+        undefined
+    ) {
+        patch.actual =
+            step.actual;
+    }
 
-            if (
-                step.operator !==
-                undefined
-            ) {
-                patch.operator =
-                    step.operator;
-            }
+    if (
+        step.operator !==
+        undefined
+    ) {
+        patch.operator =
+            step.operator;
+    }
 
-            if (
-                step.expected !==
-                undefined
-            ) {
-                patch.expected =
-                    step.expected;
-            }
+    if (
+        step.expected !==
+        undefined
+    ) {
+        patch.expected =
+            step.expected;
+    }
 
-            break;
+    break;
 
         case "delay":
             if (
@@ -225,13 +248,38 @@ function buildUpdatePatch(
                 patch.variableName =
                     step.variableName;
             }
-
+            
             if (
                 step.text !==
                 undefined
             ) {
                 patch.value =
                     step.text;
+            }
+
+            break;
+
+                case "getText":
+        case "elementExists":
+        case "getAttribute":
+        case "getDisplayed":
+        case "getEnabled":
+        case "getSelected":
+        case "getLocation":
+        case "getSize":
+        case "getRect":
+        case "getCurrentActivity":
+        case "getCurrentPackage":
+        case "getOrientation":
+        case "getPlatformVersion":
+        case "getDeviceName":
+        case "getDeviceTime":
+            if (
+                step.variableName !==
+                undefined
+            ) {
+                patch.variableName =
+                    step.variableName;
             }
 
             break;
@@ -324,6 +372,18 @@ function applyPostCreateMetadata(
             newNodeId,
             postCreatePatch as never,
         );
+        console.log(
+    "[AI Apply Metadata]",
+    {
+        newNodeId,
+
+        action:
+            step.action,
+
+        patch:
+            postCreatePatch,
+    },
+);
     }
 }
 
@@ -335,7 +395,7 @@ function applyPostCreateMetadata(
 
 function applyAddNodeAfter(
     operation: StepModificationOperation,
-): void {
+): string {
     if (
         operation.type !==
         "addNodeAfter"
@@ -421,7 +481,10 @@ console.log(
         newNode.id,
         step,
     );
+    return newNode.id;
 }
+
+
 
 /*
  * --------------------------------------------------
@@ -431,7 +494,7 @@ console.log(
 
 function applyAddNodeBefore(
     operation: StepModificationOperation,
-): void {
+): string {
     if (
         operation.type !==
         "addNodeBefore"
@@ -508,6 +571,7 @@ function applyAddNodeBefore(
         newNode.id,
         step,
     );
+    return newNode.id;
 }
 /*
  * --------------------------------------------------
@@ -608,40 +672,35 @@ function applyDeleteNode(
  * APPLY ONE OPERATION
  * --------------------------------------------------
  */
-
 function applyOperation(
     operation: AIModificationOperationData,
-): void {
+): string | null {
     switch (
-    operation.type
+        operation.type
     ) {
         case "addNodeAfter":
-            applyAddNodeAfter(
+            return applyAddNodeAfter(
                 operation as StepModificationOperation,
             );
-
-            return;
 
         case "addNodeBefore":
-            applyAddNodeBefore(
+            return applyAddNodeBefore(
                 operation as StepModificationOperation,
             );
-
-            return;
 
         case "updateNode":
             applyUpdateNode(
                 operation as StepModificationOperation,
             );
 
-            return;
+            return null;
 
         case "deleteNode":
             applyDeleteNode(
                 operation as DeleteModificationOperation,
             );
 
-            return;
+            return null;
 
         default:
             throw new Error(
@@ -712,6 +771,13 @@ export function applyAIModificationPlan(
             : plan.operation
                 ? [plan.operation]
                 : [];
+                const operationResults =
+    new Map<
+        string,
+        string
+    >();
+
+    
 
     try {
         /*
@@ -720,13 +786,60 @@ export function applyAIModificationPlan(
         store.runInHistoryBatch(
             () => {
                 for (
-                    const operation of
-                    operations
-                ) {
-                    applyOperation(
-                        operation,
-                    );
-                }
+    const operation of
+    operations
+) {
+    let resolvedTargetNodeId =
+        operation.targetNodeId;
+
+    if (
+        resolvedTargetNodeId.startsWith(
+            "$",
+        )
+    ) {
+        const reference =
+            resolvedTargetNodeId.slice(
+                1,
+            );
+
+        const resolvedNodeId =
+            operationResults.get(
+                reference,
+            );
+
+        if (!resolvedNodeId) {
+            throw new Error(
+                `Unable to resolve modification target reference "${resolvedTargetNodeId}".`,
+            );
+        }
+
+        resolvedTargetNodeId =
+            resolvedNodeId;
+    }
+
+    const resolvedOperation = {
+        ...operation,
+
+        targetNodeId:
+            resolvedTargetNodeId,
+    };
+
+    const createdNodeId =
+    applyOperation(
+        resolvedOperation,
+    );
+
+if (
+    "resultId" in operation &&
+    operation.resultId &&
+    createdNodeId
+) {
+    operationResults.set(
+        operation.resultId,
+        createdNodeId,
+    );
+}
+}
             },
         );
 

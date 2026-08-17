@@ -8,7 +8,8 @@ export type AIIntent =
     | "analyzeFlow"
     | "analyzeSelectedNode"
     | "generateFlow"
-    | "modifyFlow";
+    | "modifyFlow"
+    | "reviewFlow";
 
 export interface AIFlowContextNode {
     id: string;
@@ -86,6 +87,47 @@ export interface AIClarification {
         AIClarificationCandidate[];
 }
 
+export interface AIQARecommendation {
+    id: string;
+
+    priority:
+        | "critical"
+        | "high"
+        | "medium"
+        | "low";
+
+    impact:
+        | "high"
+        | "medium"
+        | "low";
+
+    score: number;
+
+    category: string;
+
+    finding: string;
+
+    nodeId: string | null;
+
+    action: string | null;
+
+    title: string;
+
+    description: string;
+
+    recommendation:
+        string | null;
+
+    suggestedFix:
+        | {
+            type: string;
+
+            targetNodeId:
+                string | null;
+        }
+        | null;
+}
+
 export interface AIPendingClarification {
     originalMessage: string;
 
@@ -107,4 +149,7 @@ export interface AIResponse {
 
     clarification?:
         AIClarification;
+
+    qaRecommendations?:
+    AIQARecommendation[];
 }

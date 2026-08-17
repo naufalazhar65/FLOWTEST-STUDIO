@@ -14,9 +14,11 @@ import type {
 
 import type {
     AIPendingClarification,
+    AIQARecommendation,
 } from "../types/AIRequest";
 
 import {
+    requestQAFixPlan,
     sendAIRequest,
 } from "../services/aiClient";
 
@@ -37,10 +39,14 @@ interface AIStore {
     draftModificationPlan:
         AIModificationPlan | null;
 
+    qaRecommendations:
+        AIQARecommendation[];
+
     pendingClarification:
         AIPendingClarification | null;
 
-    isGenerating: boolean;
+    isGenerating:
+        boolean;
 
     error:
         string | null;
@@ -78,6 +84,11 @@ interface AIStore {
     sendMessage: (
         content: string,
     ) => Promise<void>;
+
+    requestQAFix: (
+        recommendation:
+            AIQARecommendation,
+    ) => Promise<void>;
 }
 
 function createMessageId(): string {
@@ -86,7 +97,10 @@ function createMessageId(): string {
 
 export const useAIStore =
     create<AIStore>(
-        (set, get) => ({
+        (
+            set,
+            get,
+        ) => ({
             messages: [],
 
             draftPlan:
@@ -94,6 +108,9 @@ export const useAIStore =
 
             draftModificationPlan:
                 null,
+
+            qaRecommendations:
+                [],
 
             pendingClarification:
                 null,
@@ -108,7 +125,9 @@ export const useAIStore =
                 message,
             ) =>
                 set(
-                    (state) => ({
+                    (
+                        state,
+                    ) => ({
                         messages: [
                             ...state.messages,
                             message,
@@ -126,11 +145,17 @@ export const useAIStore =
                     draftModificationPlan:
                         null,
 
+                    qaRecommendations:
+                        [],
+
                     pendingClarification:
                         null,
 
                     error:
                         null,
+
+                    isGenerating:
+                        false,
                 }),
 
             setDraftPlan: (
@@ -199,7 +224,9 @@ export const useAIStore =
                     };
 
                     set(
-                        (state) => ({
+                        (
+                            state,
+                        ) => ({
                             messages: [
                                 ...state.messages,
                                 userMessage,
@@ -222,15 +249,17 @@ export const useAIStore =
                                 .pendingClarification;
 
                         const response =
-                            await sendAIRequest({
-                                message,
+                            await sendAIRequest(
+                                {
+                                    message,
 
-                                context,
+                                    context,
 
-                                clarification:
-                                    pendingClarification ??
-                                    undefined,
-                            });
+                                    clarification:
+                                        pendingClarification ??
+                                        undefined,
+                                },
+                            );
 
                         let draftPlan:
                             AIFlowPlan |
@@ -242,6 +271,10 @@ export const useAIStore =
                             null =
                             response.modificationPlan ??
                             null;
+
+                        const qaRecommendations =
+                            response.qaRecommendations ??
+                            [];
 
                         if (
                             response.flowPlan
@@ -309,12 +342,18 @@ export const useAIStore =
                                 response.modificationPlan ??
                                 undefined,
 
+                            qaRecommendations:
+                                response.qaRecommendations ??
+                                undefined,
+
                             createdAt:
                                 Date.now(),
                         };
 
                         set(
-                            (state) => ({
+                            (
+                                state,
+                            ) => ({
                                 messages: [
                                     ...state.messages,
                                     assistantMessage,
@@ -323,6 +362,8 @@ export const useAIStore =
                                 draftPlan,
 
                                 draftModificationPlan,
+
+                                qaRecommendations,
 
                                 pendingClarification:
                                     nextPendingClarification,
@@ -340,7 +381,9 @@ export const useAIStore =
                         const errorMessage =
                             error instanceof Error
                                 ? error.message
-                                : String(error);
+                                : String(
+                                    error,
+                                );
 
                         const assistantMessage:
                             AIMessage = {
@@ -358,7 +401,9 @@ export const useAIStore =
                         };
 
                         set(
-                            (state) => ({
+                            (
+                                state,
+                            ) => ({
                                 messages: [
                                     ...state.messages,
                                     assistantMessage,
@@ -376,10 +421,94 @@ export const useAIStore =
                                 draftModificationPlan:
                                     null,
 
+                                qaRecommendations:
+                                    [],
+
                                 pendingClarification:
                                     null,
                             }),
                         );
+                    }
+                },
+
+            requestQAFix:
+                async (
+                    recommendation,
+                ) => {
+                    const suggestedFix =
+                        recommendation
+                            ?.suggestedFix;
+
+                    if (
+                        !suggestedFix ||
+                        !suggestedFix.type
+                    ) {
+                        throw new Error(
+                            "This QA recommendation does not contain a suggested fix.",
+                        );
+                    }
+
+                    if (
+                        !suggestedFix.targetNodeId
+                    ) {
+                        throw new Error(
+                            "The QA suggested fix does not contain a target node.",
+                        );
+                    }
+
+                    set({
+                        error:
+                            null,
+
+                        isGenerating:
+                            true,
+                    });
+
+                    try {
+                        const context =
+                            buildFlowContext();
+
+                        const modificationPlan =
+                            await requestQAFixPlan(
+                                recommendation,
+                                context,
+                            );
+
+                        set({
+                            draftModificationPlan:
+                                modificationPlan,
+
+                            draftPlan:
+                                null,
+
+                            error:
+                                null,
+
+                            isGenerating:
+                                false,
+                        });
+                    } catch (
+                        error
+                    ) {
+                        const errorMessage =
+                            error instanceof Error
+                                ? error.message
+                                : String(
+                                    error,
+                                );
+
+                        set({
+                            error:
+                                errorMessage,
+
+                            isGenerating:
+                                false,
+
+                            draftModificationPlan:
+                                null,
+                        });
+
+                        throw error;
                     }
                 },
         }),

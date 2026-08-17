@@ -2,6 +2,9 @@ import type { AIFlowPlan } from "./AIFlowPlan";
 import type {
     AIModificationPlan,
 } from "./AIModificationPlan";
+import type {
+    AIQARecommendation,
+} from "./AIRequest";
 
 export type AIMessageRole =
     | "user"
@@ -21,4 +24,7 @@ export interface AIMessage {
     AIModificationPlan;
 
     createdAt: number;
+
+    qaRecommendations?:
+    AIQARecommendation[];
 }

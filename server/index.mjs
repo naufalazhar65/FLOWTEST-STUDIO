@@ -7,6 +7,10 @@ import {
     generateAIResponse,
 } from "./services/ollamaService.mjs";
 
+import {
+    buildQAFixPlan,
+} from "./services/qaIntelligence/buildQAFixPlan.mjs";
+
 const app = express();
 
 const port = Number(
@@ -26,11 +30,16 @@ app.get(
     (_req, res) => {
         res.json({
             ok: true,
-            service: "flowtest-ai",
-            provider: "ollama",
+
+            service:
+                "flowtest-ai",
+
+            provider:
+                "ollama",
+
             model:
-    process.env.OLLAMA_MODEL ??
-    "qwen3:1.7b",
+                process.env.OLLAMA_MODEL ??
+                "qwen3:1.7b",
         });
     },
 );
@@ -40,19 +49,22 @@ app.post(
     async (req, res) => {
         try {
             const {
-    message,
-    context,
-    clarification,
-} = req.body;
+                message,
+                context,
+                clarification,
+            } = req.body;
 
             if (
-                typeof message !== "string" ||
+                typeof message !==
+                    "string" ||
                 !message.trim()
             ) {
-                return res.status(400).json({
-                    error:
-                        "message is required.",
-                });
+                return res
+                    .status(400)
+                    .json({
+                        error:
+                            "message is required.",
+                    });
             }
 
             if (
@@ -60,37 +72,120 @@ app.post(
                 typeof context !==
                     "object"
             ) {
-                return res.status(400).json({
-                    error:
-                        "context is required.",
-                });
+                return res
+                    .status(400)
+                    .json({
+                        error:
+                            "context is required.",
+                    });
             }
 
             const result =
-    await generateAIResponse({
-        message:
-            message.trim(),
+                await generateAIResponse({
+                    message:
+                        message.trim(),
 
-        context,
+                    context,
 
-        clarification:
-            clarification ??
-            null,
-    });
+                    clarification:
+                        clarification ??
+                        null,
+                });
 
-            return res.json(result);
+            return res.json(
+                result,
+            );
         } catch (error) {
             console.error(
                 "[AI API]",
                 error,
             );
 
-            return res.status(500).json({
-                error:
-                    error instanceof Error
-                        ? error.message
-                        : String(error),
+            return res
+                .status(500)
+                .json({
+                    error:
+                        error instanceof Error
+                            ? error.message
+                            : String(
+                                error,
+                            ),
+                });
+        }
+    },
+);
+
+app.post(
+    "/api/ai/qa/fix",
+    async (req, res) => {
+        try {
+            const {
+                recommendation,
+                context,
+            } = req.body;
+
+            if (
+                !recommendation ||
+                typeof recommendation !==
+                    "object"
+            ) {
+                return res
+                    .status(400)
+                    .json({
+                        error:
+                            "recommendation is required.",
+                    });
+            }
+
+            if (
+                !context ||
+                typeof context !==
+                    "object"
+            ) {
+                return res
+                    .status(400)
+                    .json({
+                        error:
+                            "context is required.",
+                    });
+            }
+
+            const modificationPlan =
+                buildQAFixPlan(
+                    recommendation,
+                    context,
+                );
+
+            if (
+                !modificationPlan
+            ) {
+                return res
+                    .status(422)
+                    .json({
+                        error:
+                            "Unable to build a QA fix plan for this recommendation.",
+                    });
+            }
+
+            return res.json({
+                modificationPlan,
             });
+        } catch (error) {
+            console.error(
+                "[QA Fix API]",
+                error,
+            );
+
+            return res
+                .status(500)
+                .json({
+                    error:
+                        error instanceof Error
+                            ? error.message
+                            : String(
+                                error,
+                            ),
+                });
         }
     },
 );

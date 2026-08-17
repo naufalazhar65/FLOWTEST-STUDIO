@@ -138,6 +138,7 @@ function validateStep(
 function validateOperation(
     operation: AIModificationOperationData,
     existingNodeIds: Set<string>,
+    knownResultIds: Set<string>,
     index?: number,
 ): string[] {
     const errors: string[] = [];
@@ -164,20 +165,48 @@ function validateOperation(
         return errors;
     }
 
+    const targetNodeId =
+        operation.targetNodeId?.trim() ??
+        "";
+
     if (
-        !operation.targetNodeId
-            ?.trim()
+        !targetNodeId
     ) {
         errors.push(
             `${prefix} requires a targetNodeId.`,
         );
     } else if (
+        targetNodeId.startsWith(
+            "$",
+        )
+    ) {
+        const reference =
+            targetNodeId
+                .slice(1)
+                .trim();
+
+        if (
+            !reference
+        ) {
+            errors.push(
+                `${prefix} contains an empty target reference.`,
+            );
+        } else if (
+            !knownResultIds.has(
+                reference,
+            )
+        ) {
+            errors.push(
+                `${prefix} target reference "${targetNodeId}" does not refer to a previous operation result.`,
+            );
+        }
+    } else if (
         !existingNodeIds.has(
-            operation.targetNodeId,
+            targetNodeId,
         )
     ) {
         errors.push(
-            `${prefix} target node "${operation.targetNodeId}" does not exist in the current flow.`,
+            `${prefix} target node "${targetNodeId}" does not exist in the current flow.`,
         );
     }
 
@@ -185,10 +214,6 @@ function validateOperation(
         operation.type ===
         "deleteNode"
     ) {
-        /*
-         * deleteNode does not require
-         * a step.
-         */
         return errors;
     }
 
@@ -281,23 +306,72 @@ export function validateAIModificationPlan(
      * Validate every modification.
      * --------------------------------------------------
      */
-    operations.forEach(
-        (
-            operation,
-            index,
-        ) => {
-            errors.push(
-                ...validateOperation(
-                    operation,
-                    existingNodeIds,
-                    operations.length >
-                        1
-                        ? index
-                        : undefined,
-                ),
-            );
-        },
-    );
+    const knownResultIds =
+    new Set<string>();
+
+operations.forEach(
+    (
+        operation,
+        index,
+    ) => {
+        errors.push(
+            ...validateOperation(
+                operation,
+                existingNodeIds,
+                knownResultIds,
+                operations.length >
+                    1
+                    ? index
+                    : undefined,
+            ),
+        );
+
+        if (
+    "resultId" in operation &&
+    operation.resultId
+) {
+    if (
+        operation.type !==
+            "addNodeAfter" &&
+        operation.type !==
+            "addNodeBefore"
+    ) {
+        errors.push(
+            `Modification operation ${
+                index + 1
+            } can only define resultId for addNodeAfter or addNodeBefore.`,
+        );
+    }
+
+    const resultId =
+        operation.resultId.trim();
+
+    if (
+        !resultId
+    ) {
+        errors.push(
+            `Modification operation ${
+                index + 1
+            } has an empty resultId.`,
+        );
+    } else if (
+        knownResultIds.has(
+            resultId,
+        )
+    ) {
+        errors.push(
+            `Modification operation ${
+                index + 1
+            } reuses duplicate resultId "${resultId}".`,
+        );
+    } else {
+        knownResultIds.add(
+            resultId,
+        );
+    }
+}
+    },
+);
 
     return {
         valid:

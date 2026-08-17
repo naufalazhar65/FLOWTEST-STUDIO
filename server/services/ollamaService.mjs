@@ -6,6 +6,18 @@ import {
     findAmbiguousModificationTargets,
 } from "./resolveModificationTarget.mjs";
 
+import {
+    analyzeFlowQuality,
+} from "./qaIntelligence/analyzeFlowQuality.mjs";
+
+import {
+    buildQARecommendations,
+} from "./qaIntelligence/buildQARecommendations.mjs";
+
+import {
+    buildQAReviewMessage,
+} from "./qaIntelligence/buildQAReviewMessage.mjs";
+
 const baseUrl =
     process.env.OLLAMA_BASE_URL ??
     "http://localhost:11434";
@@ -19,6 +31,7 @@ const VALID_INTENTS = new Set([
     "analyzeSelectedNode",
     "generateFlow",
     "modifyFlow",
+    "reviewFlow",
 ]);
 
 const VALID_ACTIONS = new Set([
@@ -396,6 +409,40 @@ function normalizeIntent(
         return "analyzeSelectedNode";
     }
 
+    
+
+    /*
+ * --------------------------------------------------
+ * QA flow review.
+ * --------------------------------------------------
+ */
+
+const qaReviewPatterns = [
+    /\breview\s+(the\s+)?flow\b/i,
+    /\breview\s+(the\s+)?test\s+flow\b/i,
+    /\bcheck\s+(the\s+)?flow\s+quality\b/i,
+    /\bcheck\s+(the\s+)?test\s+quality\b/i,
+    /\banalyze\s+(the\s+)?flow\s+quality\b/i,
+
+    /\breview\s+kualitas\s+flow\b/i,
+    /\breview\s+flow\s+ini\b/i,
+    /\bcek\s+kualitas\s+flow\b/i,
+    /\bperiksa\s+kualitas\s+flow\b/i,
+    /\banalisis\s+kualitas\s+flow\b/i,
+    /\banalisa\s+kualitas\s+flow\b/i,
+];
+
+if (
+    qaReviewPatterns.some(
+        (pattern) =>
+            pattern.test(
+                normalizedMessage,
+            ),
+    )
+) {
+    return "reviewFlow";
+}
+
     /*
      * Current-flow analysis.
      */
@@ -462,6 +509,13 @@ function normalizeIntent(
             "modifyflow"
         ) {
             return "modifyFlow";
+        }
+
+        if (
+            normalized ===
+            "reviewflow"
+        ) {
+            return "reviewFlow";
         }
 
         if (
@@ -4542,6 +4596,44 @@ if (
 
         flowPlan:
             null,
+    };
+}
+
+if (
+    intent ===
+    "reviewFlow"
+) {
+    const analysis =
+        analyzeFlowQuality(
+            context,
+        );
+
+    const recommendations =
+        buildQARecommendations(
+            analysis,
+        );
+
+    const reviewMessage =
+        buildQAReviewMessage(
+            analysis,
+            userLanguage,
+        );
+
+    return {
+        message:
+            reviewMessage,
+
+        intent:
+            "reviewFlow",
+
+        flowPlan:
+            null,
+
+        modificationPlan:
+            null,
+
+        qaRecommendations:
+            recommendations,
     };
 }
 
