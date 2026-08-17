@@ -260,26 +260,94 @@ export const useFlowStore =
     runInHistoryBatch: (
       callback,
     ) => {
-      const historyLength =
-        get().history.length;
+      const before =
+        get();
 
-      callback();
+      const beforeNodes =
+        before.nodes;
 
-      set((state) => {
-        if (
-          state.history.length <=
-          historyLength
-        ) {
-          return state;
-        }
+      const beforeEdges =
+        before.edges;
 
-        return {
+      const beforeHistory =
+        before.history;
+
+      const beforeFuture =
+        before.future;
+
+      const beforeSelectedNodeId =
+        before.selectedNodeId;
+
+      try {
+        callback();
+      } catch (error) {
+        /*
+         * ----------------------------------------------
+         * Transaction rollback
+         * ----------------------------------------------
+         *
+         * If any operation in the batch fails,
+         * restore the exact state that existed
+         * before the batch started.
+         */
+        set({
+          nodes:
+            beforeNodes,
+
+          edges:
+            beforeEdges,
+
           history:
-            state.history.slice(
-              0,
-              historyLength + 1,
-            ),
-        };
+            beforeHistory,
+
+          future:
+            beforeFuture,
+
+          selectedNodeId:
+            beforeSelectedNodeId,
+        });
+
+        throw error;
+      }
+
+      const after =
+        get();
+
+      const hasChanges =
+        after.nodes !==
+        beforeNodes ||
+        after.edges !==
+        beforeEdges;
+
+      if (!hasChanges) {
+        return;
+      }
+
+      /*
+       * ----------------------------------------------
+       * Atomic history entry
+       * ----------------------------------------------
+       *
+       * Individual actions may have pushed
+       * intermediate history entries.
+       *
+       * Discard those intermediate entries and
+       * keep exactly one snapshot representing
+       * the state immediately before the batch.
+       */
+      set({
+        history: [
+          ...beforeHistory,
+          {
+            nodes:
+              beforeNodes,
+
+            edges:
+              beforeEdges,
+          },
+        ],
+
+        future: [],
       });
     },
 

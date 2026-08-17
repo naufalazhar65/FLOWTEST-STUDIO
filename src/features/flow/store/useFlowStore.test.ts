@@ -229,4 +229,237 @@ describe("useFlowStore history", () => {
             stateAfterSecondAdd.edges,
         );
     });
+        it(
+        "should keep multiple changes inside one history batch",
+        () => {
+            const store =
+                useFlowStore.getState();
+
+            const initialState = {
+                nodes: structuredClone(
+                    store.nodes,
+                ),
+
+                edges: structuredClone(
+                    store.edges,
+                ),
+            };
+
+            store.runInHistoryBatch(
+                () => {
+                    store.addNode(
+                        "tap",
+                    );
+
+                    store.addNode(
+                        "input",
+                    );
+                },
+            );
+
+            const stateAfterBatch =
+                useFlowStore.getState();
+
+            expect(
+                stateAfterBatch.nodes,
+            ).toHaveLength(
+                initialState.nodes.length +
+                    2,
+            );
+
+            /*
+             * Two changes were made inside
+             * one batch, so history must
+             * contain exactly one new entry.
+             */
+            expect(
+                stateAfterBatch.history,
+            ).toHaveLength(
+                1,
+            );
+
+            useFlowStore
+                .getState()
+                .undo();
+
+            expect(
+                useFlowStore.getState()
+                    .nodes,
+            ).toEqual(
+                initialState.nodes,
+            );
+
+            expect(
+                useFlowStore.getState()
+                    .edges,
+            ).toEqual(
+                initialState.edges,
+            );
+        },
+    );
+
+    it(
+        "should redo a whole history batch in one step",
+        () => {
+            const store =
+                useFlowStore.getState();
+
+            const initialHistoryLength =
+                store.history.length;
+
+            store.runInHistoryBatch(
+                () => {
+                    store.addNode(
+                        "tap",
+                    );
+
+                    store.addNode(
+                        "input",
+                    );
+                },
+            );
+
+            const stateAfterBatch = {
+                nodes:
+                    structuredClone(
+                        useFlowStore.getState()
+                            .nodes,
+                    ),
+
+                edges:
+                    structuredClone(
+                        useFlowStore.getState()
+                            .edges,
+                    ),
+            };
+
+            expect(
+                useFlowStore.getState()
+                    .history,
+            ).toHaveLength(
+                initialHistoryLength +
+                    1,
+            );
+
+            useFlowStore
+                .getState()
+                .undo();
+
+            expect(
+                useFlowStore.getState()
+                    .history,
+            ).toHaveLength(
+                initialHistoryLength,
+            );
+
+            expect(
+                useFlowStore.getState()
+                    .future,
+            ).toHaveLength(
+                1,
+            );
+
+            useFlowStore
+                .getState()
+                .redo();
+
+            expect(
+                useFlowStore.getState()
+                    .nodes,
+            ).toEqual(
+                stateAfterBatch.nodes,
+            );
+
+            expect(
+                useFlowStore.getState()
+                    .edges,
+            ).toEqual(
+                stateAfterBatch.edges,
+            );
+
+            expect(
+                useFlowStore.getState()
+                    .history,
+            ).toHaveLength(
+                initialHistoryLength +
+                    1,
+            );
+
+            expect(
+                useFlowStore.getState()
+                    .future,
+            ).toHaveLength(
+                0,
+            );
+        },
+    );
+
+        it(
+        "should rollback the entire batch when one operation fails",
+        () => {
+            const store =
+                useFlowStore.getState();
+
+            const initialState = {
+                nodes: structuredClone(
+                    store.nodes,
+                ),
+
+                edges: structuredClone(
+                    store.edges,
+                ),
+
+                historyLength:
+                    store.history.length,
+
+                future: structuredClone(
+                    store.future,
+                ),
+            };
+
+            expect(() => {
+                store.runInHistoryBatch(
+                    () => {
+                        store.addNode(
+                            "tap",
+                        );
+
+                        throw new Error(
+                            "Simulated batch failure",
+                        );
+                    },
+                );
+            }).toThrow(
+                "Simulated batch failure",
+            );
+
+            expect(
+                useFlowStore.getState()
+                    .nodes,
+            ).toEqual(
+                initialState.nodes,
+            );
+
+            expect(
+                useFlowStore.getState()
+                    .edges,
+            ).toEqual(
+                initialState.edges,
+            );
+
+            expect(
+                useFlowStore.getState()
+                    .history,
+            ).toHaveLength(
+                initialState.historyLength,
+            );
+
+            expect(
+                useFlowStore.getState()
+                    .future,
+            ).toEqual(
+                initialState.future,
+            );
+        },
+    );
 });
