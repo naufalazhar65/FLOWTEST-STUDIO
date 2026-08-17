@@ -91,28 +91,28 @@ export function suggestFailureFix(
             };
 
         case "elementNotReady":
-            return {
-                type:
-                    "addWait",
+    return {
+        type:
+            "addWait",
 
-                title:
-                    "Add synchronization",
+        title:
+            "Add synchronization",
 
-                description:
-                    "Add an appropriate wait or synchronization step before the failed interaction.",
+        description:
+            "Add an appropriate wait or synchronization step before the failed interaction.",
 
-                targetNodeId:
-                    context.node.id,
+        targetNodeId:
+            context.node.id,
 
-                confidence:
-                    rootCause.confidence,
+        confidence:
+            rootCause.confidence,
 
-                reason:
-                    "The target element or operation was not ready within the available execution window.",
+        reason:
+            "The target element or operation was not ready within the available execution window.",
 
-                autoApplicable:
-                    false,
-            };
+        autoApplicable:
+            true,
+    };
 
         case "assertionMismatch":
             return {

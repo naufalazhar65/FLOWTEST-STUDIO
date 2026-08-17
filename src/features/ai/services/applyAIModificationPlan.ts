@@ -183,32 +183,32 @@ function buildUpdatePatch(
             break;
 
         case "assert":
-case "if":
-    if (
-        step.actual !==
-        undefined
-    ) {
-        patch.actual =
-            step.actual;
-    }
+        case "if":
+            if (
+                step.actual !==
+                undefined
+            ) {
+                patch.actual =
+                    step.actual;
+            }
 
-    if (
-        step.operator !==
-        undefined
-    ) {
-        patch.operator =
-            step.operator;
-    }
+            if (
+                step.operator !==
+                undefined
+            ) {
+                patch.operator =
+                    step.operator;
+            }
 
-    if (
-        step.expected !==
-        undefined
-    ) {
-        patch.expected =
-            step.expected;
-    }
+            if (
+                step.expected !==
+                undefined
+            ) {
+                patch.expected =
+                    step.expected;
+            }
 
-    break;
+            break;
 
         case "delay":
             if (
@@ -248,7 +248,7 @@ case "if":
                 patch.variableName =
                     step.variableName;
             }
-            
+
             if (
                 step.text !==
                 undefined
@@ -259,7 +259,7 @@ case "if":
 
             break;
 
-                case "getText":
+        case "getText":
         case "elementExists":
         case "getAttribute":
         case "getDisplayed":
@@ -372,18 +372,6 @@ function applyPostCreateMetadata(
             newNodeId,
             postCreatePatch as never,
         );
-        console.log(
-    "[AI Apply Metadata]",
-    {
-        newNodeId,
-
-        action:
-            step.action,
-
-        patch:
-            postCreatePatch,
-    },
-);
     }
 }
 
@@ -412,29 +400,6 @@ function applyAddNodeAfter(
         targetNodeId,
         step,
     } = operation;
-
-    console.log(
-    "[AI Apply Before] targetNodeId:",
-    targetNodeId,
-);
-
-const targetNode =
-    store.nodes.find(
-        (node) =>
-            node.id ===
-            targetNodeId,
-    );
-
-console.log(
-    "[AI Apply Before] targetNode:",
-    targetNode
-        ? {
-            id: targetNode.id,
-            action: targetNode.data.action,
-            title: targetNode.data.title,
-        }
-        : null,
-);
 
     const outgoingEdge =
         store.edges.find(
@@ -676,7 +641,7 @@ function applyOperation(
     operation: AIModificationOperationData,
 ): string | null {
     switch (
-        operation.type
+    operation.type
     ) {
         case "addNodeAfter":
             return applyAddNodeAfter(
@@ -771,13 +736,13 @@ export function applyAIModificationPlan(
             : plan.operation
                 ? [plan.operation]
                 : [];
-                const operationResults =
-    new Map<
-        string,
-        string
-    >();
+    const operationResults =
+        new Map<
+            string,
+            string
+        >();
 
-    
+
 
     try {
         /*
@@ -786,60 +751,60 @@ export function applyAIModificationPlan(
         store.runInHistoryBatch(
             () => {
                 for (
-    const operation of
-    operations
-) {
-    let resolvedTargetNodeId =
-        operation.targetNodeId;
+                    const operation of
+                    operations
+                ) {
+                    let resolvedTargetNodeId =
+                        operation.targetNodeId;
 
-    if (
-        resolvedTargetNodeId.startsWith(
-            "$",
-        )
-    ) {
-        const reference =
-            resolvedTargetNodeId.slice(
-                1,
-            );
+                    if (
+                        resolvedTargetNodeId.startsWith(
+                            "$",
+                        )
+                    ) {
+                        const reference =
+                            resolvedTargetNodeId.slice(
+                                1,
+                            );
 
-        const resolvedNodeId =
-            operationResults.get(
-                reference,
-            );
+                        const resolvedNodeId =
+                            operationResults.get(
+                                reference,
+                            );
 
-        if (!resolvedNodeId) {
-            throw new Error(
-                `Unable to resolve modification target reference "${resolvedTargetNodeId}".`,
-            );
-        }
+                        if (!resolvedNodeId) {
+                            throw new Error(
+                                `Unable to resolve modification target reference "${resolvedTargetNodeId}".`,
+                            );
+                        }
 
-        resolvedTargetNodeId =
-            resolvedNodeId;
-    }
+                        resolvedTargetNodeId =
+                            resolvedNodeId;
+                    }
 
-    const resolvedOperation = {
-        ...operation,
+                    const resolvedOperation = {
+                        ...operation,
 
-        targetNodeId:
-            resolvedTargetNodeId,
-    };
+                        targetNodeId:
+                            resolvedTargetNodeId,
+                    };
 
-    const createdNodeId =
-    applyOperation(
-        resolvedOperation,
-    );
+                    const createdNodeId =
+                        applyOperation(
+                            resolvedOperation,
+                        );
 
-if (
-    "resultId" in operation &&
-    operation.resultId &&
-    createdNodeId
-) {
-    operationResults.set(
-        operation.resultId,
-        createdNodeId,
-    );
-}
-}
+                    if (
+                        "resultId" in operation &&
+                        operation.resultId &&
+                        createdNodeId
+                    ) {
+                        operationResults.set(
+                            operation.resultId,
+                            createdNodeId,
+                        );
+                    }
+                }
             },
         );
 

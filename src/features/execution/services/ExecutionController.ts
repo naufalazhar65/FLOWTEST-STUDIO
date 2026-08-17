@@ -56,7 +56,7 @@ export class ExecutionController {
 
             return;
         } catch (
-            originalError
+        originalError
         ) {
             /*
              * ------------------------------------------

@@ -206,29 +206,37 @@ describe(
                     "Login",
                 );
 
-                const targetIndex =
-                    state.nodes.findIndex(
-                        (
-                            node,
-                        ) =>
-                            node.id ===
+                const waitToTargetEdge =
+                    state.edges.find(
+                        (edge) =>
+                            edge.source ===
+                            insertedNode.id &&
+                            edge.target ===
                             "3",
                     );
 
-                const insertedIndex =
-                    state.nodes.findIndex(
-                        (
-                            node,
-                        ) =>
-                            node.id ===
-                            insertedNode
-                                ?.id,
+                expect(
+                    waitToTargetEdge,
+                ).toBeDefined();
+
+                if (
+                    !waitToTargetEdge
+                ) {
+                    throw new Error(
+                        "Expected inserted wait node to connect to the target node.",
                     );
+                }
 
                 expect(
-                    targetIndex,
-                ).toBeGreaterThan(
-                    insertedIndex,
+                    waitToTargetEdge.source,
+                ).toBe(
+                    insertedNode.id,
+                );
+
+                expect(
+                    waitToTargetEdge.target,
+                ).toBe(
+                    "3",
                 );
             },
         );

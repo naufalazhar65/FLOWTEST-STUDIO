@@ -172,7 +172,7 @@ describe(
                 expect(
                     result.autoApplicable,
                 ).toBe(
-                    false,
+                    true,
                 );
             },
         );
@@ -193,6 +193,12 @@ describe(
                 ).toBe(
                     "reviewAssertion",
                 );
+
+                expect(
+                    result.autoApplicable,
+                ).toBe(
+                    false,
+                );
             },
         );
 
@@ -211,6 +217,12 @@ describe(
                     result.type,
                 ).toBe(
                     "restoreApplicationState",
+                );
+
+                expect(
+                    result.autoApplicable,
+                ).toBe(
+                    false,
                 );
             },
         );
