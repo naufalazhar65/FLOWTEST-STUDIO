@@ -6,23 +6,61 @@ import {
     vi,
 } from "vitest";
 
-import type { FlowNode } from "../../flow/types/flowNode";
-import type { ExecutionContext } from "../types/ExecutionContext";
+import type {
+    FlowNode,
+} from "../../flow/types/flowNode";
 
-const mocks = vi.hoisted(() => ({
-    deleteSession: vi.fn(),
+import type {
+    ExecutionContext,
+} from "../types/ExecutionContext";
 
-    pauseExecution: vi.fn(),
+const mocks = vi.hoisted(
+    () => ({
+        deleteSession:
+            vi.fn(),
 
-    resumeExecution: vi.fn(),
+        pauseExecution:
+            vi.fn(),
 
-    stopExecution: vi.fn(),
-}));
+        resumeExecution:
+            vi.fn(),
+
+        stopExecution:
+            vi.fn(),
+
+        analyzeExecutionFailure:
+            vi.fn(),
+
+        buildSelfHealingPlan:
+            vi.fn(),
+
+        executeSelfHealing:
+            vi.fn(),
+
+        applyAIModificationPlan:
+            vi.fn(),
+    }),
+);
+
+const executionState =
+    vi.hoisted(
+        () => ({
+            status:
+                "idle" as const,
+
+            nodeResults:
+                {} as Record<
+                    string,
+                    unknown
+                >,
+        }),
+    );
 
 vi.mock(
     "../engine/executeFlow",
     () => ({
-        executeFlow: vi.fn(),
+        executeFlow:
+            vi.fn(),
     }),
 );
 
@@ -40,59 +78,117 @@ vi.mock(
     "../store/useExecutionStore",
     () => ({
         useExecutionStore: {
-            getState: vi.fn(() => ({
-                pauseExecution:
-                    mocks.pauseExecution,
+            getState:
+                vi.fn(
+                    () => ({
+                        status:
+                            executionState.status,
 
-                resumeExecution:
-                    mocks.resumeExecution,
+                        nodeResults:
+                            executionState.nodeResults,
 
-                stopExecution:
-                    mocks.stopExecution,
-            })),
+                        pauseExecution:
+                            mocks.pauseExecution,
+
+                        resumeExecution:
+                            mocks.resumeExecution,
+
+                        stopExecution:
+                            mocks.stopExecution,
+                    }),
+                ),
         },
     }),
 );
 
-import { executeFlow } from "../engine/executeFlow";
+vi.mock(
+    "./analyzeExecutionFailure",
+    () => ({
+        analyzeExecutionFailure:
+            mocks.analyzeExecutionFailure,
+    }),
+);
 
-import { ExecutionController } from "./ExecutionController";
+vi.mock(
+    "./buildSelfHealingPlan",
+    () => ({
+        buildSelfHealingPlan:
+            mocks.buildSelfHealingPlan,
+    }),
+);
+
+vi.mock(
+    "./executeSelfHealing",
+    () => ({
+        executeSelfHealing:
+            mocks.executeSelfHealing,
+    }),
+);
+
+vi.mock(
+    "../../ai/services/applyAIModificationPlan",
+    () => ({
+        applyAIModificationPlan:
+            mocks.applyAIModificationPlan,
+    }),
+);
+
+import {
+    executeFlow,
+} from "../engine/executeFlow";
+
+import {
+    ExecutionController,
+} from "./ExecutionController";
 
 const executeFlowMock =
-    vi.mocked(executeFlow);
+    vi.mocked(
+        executeFlow,
+    );
 
-const nodes: FlowNode[] = [
-    {
-        id: "node-1",
+const nodes:
+    FlowNode[] = [
+        {
+            id:
+                "node-1",
 
-        type: "default",
+            type:
+                "default",
 
-        position: {
-            x: 0,
-            y: 0,
-        },
+            position: {
+                x: 0,
 
-        data: {
-            action: "tap",
-
-            title: "Tap",
-
-            subtitle: "",
-
-            debug: {
-                breakpoint: false,
+                y: 0,
             },
 
-            locatorStrategy: "id",
+            data: {
+                action:
+                    "tap",
 
-            locator: "login",
-        },
-    } as FlowNode,
-];
+                title:
+                    "Tap",
 
-const context: ExecutionContext = {
-    edges: [],
-};
+                subtitle:
+                    "",
+
+                debug: {
+                    breakpoint:
+                        false,
+                },
+
+                locatorStrategy:
+                    "id",
+
+                locator:
+                    "login",
+            },
+        } as FlowNode,
+    ];
+
+const context:
+    ExecutionContext = {
+        edges: [],
+    };
 
 describe(
     "ExecutionController",
@@ -100,13 +196,83 @@ describe(
         beforeEach(() => {
             vi.clearAllMocks();
 
-            mocks.deleteSession.mockResolvedValue(
-                undefined,
-            );
+            executionState.status =
+                "idle";
 
-            executeFlowMock.mockResolvedValue(
-                undefined,
-            );
+            executionState.nodeResults =
+                {};
+
+            mocks.deleteSession
+                .mockResolvedValue(
+                    undefined,
+                );
+
+            executeFlowMock
+                .mockResolvedValue(
+                    undefined,
+                );
+
+            mocks.analyzeExecutionFailure
+                .mockReturnValue(
+                    null,
+                );
+
+            mocks.buildSelfHealingPlan
+                .mockReturnValue(
+                    {
+                        canAutoApply:
+                            false,
+
+                        strategy:
+                            "none",
+
+                        confidence:
+                            "low",
+
+                        reason:
+                            "No self-healing strategy.",
+
+                        modificationPlan:
+                            null,
+
+                        targetNodeId:
+                            null,
+                    },
+                );
+
+            mocks.applyAIModificationPlan
+                .mockReturnValue(
+                    {
+                        success:
+                            true,
+
+                        appliedSteps:
+                            1,
+                    },
+                );
+
+            mocks.executeSelfHealing
+                .mockResolvedValue(
+                    {
+                        status:
+                            "skipped",
+
+                        attempted:
+                            false,
+
+                        rerunAttempted:
+                            false,
+
+                        rerunSucceeded:
+                            false,
+
+                        healingAttempts:
+                            0,
+
+                        error:
+                            null,
+                    },
+                );
         });
 
         describe(
@@ -144,7 +310,8 @@ describe(
                 it(
                     "deletes the Appium session before executing the flow",
                     async () => {
-                        const executionOrder: string[] =
+                        const executionOrder:
+                            string[] =
                             [];
 
                         mocks.deleteSession.mockImplementation(
@@ -180,16 +347,22 @@ describe(
                 it(
                     "passes nodes and context to executeFlow",
                     async () => {
-                        const customContext: ExecutionContext =
-                        {
-                            edges: [
-                                {
-                                    id: "edge-1",
-                                    source: "node-1",
-                                    target: "node-2",
-                                },
-                            ],
-                        };
+                        const customContext:
+                            ExecutionContext =
+                            {
+                                edges: [
+                                    {
+                                        id:
+                                            "edge-1",
+
+                                        source:
+                                            "node-1",
+
+                                        target:
+                                            "node-2",
+                                    },
+                                ],
+                            };
 
                         await ExecutionController.run(
                             nodes,
@@ -208,11 +381,12 @@ describe(
                 it(
                     "does not execute the flow when Appium session deletion fails",
                     async () => {
-                        mocks.deleteSession.mockRejectedValue(
-                            new Error(
-                                "Failed to delete Appium session",
-                            ),
-                        );
+                        mocks.deleteSession
+                            .mockRejectedValue(
+                                new Error(
+                                    "Failed to delete Appium session",
+                                ),
+                            );
 
                         await expect(
                             ExecutionController.run(
@@ -226,17 +400,61 @@ describe(
                         expect(
                             executeFlowMock,
                         ).not.toHaveBeenCalled();
+
+                        expect(
+                            mocks.analyzeExecutionFailure,
+                        ).not.toHaveBeenCalled();
+
+                        expect(
+                            mocks.executeSelfHealing,
+                        ).not.toHaveBeenCalled();
                     },
                 );
 
                 it(
-                    "propagates flow execution errors",
+                    "propagates flow execution errors when no failure analysis is available",
                     async () => {
-                        executeFlowMock.mockRejectedValue(
-                            new Error(
-                                "Flow execution failed",
-                            ),
-                        );
+                        executionState.nodeResults =
+                            {
+                                "node-1":
+                                    {
+                                        nodeId:
+                                            "node-1",
+
+                                        nodeType:
+                                            "tap",
+
+                                        nodeTitle:
+                                            "Tap",
+
+                                        status:
+                                            "failed",
+
+                                        startedAt:
+                                            1000,
+
+                                        finishedAt:
+                                            1500,
+
+                                        duration:
+                                            500,
+
+                                        error:
+                                            "Flow execution failed",
+                                    },
+                            };
+
+                        mocks.analyzeExecutionFailure
+                            .mockReturnValue(
+                                null,
+                            );
+
+                        executeFlowMock
+                            .mockRejectedValue(
+                                new Error(
+                                    "Flow execution failed",
+                                ),
+                            );
 
                         await expect(
                             ExecutionController.run(
@@ -245,6 +463,558 @@ describe(
                             ),
                         ).rejects.toThrow(
                             "Flow execution failed",
+                        );
+
+                        expect(
+                            mocks.deleteSession,
+                        ).toHaveBeenCalledTimes(
+                            1,
+                        );
+
+                        expect(
+                            mocks.analyzeExecutionFailure,
+                        ).toHaveBeenCalledTimes(
+                            1,
+                        );
+
+                        expect(
+                            mocks.buildSelfHealingPlan,
+                        ).not.toHaveBeenCalled();
+
+                        expect(
+                            mocks.executeSelfHealing,
+                        ).not.toHaveBeenCalled();
+                    },
+                );
+
+                it(
+                    "propagates the original error when self-healing is not available",
+                    async () => {
+                        const failureAnalysis =
+                            {
+                                context:
+                                    {},
+
+                                classification:
+                                    {},
+
+                                rootCause:
+                                    {},
+
+                                suggestedFix:
+                                    {},
+                            };
+
+                        executionState.nodeResults =
+                            {
+                                "node-1":
+                                    {
+                                        nodeId:
+                                            "node-1",
+
+                                        nodeType:
+                                            "tap",
+
+                                        nodeTitle:
+                                            "Tap",
+
+                                        status:
+                                            "failed",
+
+                                        startedAt:
+                                            1000,
+
+                                        finishedAt:
+                                            1500,
+
+                                        duration:
+                                            500,
+
+                                        error:
+                                            "Operation timed out",
+                                    },
+                            };
+
+                        mocks.analyzeExecutionFailure
+                            .mockReturnValue(
+                                failureAnalysis,
+                            );
+
+                        mocks.buildSelfHealingPlan
+                            .mockReturnValue(
+                                {
+                                    canAutoApply:
+                                        false,
+
+                                    strategy:
+                                        "manual",
+
+                                    confidence:
+                                        "medium",
+
+                                    reason:
+                                        "Manual review required.",
+
+                                    modificationPlan:
+                                        null,
+
+                                    targetNodeId:
+                                        "node-1",
+                                },
+                            );
+
+                        executeFlowMock
+                            .mockRejectedValue(
+                                new Error(
+                                    "Operation timed out",
+                                ),
+                            );
+
+                        await expect(
+                            ExecutionController.run(
+                                nodes,
+                                context,
+                            ),
+                        ).rejects.toThrow(
+                            "Operation timed out",
+                        );
+
+                        expect(
+                            mocks.analyzeExecutionFailure,
+                        ).toHaveBeenCalledTimes(
+                            1,
+                        );
+
+                        expect(
+                            mocks.buildSelfHealingPlan,
+                        ).toHaveBeenCalledTimes(
+                            1,
+                        );
+
+                        expect(
+                            mocks.executeSelfHealing,
+                        ).not.toHaveBeenCalled();
+                    },
+                );
+
+                it(
+                    "applies self-healing and reruns the flow once",
+                    async () => {
+                        const failureAnalysis =
+                            {
+                                context:
+                                    {},
+
+                                classification:
+                                    {},
+
+                                rootCause:
+                                    {},
+
+                                suggestedFix:
+                                    {
+                                        type:
+                                            "addWait",
+                                    },
+                            };
+
+                        const modificationPlan =
+                            {
+                                type:
+                                    "modification_plan",
+
+                                summary:
+                                    "Add synchronization.",
+
+                                operation:
+                                    {
+                                        type:
+                                            "addNodeBefore",
+
+                                        targetNodeId:
+                                            "node-1",
+
+                                        step:
+                                            {
+                                                action:
+                                                    "wait",
+
+                                                title:
+                                                    "Wait Until Element",
+
+                                                description:
+                                                    "Wait for target.",
+
+                                                locatorStrategy:
+                                                    "id",
+
+                                                locator:
+                                                    "login",
+
+                                                timeout:
+                                                    10000,
+
+                                                pollingInterval:
+                                                    500,
+                                            },
+                                    },
+                            };
+
+                        executionState.nodeResults =
+                            {
+                                "node-1":
+                                    {
+                                        nodeId:
+                                            "node-1",
+
+                                        nodeType:
+                                            "tap",
+
+                                        nodeTitle:
+                                            "Tap",
+
+                                        status:
+                                            "failed",
+
+                                        startedAt:
+                                            1000,
+
+                                        finishedAt:
+                                            1500,
+
+                                        duration:
+                                            500,
+
+                                        error:
+                                            "Operation timed out",
+                                    },
+                            };
+
+                        mocks.analyzeExecutionFailure
+                            .mockReturnValue(
+                                failureAnalysis,
+                            );
+
+                        mocks.buildSelfHealingPlan
+                            .mockReturnValue(
+                                {
+                                    canAutoApply:
+                                        true,
+
+                                    strategy:
+                                        "modification",
+
+                                    confidence:
+                                        "high",
+
+                                    reason:
+                                        "Deterministic repair plan is available.",
+
+                                    modificationPlan:
+                                        modificationPlan,
+
+                                    targetNodeId:
+                                        "node-1",
+                                },
+                            );
+
+                        mocks.executeSelfHealing
+                            .mockImplementation(
+                                async (
+                                    _plan,
+                                    options,
+                                ) => {
+                                    const applyResult =
+                                        await options.applyModificationPlan(
+                                            modificationPlan,
+                                        );
+
+                                    if (
+                                        !applyResult.success
+                                    ) {
+                                        return {
+                                            status:
+                                                "failed",
+
+                                            attempted:
+                                                true,
+
+                                            rerunAttempted:
+                                                false,
+
+                                            rerunSucceeded:
+                                                false,
+
+                                            healingAttempts:
+                                                1,
+
+                                            error:
+                                                applyResult.error ??
+                                                "Apply failed.",
+                                        };
+                                    }
+
+                                    const rerunSucceeded =
+                                        await options.rerun();
+
+                                    return {
+                                        status:
+                                            rerunSucceeded
+                                                ? "applied"
+                                                : "failed",
+
+                                        attempted:
+                                            true,
+
+                                        rerunAttempted:
+                                            true,
+
+                                        rerunSucceeded,
+
+                                        healingAttempts:
+                                            1,
+
+                                        error:
+                                            rerunSucceeded
+                                                ? null
+                                                : "Rerun failed.",
+                                    };
+                                },
+                            );
+
+                        executeFlowMock
+                            .mockRejectedValueOnce(
+                                new Error(
+                                    "Operation timed out",
+                                ),
+                            )
+                            .mockResolvedValueOnce(
+                                undefined,
+                            );
+
+                        await ExecutionController.run(
+                            nodes,
+                            context,
+                        );
+
+                        expect(
+                            executeFlowMock,
+                        ).toHaveBeenCalledTimes(
+                            2,
+                        );
+
+                        expect(
+                            executeFlowMock,
+                        ).toHaveBeenNthCalledWith(
+                            1,
+                            nodes,
+                            context,
+                        );
+
+                        expect(
+                            executeFlowMock,
+                        ).toHaveBeenNthCalledWith(
+                            2,
+                            nodes,
+                            context,
+                        );
+
+                        expect(
+                            mocks.analyzeExecutionFailure,
+                        ).toHaveBeenCalledTimes(
+                            1,
+                        );
+
+                        expect(
+                            mocks.buildSelfHealingPlan,
+                        ).toHaveBeenCalledTimes(
+                            1,
+                        );
+
+                        expect(
+                            mocks.executeSelfHealing,
+                        ).toHaveBeenCalledTimes(
+                            1,
+                        );
+
+                        expect(
+                            mocks.applyAIModificationPlan,
+                        ).toHaveBeenCalledTimes(
+                            1,
+                        );
+
+                        expect(
+                            mocks.deleteSession,
+                        ).toHaveBeenCalledTimes(
+                            2,
+                        );
+                    },
+                );
+
+                it(
+                    "propagates a combined error when self-healing and rerun fail",
+                    async () => {
+                        const failureAnalysis =
+                            {
+                                context:
+                                    {},
+
+                                classification:
+                                    {},
+
+                                rootCause:
+                                    {},
+
+                                suggestedFix:
+                                    {
+                                        type:
+                                            "addWait",
+                                    },
+                            };
+
+                        const modificationPlan =
+                            {
+                                type:
+                                    "modification_plan",
+
+                                summary:
+                                    "Add synchronization.",
+
+                                operation:
+                                    {
+                                        type:
+                                            "addNodeBefore",
+
+                                        targetNodeId:
+                                            "node-1",
+
+                                        step:
+                                            {
+                                                action:
+                                                    "wait",
+
+                                                title:
+                                                    "Wait Until Element",
+
+                                                description:
+                                                    "Wait for target.",
+
+                                                locatorStrategy:
+                                                    "id",
+
+                                                locator:
+                                                    "login",
+
+                                                timeout:
+                                                    10000,
+
+                                                pollingInterval:
+                                                    500,
+                                            },
+                                    },
+                            };
+
+                        executionState.nodeResults =
+                            {
+                                "node-1":
+                                    {
+                                        nodeId:
+                                            "node-1",
+
+                                        nodeType:
+                                            "tap",
+
+                                        nodeTitle:
+                                            "Tap",
+
+                                        status:
+                                            "failed",
+
+                                        startedAt:
+                                            1000,
+
+                                        finishedAt:
+                                            1500,
+
+                                        duration:
+                                            500,
+
+                                        error:
+                                            "Operation timed out",
+                                    },
+                            };
+
+                        mocks.analyzeExecutionFailure
+                            .mockReturnValue(
+                                failureAnalysis,
+                            );
+
+                        mocks.buildSelfHealingPlan
+                            .mockReturnValue(
+                                {
+                                    canAutoApply:
+                                        true,
+
+                                    strategy:
+                                        "modification",
+
+                                    confidence:
+                                        "high",
+
+                                    reason:
+                                        "Deterministic repair plan is available.",
+
+                                    modificationPlan:
+                                        modificationPlan,
+
+                                    targetNodeId:
+                                        "node-1",
+                                },
+                            );
+
+                        mocks.executeSelfHealing
+                            .mockResolvedValue(
+                                {
+                                    status:
+                                        "failed",
+
+                                    attempted:
+                                        true,
+
+                                    rerunAttempted:
+                                        true,
+
+                                    rerunSucceeded:
+                                        false,
+
+                                    healingAttempts:
+                                        1,
+
+                                    error:
+                                        "Rerun still failed.",
+                                },
+                            );
+
+                        executeFlowMock
+                            .mockRejectedValue(
+                                new Error(
+                                    "Operation timed out",
+                                ),
+                            );
+
+                        await expect(
+                            ExecutionController.run(
+                                nodes,
+                                context,
+                            ),
+                        ).rejects.toThrow(
+                            "Self-healing failed: Rerun still failed.",
+                        );
+
+                        expect(
+                            mocks.executeSelfHealing,
+                        ).toHaveBeenCalledTimes(
+                            1,
                         );
 
                         expect(
