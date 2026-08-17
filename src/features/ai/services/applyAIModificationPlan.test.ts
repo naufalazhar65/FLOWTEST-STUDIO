@@ -92,10 +92,143 @@ describe(
                     "locator" in
                         insertedNode!.data
                         ? insertedNode!.data
-                              .locator
+                            .locator
                         : undefined,
                 ).toBe(
                     "Login",
+                );
+            },
+        );
+
+        it(
+            "applies a single addNodeBefore operation",
+            () => {
+                const result =
+                    applyAIModificationPlan(
+                        {
+                            type:
+                                "modification_plan",
+
+                            summary:
+                                "Add wait before Login.",
+
+                            operation: {
+                                type:
+                                    "addNodeBefore",
+
+                                targetNodeId:
+                                    "3",
+
+                                step: {
+                                    action:
+                                        "wait",
+
+                                    title:
+                                        "Wait Until Element",
+
+                                    description:
+                                        "Wait for Login before continuing.",
+
+                                    locatorStrategy:
+                                        "accessibilityId",
+
+                                    locator:
+                                        "Login",
+
+                                    timeout:
+                                        10000,
+
+                                    pollingInterval:
+                                        500,
+                                },
+                            },
+                        },
+                    );
+
+                expect(
+                    result.success,
+                ).toBe(
+                    true,
+                );
+
+                expect(
+                    result.appliedSteps,
+                ).toBe(
+                    1,
+                );
+
+                const state =
+                    useFlowStore.getState();
+
+                const insertedNode =
+                    state.nodes.find(
+                        (
+                            node,
+                        ) =>
+                            node.data
+                                .action ===
+                            "wait" &&
+                            node.data
+                                .locator ===
+                            "Login",
+                    );
+
+                expect(
+                    insertedNode,
+                ).toBeDefined();
+
+                expect(
+                    insertedNode?.data
+                        .action,
+                ).toBe(
+                    "wait",
+                );
+
+                if (
+                    insertedNode?.data.action !==
+                    "wait"
+                ) {
+                    throw new Error(
+                        "Expected inserted node to be a wait node.",
+                    );
+                }
+
+                expect(
+                    insertedNode.data
+                        .locatorStrategy,
+                ).toBe(
+                    "accessibilityId",
+                );
+
+                expect(
+                    insertedNode.data.locator,
+                ).toBe(
+                    "Login",
+                );
+
+                const targetIndex =
+                    state.nodes.findIndex(
+                        (
+                            node,
+                        ) =>
+                            node.id ===
+                            "3",
+                    );
+
+                const insertedIndex =
+                    state.nodes.findIndex(
+                        (
+                            node,
+                        ) =>
+                            node.id ===
+                            insertedNode
+                                ?.id,
+                    );
+
+                expect(
+                    targetIndex,
+                ).toBeGreaterThan(
+                    insertedIndex,
                 );
             },
         );
@@ -187,14 +320,14 @@ describe(
                     );
 
                 const assertNode =
-    state.nodes.find(
-        (node) =>
-            node.data.action ===
-                "assert" &&
-            "actual" in node.data &&
-            node.data.actual ===
-                "${actualText}",
-    );
+                    state.nodes.find(
+                        (node) =>
+                            node.data.action ===
+                            "assert" &&
+                            "actual" in node.data &&
+                            node.data.actual ===
+                            "${actualText}",
+                    );
 
                 expect(
                     getTextNode,
@@ -208,7 +341,7 @@ describe(
                     "variableName" in
                         getTextNode!.data
                         ? getTextNode!.data
-                              .variableName
+                            .variableName
                         : undefined,
                 ).toBe(
                     "actualText",
@@ -218,7 +351,7 @@ describe(
                     "actual" in
                         assertNode!.data
                         ? assertNode!.data
-                              .actual
+                            .actual
                         : undefined,
                 ).toBe(
                     "${actualText}",
