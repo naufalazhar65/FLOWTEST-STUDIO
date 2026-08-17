@@ -21,6 +21,10 @@ import {
 } from "../services/applyAIModificationPlan";
 
 import {
+    applyResolvedAILocatorsToFlow,
+} from "../services/applyResolvedAILocatorsToFlow";
+
+import {
     AIChat,
 } from "./AIChat";
 
@@ -28,8 +32,41 @@ import {
     AITestCasePreview,
 } from "./AITestCasePreview";
 
+import {
+    ExecutionController,
+} from "../../execution/services/ExecutionController";
+
+import {
+    launchAppRunner,
+} from "../../execution/runners/LaunchAppRunner";
+
+import {
+    useFlowStore,
+} from "../../flow/store/useFlowStore";
+
+import type {
+    FlowNode,
+    LaunchAppNodeData,
+} from "../../flow/types/flowNode";
+
 interface AIAssistantProps {
     onClose?: () => void;
+}
+
+type StatusTone =
+    | "success"
+    | "error"
+    | "info";
+
+function isLaunchAppNode(
+    node: FlowNode,
+): node is FlowNode & {
+    data: LaunchAppNodeData;
+} {
+    return (
+        node.data.action ===
+        "launchApp"
+    );
 }
 
 export function AIAssistant({
@@ -38,8 +75,47 @@ export function AIAssistant({
     const [
         applyResult,
         setApplyResult,
-    ] = useState<string | null>(
-        null,
+    ] = useState<
+        string | null
+    >(null);
+
+    const [
+        statusTone,
+        setStatusTone,
+    ] = useState<StatusTone>(
+        "success",
+    );
+
+    const [
+        isGenerating,
+        setIsGenerating,
+    ] = useState(false);
+
+    const [
+        isLaunchingApp,
+        setIsLaunchingApp,
+    ] = useState(false);
+
+    const [
+        isResolvingLocators,
+        setIsResolvingLocators,
+    ] = useState(false);
+
+    const [
+        isRunningGeneratedFlow,
+        setIsRunningGeneratedFlow,
+    ] = useState(false);
+
+    const [
+        generatedFlowReady,
+        setGeneratedFlowReady,
+    ] = useState(false);
+
+    const [
+        generatedNodeIds,
+        setGeneratedNodeIds,
+    ] = useState<Set<string>>(
+        new Set(),
     );
 
     const [
@@ -65,7 +141,7 @@ export function AIAssistant({
                 state.draftTestCases,
         );
 
-    const isGenerating =
+    const storeIsGenerating =
         useAIStore(
             (state) =>
                 state.isGenerating,
@@ -96,10 +172,10 @@ export function AIAssistant({
         );
 
     const convertTestCaseToFlow =
-    useAIStore(
-        (state) =>
-            state.convertTestCaseToFlow,
-    );
+        useAIStore(
+            (state) =>
+                state.convertTestCaseToFlow,
+        );
 
     const generateTestCases =
         useAIStore(
@@ -113,6 +189,21 @@ export function AIAssistant({
                 state.addMessage,
         );
 
+    function setStatus(
+        message:
+            string | null,
+        tone:
+            StatusTone = "success",
+    ) {
+        setApplyResult(
+            message,
+        );
+
+        setStatusTone(
+            tone,
+        );
+    }
+
     async function handleGenerateTestCases() {
         const value =
             requirement.trim();
@@ -121,7 +212,17 @@ export function AIAssistant({
             return;
         }
 
-        setApplyResult(null);
+        setStatus(
+            null,
+        );
+
+        setGeneratedFlowReady(
+            false,
+        );
+
+        setIsGenerating(
+            true,
+        );
 
         try {
             await generateTestCases(
@@ -129,40 +230,49 @@ export function AIAssistant({
             );
         } catch {
             /*
-             * The store already exposes
-             * the normalized error.
+             * The store exposes the
+             * normalized error.
+             */
+        } finally {
+            setIsGenerating(
+                false,
+            );
+        }
+    }
+
+    async function handleApproveTestCases() {
+        if (
+            !draftTestCases ||
+            draftTestCases.length ===
+            0
+        ) {
+            return;
+        }
+
+        const testCase =
+            draftTestCases[0];
+
+        setStatus(
+            null,
+        );
+
+        setGeneratedFlowReady(
+            false,
+        );
+
+        try {
+            await convertTestCaseToFlow(
+                testCase,
+            );
+        } catch {
+            /*
+             * The store exposes the
+             * normalized error.
              */
         }
     }
 
-async function handleApproveTestCases() {
-    if (
-        !draftTestCases ||
-        draftTestCases.length === 0
-    ) {
-        return;
-    }
-
-    const testCase =
-        draftTestCases[0];
-
-    setApplyResult(
-        null,
-    );
-
-    try {
-        await convertTestCaseToFlow(
-            testCase,
-        );
-    } catch {
-        /*
-         * The store already exposes
-         * the normalized error.
-         */
-    }
-}
-
-function handleApply() {
+    function handleApply() {
         if (
             draftModificationPlan
         ) {
@@ -174,20 +284,22 @@ function handleApply() {
             if (
                 !result.success
             ) {
-                setApplyResult(
+                setStatus(
                     result.error ??
                     "Failed to apply AI modification.",
+                    "error",
                 );
 
                 return;
             }
 
-            setApplyResult(
+            setStatus(
                 `Applied ${result.appliedSteps} modification${result.appliedSteps ===
                     1
                     ? ""
                     : "s"
                 } to the current flow.`,
+                "success",
             );
 
             addMessage({
@@ -223,24 +335,31 @@ function handleApply() {
             applyAIFlowPlan(
                 draftPlan,
             );
+        setGeneratedNodeIds(
+            new Set(
+                result.nodeIds,
+            ),
+        );
 
         if (
             !result.success
         ) {
-            setApplyResult(
+            setStatus(
                 result.error ??
                 "Failed to apply AI flow.",
+                "error",
             );
 
             return;
         }
 
-        setApplyResult(
+        setStatus(
             `Applied ${result.appliedSteps} step${result.appliedSteps ===
                 1
                 ? ""
                 : "s"
             } to the current flow.`,
+            "success",
         );
 
         addMessage({
@@ -261,9 +380,354 @@ function handleApply() {
                 Date.now(),
         });
 
+        setGeneratedFlowReady(
+            true,
+        );
+
         setDraftPlan(
             null,
         );
+    }
+
+    async function handleRunGeneratedFlow() {
+        if (
+            !generatedFlowReady ||
+            isRunningGeneratedFlow ||
+            isLaunchingApp ||
+            isResolvingLocators
+        ) {
+            return;
+        }
+
+        const initialFlow =
+            useFlowStore.getState();
+
+        const launchAppNodes =
+            initialFlow.nodes.filter(
+                isLaunchAppNode,
+            );
+
+        if (
+            launchAppNodes.length ===
+            0
+        ) {
+            setStatus(
+                "No Launch App node is configured in the current flow. Add a Launch App node before running the generated flow.",
+                "error",
+            );
+
+            addMessage({
+                id:
+                    crypto.randomUUID(),
+
+                role:
+                    "assistant",
+
+                content:
+                    "The generated flow cannot run yet because the current flow has no Launch App node. Add and configure a Launch App node first.",
+
+                createdAt:
+                    Date.now(),
+            });
+
+            return;
+        }
+
+        const launchAppNodeIds =
+            new Set(
+                launchAppNodes.map(
+                    (node) =>
+                        node.id,
+                ),
+            );
+
+        /*
+         * ------------------------------------------
+         * 1. Launch App
+         * ------------------------------------------
+         */
+        setIsLaunchingApp(
+            true,
+        );
+
+        setStatus(
+            "Launching the application...",
+            "info",
+        );
+
+        try {
+            for (
+                const node of
+                launchAppNodes
+            ) {
+                await launchAppRunner.run(
+                    node,
+                    {
+                        edges:
+                            initialFlow.edges,
+                    },
+                );
+            }
+        } catch (
+        error
+        ) {
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : String(
+                        error,
+                    );
+
+            setStatus(
+                `Failed to launch the application: ${message}`,
+                "error",
+            );
+
+            addMessage({
+                id:
+                    crypto.randomUUID(),
+
+                role:
+                    "assistant",
+
+                content:
+                    `I could not launch the application: ${message}`,
+
+                createdAt:
+                    Date.now(),
+            });
+
+            return;
+        } finally {
+            setIsLaunchingApp(
+                false,
+            );
+        }
+
+        /*
+         * ------------------------------------------
+         * 2. Resolve Locators
+         * ------------------------------------------
+         */
+        setIsResolvingLocators(
+            true,
+        );
+
+        setStatus(
+            "Resolving locators from the active Appium application...",
+            "info",
+        );
+
+        try {
+            const locatorResult =
+                await applyResolvedAILocatorsToFlow(
+                    generatedNodeIds,
+                );
+
+            if (
+                !locatorResult.success
+            ) {
+                const unresolved =
+                    locatorResult.results
+                        .filter(
+                            (
+                                result,
+                            ) =>
+                                result.status !==
+                                "resolved",
+                        )
+                        .map(
+                            (
+                                result,
+                            ) =>
+                                `${result.target}: ${result.status}`,
+                        );
+
+                const message =
+                    unresolved.length >
+                        0
+                        ? `Unable to resolve ${unresolved.length} locator${unresolved.length ===
+                            1
+                            ? ""
+                            : "s"
+                        }: ${unresolved.join(
+                            ", ",
+                        )}.`
+                        : "Unable to resolve the generated flow locators.";
+
+                setStatus(
+                    message,
+                    "error",
+                );
+
+                addMessage({
+                    id:
+                        crypto.randomUUID(),
+
+                    role:
+                        "assistant",
+
+                    content:
+                        message,
+
+                    createdAt:
+                        Date.now(),
+                });
+
+                return;
+            }
+
+            setStatus(
+                `Resolved ${locatorResult.resolved} locator${locatorResult.resolved ===
+                    1
+                    ? ""
+                    : "s"
+                }. Starting flow execution...`,
+                "info",
+            );
+        } catch (
+        error
+        ) {
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : String(
+                        error,
+                    );
+
+            setStatus(
+                `Locator resolution failed: ${message}`,
+                "error",
+            );
+
+            addMessage({
+                id:
+                    crypto.randomUUID(),
+
+                role:
+                    "assistant",
+
+                content:
+                    `I could not resolve the generated flow locators: ${message}`,
+
+                createdAt:
+                    Date.now(),
+            });
+
+            return;
+        } finally {
+            setIsResolvingLocators(
+                false,
+            );
+        }
+
+        /*
+         * ------------------------------------------
+         * 3. Read latest flow
+         * ------------------------------------------
+         */
+        const latestFlow =
+            useFlowStore.getState();
+
+        const latestNodes =
+            latestFlow.nodes;
+
+        const latestEdges =
+            latestFlow.edges;
+
+        if (
+            latestNodes.length ===
+            0
+        ) {
+            setStatus(
+                "No generated flow is available to execute.",
+                "error",
+            );
+
+            return;
+        }
+
+        /*
+         * ------------------------------------------
+         * 4. Execute
+         * ------------------------------------------
+         */
+        setIsRunningGeneratedFlow(
+            true,
+        );
+
+        setStatus(
+            "Running the generated flow...",
+            "info",
+        );
+
+        try {
+            await ExecutionController.run(
+                latestNodes,
+                {
+                    edges:
+                        latestEdges,
+                },
+                {
+                    reuseExistingAppiumSession:
+                        true,
+
+                    skipNodeIds:
+                        launchAppNodeIds,
+                },
+            );
+
+            setStatus(
+                "Generated flow executed successfully.",
+                "success",
+            );
+
+            addMessage({
+                id:
+                    crypto.randomUUID(),
+
+                role:
+                    "assistant",
+
+                content:
+                    "Done. The generated flow launched the application, resolved its locators, and executed successfully.",
+
+                createdAt:
+                    Date.now(),
+            });
+        } catch (
+        error
+        ) {
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : String(
+                        error,
+                    );
+
+            setStatus(
+                `Generated flow execution failed: ${message}`,
+                "error",
+            );
+
+            addMessage({
+                id:
+                    crypto.randomUUID(),
+
+                role:
+                    "assistant",
+
+                content:
+                    `The generated flow failed during execution: ${message}`,
+
+                createdAt:
+                    Date.now(),
+            });
+        } finally {
+            setIsRunningGeneratedFlow(
+                false,
+            );
+        }
     }
 
     function handleCancel() {
@@ -279,21 +743,73 @@ function handleApply() {
             null,
         );
 
-        setRequirement("");
+        setRequirement(
+            "",
+        );
 
-        setApplyResult(
+        setStatus(
             null,
         );
+
+        setGeneratedFlowReady(
+            false,
+        );
     }
+
+    const busy =
+        isGenerating ||
+        storeIsGenerating ||
+        isLaunchingApp ||
+        isResolvingLocators ||
+        isRunningGeneratedFlow;
+
+    const statusStyles =
+        statusTone ===
+            "error"
+            ? {
+                border:
+                    "1px solid #F85149",
+
+                background:
+                    "rgba(248,81,73,.10)",
+
+                color:
+                    "#FF7B72",
+            }
+            : statusTone ===
+                "info"
+                ? {
+                    border:
+                        "1px solid #388BFD",
+
+                    background:
+                        "rgba(56,139,253,.10)",
+
+                    color:
+                        "#58A6FF",
+                }
+                : {
+                    border:
+                        "1px solid #238636",
+
+                    background:
+                        "rgba(35,134,54,.12)",
+
+                    color:
+                        "#3FB950",
+                };
 
     return (
         <section
             style={{
-                width: "100%",
+                width:
+                    "100%",
 
-                height: "100%",
+                height:
+                    "100%",
 
-                minHeight: 0,
+                minHeight:
+                    0,
 
                 display:
                     "flex",
@@ -310,9 +826,11 @@ function handleApply() {
         >
             <header
                 style={{
-                    height: 56,
+                    height:
+                        56,
 
-                    flexShrink: 0,
+                    flexShrink:
+                        0,
 
                     display:
                         "flex",
@@ -338,11 +856,14 @@ function handleApply() {
                         alignItems:
                             "center",
 
-                        gap: 8,
+                        gap:
+                            8,
                     }}
                 >
                     <Sparkles
-                        size={16}
+                        size={
+                            16
+                        }
                         color="#A371F7"
                     />
 
@@ -398,25 +919,34 @@ function handleApply() {
                                 "pointer",
                         }}
                     >
-                        <X size={16} />
+                        <X
+                            size={
+                                16
+                            }
+                        />
                     </button>
                 )}
             </header>
 
             <div
                 style={{
-                    flex: 1,
+                    flex:
+                        1,
 
-                    minHeight: 0,
+                    minHeight:
+                        0,
 
-                    overflow:
-                        "hidden",
+                    overflowY:
+                        "auto",
 
                     display:
                         "flex",
 
                     flexDirection:
                         "column",
+
+                    padding:
+                        "12px",
                 }}
             >
                 <div
@@ -424,8 +954,8 @@ function handleApply() {
                         flexShrink:
                             0,
 
-                        padding:
-                            "12px 12px 0",
+                        marginBottom:
+                            12,
                     }}
                 >
                     <div
@@ -450,29 +980,32 @@ function handleApply() {
                         value={
                             requirement
                         }
-                        onChange={(
-                            event,
-                        ) =>
-                            setRequirement(
-                                event
-                                    .target
-                                    .value,
-                            )
+                        onChange={
+                            (
+                                event,
+                            ) =>
+                                setRequirement(
+                                    event
+                                        .target
+                                        .value,
+                                )
                         }
-                        placeholder="Describe the requirement you want to turn into QA test cases..."
-                        rows={4}
                         disabled={
-                            isGenerating
+                            busy
                         }
+                        rows={
+                            4
+                        }
+                        placeholder="Describe the test requirement..."
                         style={{
                             width:
                                 "100%",
 
-                            resize:
-                                "vertical",
-
                             boxSizing:
                                 "border-box",
+
+                            resize:
+                                "vertical",
 
                             padding:
                                 "9px 10px",
@@ -483,23 +1016,20 @@ function handleApply() {
                             borderRadius:
                                 8,
 
-                            outline:
-                                "none",
-
                             background:
                                 "#161B22",
 
                             color:
                                 "#E6EDF3",
 
+                            outline:
+                                "none",
+
                             fontSize:
                                 12,
 
                             lineHeight:
                                 1.5,
-
-                            fontFamily:
-                                "inherit",
                         }}
                     />
 
@@ -521,12 +1051,12 @@ function handleApply() {
                                 handleGenerateTestCases
                             }
                             disabled={
-                                isGenerating ||
+                                busy ||
                                 !requirement.trim()
                             }
                             style={{
                                 padding:
-                                    "7px 12px",
+                                    "8px 12px",
 
                                 border:
                                     "1px solid #8957E5",
@@ -535,16 +1065,10 @@ function handleApply() {
                                     7,
 
                                 background:
-                                    isGenerating ||
-                                        !requirement.trim()
-                                        ? "#21262D"
-                                        : "#6E40C9",
+                                    "#8957E5",
 
                                 color:
-                                    isGenerating ||
-                                        !requirement.trim()
-                                        ? "#8B949E"
-                                        : "#FFFFFF",
+                                    "#FFFFFF",
 
                                 fontSize:
                                     12,
@@ -553,146 +1077,221 @@ function handleApply() {
                                     600,
 
                                 cursor:
-                                    isGenerating ||
+                                    busy ||
                                         !requirement.trim()
                                         ? "not-allowed"
                                         : "pointer",
+
+                                opacity:
+                                    busy ||
+                                        !requirement.trim()
+                                        ? 0.6
+                                        : 1,
                             }}
                         >
-                            {isGenerating
+                            {isGenerating ||
+                                storeIsGenerating
                                 ? "Generating..."
                                 : "Generate Test Cases"}
                         </button>
                     </div>
-
-                    {error && (
-                        <div
-                            style={{
-                                marginTop:
-                                    8,
-
-                                padding:
-                                    "8px 10px",
-
-                                border:
-                                    "1px solid #8E1519",
-
-                                borderRadius:
-                                    8,
-
-                                background:
-                                    "rgba(248,81,73,.10)",
-
-                                color:
-                                    "#F85149",
-
-                                fontSize:
-                                    11,
-
-                                lineHeight:
-                                    1.4,
-                            }}
-                        >
-                            {error}
-                        </div>
-                    )}
                 </div>
 
-                <div
-                    style={{
-                        flex: 1,
+                {error && (
+                    <div
+                        style={{
+                            marginBottom:
+                                12,
 
-                        minHeight: 0,
+                            padding:
+                                "9px 10px",
 
-                        overflowY:
-                            "auto",
+                            border:
+                                "1px solid #F85149",
 
-                        padding:
-                            "0 12px 12px",
-                    }}
-                >
-                    {draftTestCases &&
-                        draftTestCases.length >
-                        0 && (
+                            borderRadius:
+                                8,
+
+                            background:
+                                "rgba(248,81,73,.10)",
+
+                            color:
+                                "#FF7B72",
+
+                            fontSize:
+                                11,
+
+                            lineHeight:
+                                1.4,
+                        }}
+                    >
+                        {error}
+                    </div>
+                )}
+
+                {draftTestCases &&
+                    draftTestCases.length >
+                    0 && (
+                        <div
+                            style={{
+                                marginBottom:
+                                    12,
+                            }}
+                        >
                             <AITestCasePreview
                                 testCases={
                                     draftTestCases
                                 }
+
                                 onApprove={
                                     handleApproveTestCases
                                 }
+
                                 onCancel={
                                     handleCancel
                                 }
                             />
-                        )}
+                        </div>
+                    )}
 
-                    <AIChat
-                        draftPlan={
-                            draftPlan
-                        }
-                        draftModificationPlan={
-                            draftModificationPlan
-                        }
-                        onApply={
-                            handleApply
-                        }
-                        onCancel={
-                            handleCancel
-                        }
-                    />
+                <AIChat
+                    draftPlan={
+                        draftPlan
+                    }
 
-                    {applyResult && (
-                        <div
+                    draftModificationPlan={
+                        draftModificationPlan
+                    }
+
+                    onApply={
+                        handleApply
+                    }
+
+                    onCancel={
+                        handleCancel
+                    }
+                />
+
+                {generatedFlowReady && (
+                    <div
+                        style={{
+                            marginTop:
+                                12,
+
+                            paddingTop:
+                                12,
+
+                            borderTop:
+                                "1px solid #30363D",
+                        }}
+                    >
+                        <button
+                            type="button"
+                            onClick={
+                                handleRunGeneratedFlow
+                            }
+                            disabled={
+                                busy
+                            }
                             style={{
-                                flexShrink:
-                                    0,
-
-                                display:
-                                    "flex",
-
-                                alignItems:
-                                    "center",
-
-                                gap: 7,
-
-                                margin:
-                                    "0 0 10px",
+                                width:
+                                    "100%",
 
                                 padding:
-                                    "8px 10px",
+                                    "9px 12px",
 
                                 border:
                                     "1px solid #238636",
 
                                 borderRadius:
-                                    8,
+                                    7,
 
                                 background:
-                                    "rgba(35,134,54,.12)",
+                                    busy
+                                        ? "#1f6f32"
+                                        : "#238636",
 
                                 color:
-                                    "#3FB950",
+                                    "#FFFFFF",
 
                                 fontSize:
-                                    11,
+                                    12,
 
-                                lineHeight:
-                                    1.4,
+                                fontWeight:
+                                    600,
+
+                                cursor:
+                                    busy
+                                        ? "default"
+                                        : "pointer",
+
+                                opacity:
+                                    busy
+                                        ? 0.7
+                                        : 1,
                             }}
                         >
-                            <CheckCircle2
-                                size={14}
-                            />
+                            {isLaunchingApp
+                                ? "Launching App..."
+                                : isResolvingLocators
+                                    ? "Resolving Locators..."
+                                    : isRunningGeneratedFlow
+                                        ? "Running..."
+                                        : "Run Generated Flow"}
+                        </button>
+                    </div>
+                )}
 
-                            <span>
-                                {
-                                    applyResult
-                                }
-                            </span>
-                        </div>
-                    )}
-                </div>
+                {applyResult && (
+                    <div
+                        style={{
+                            display:
+                                "flex",
+
+                            alignItems:
+                                "flex-start",
+
+                            gap:
+                                7,
+
+                            marginTop:
+                                10,
+
+                            padding:
+                                "9px 10px",
+
+                            border:
+                                statusStyles.border,
+
+                            borderRadius:
+                                8,
+
+                            background:
+                                statusStyles.background,
+
+                            color:
+                                statusStyles.color,
+
+                            fontSize:
+                                11,
+
+                            lineHeight:
+                                1.4,
+                        }}
+                    >
+                        <CheckCircle2
+                            size={
+                                14
+                            }
+                        />
+
+                        <span>
+                            {
+                                applyResult
+                            }
+                        </span>
+                    </div>
+                )}
             </div>
         </section>
     );

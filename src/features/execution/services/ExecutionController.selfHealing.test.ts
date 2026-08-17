@@ -225,12 +225,82 @@ describe(
                     executionContext,
                 );
 
+                const secondCall =
+                    mocks.executeFlow.mock.calls[1];
+
                 expect(
-                    mocks.executeFlow,
-                ).toHaveBeenNthCalledWith(
-                    2,
-                    executionNodes,
-                    executionContext,
+                    secondCall,
+                ).toBeDefined();
+
+                const rerunNodes =
+                    secondCall?.[0];
+
+                const rerunContext =
+                    secondCall?.[1];
+
+                expect(
+                    rerunNodes,
+                ).toHaveLength(
+                    initialNodeCount + 1,
+                );
+
+                expect(
+                    rerunNodes?.some(
+                        (node: FlowNode) =>
+                            node.data.action ===
+                            "wait",
+                    ),
+                ).toBe(
+                    true,
+                );
+
+                expect(
+                    rerunNodes?.some(
+                        (node: FlowNode) =>
+                            node.data.action ===
+                            "wait" &&
+                            "locator" in
+                            node.data &&
+                            node.data.locator ===
+                            "login",
+                    ),
+                ).toBe(
+                    true,
+                );
+
+                expect(
+                    rerunNodes?.some(
+                        (node: FlowNode) =>
+                            node.data.action ===
+                            "wait" &&
+                            "timeout" in
+                            node.data &&
+                            node.data.timeout ===
+                            10000 &&
+                            "pollingInterval" in
+                            node.data &&
+                            node.data
+                                .pollingInterval ===
+                            500,
+                    ),
+                ).toBe(
+                    true,
+                );
+
+                expect(
+                    rerunContext?.edges,
+                ).toEqual(
+                    expect.arrayContaining([
+                        expect.objectContaining({
+                            source:
+                                expect.any(
+                                    String,
+                                ),
+
+                            target:
+                                "1",
+                        }),
+                    ]),
                 );
 
                 /*

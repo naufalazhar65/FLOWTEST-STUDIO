@@ -1,9 +1,22 @@
-import type { FlowNode } from "../../flow/types/flowNode";
-import type { ExecutionContext } from "../types/ExecutionContext";
+import type {
+    FlowNode,
+} from "../../flow/types/flowNode";
 
-import { executeFlow } from "../engine/executeFlow";
-import { useExecutionStore } from "../store/useExecutionStore";
-import { appiumClient } from "../services/appium/AppiumClient";
+import type {
+    ExecutionContext,
+} from "../types/ExecutionContext";
+
+import {
+    executeFlow,
+} from "../engine/executeFlow";
+
+import {
+    useExecutionStore,
+} from "../store/useExecutionStore";
+
+import {
+    appiumClient,
+} from "../services/appium/AppiumClient";
 
 import {
     applyAIModificationPlan,
@@ -21,10 +34,39 @@ import {
     executeSelfHealing,
 } from "./executeSelfHealing";
 
+import {
+    useFlowStore,
+} from "../../flow/store/useFlowStore";
+
+interface ExecutionControllerOptions {
+    reuseExistingAppiumSession?:
+    boolean;
+
+    skipNodeIds?:
+    ReadonlySet<string>;
+}
+
+function buildExecuteFlowOptions(
+    options?:
+        ExecutionControllerOptions,
+) {
+    if (
+        !options?.skipNodeIds
+    ) {
+        return undefined;
+    }
+
+    return {
+        skipNodeIds:
+            options.skipNodeIds,
+    };
+}
+
 export class ExecutionController {
     static async run(
         nodes: FlowNode[],
         context: ExecutionContext,
+        options?: ExecutionControllerOptions,
     ): Promise<void> {
         const status =
             useExecutionStore
@@ -43,16 +85,38 @@ export class ExecutionController {
         }
 
         /*
-         * Every top-level execution starts
-         * from a fresh Appium session.
+         * Normal execution starts from a
+         * fresh Appium session.
+         *
+         * AI execution can explicitly reuse
+         * an already established session,
+         * for example after Launch App has
+         * already created the session.
          */
-        await appiumClient.deleteSession();
+        if (
+            !options?.reuseExistingAppiumSession
+        ) {
+            await appiumClient.deleteSession();
+        }
 
         try {
-            await executeFlow(
-                nodes,
-                context,
-            );
+            const executeOptions =
+                buildExecuteFlowOptions(
+                    options,
+                );
+
+            if (executeOptions) {
+                await executeFlow(
+                    nodes,
+                    context,
+                    executeOptions,
+                );
+            } else {
+                await executeFlow(
+                    nodes,
+                    context,
+                );
+            }
 
             return;
         } catch (
@@ -134,16 +198,58 @@ export class ExecutionController {
                         rerun:
                             async () => {
                                 /*
-                                 * Start the retry from a fresh
-                                 * Appium session as well.
+                                 * If the caller already owns
+                                 * an active Appium session,
+                                 * preserve that session.
+                                 *
+                                 * This is important for AI
+                                 * execution because the
+                                 * Launch App node is skipped
+                                 * during execution.
                                  */
-                                await appiumClient.deleteSession();
+                                if (
+                                    !options?.reuseExistingAppiumSession
+                                ) {
+                                    await appiumClient.deleteSession();
+                                }
+
+                                const latestFlow =
+                                    useFlowStore.getState();
+
+                                const latestNodes =
+                                    latestFlow.nodes;
+
+                                const latestEdges =
+                                    latestFlow.edges;
 
                                 try {
-                                    await executeFlow(
-                                        nodes,
-                                        context,
-                                    );
+                                    const executeOptions =
+                                        buildExecuteFlowOptions(
+                                            options,
+                                        );
+
+                                    if (executeOptions) {
+                                        await executeFlow(
+                                            latestNodes,
+                                            {
+                                                ...context,
+
+                                                edges:
+                                                    latestEdges,
+                                            },
+                                            executeOptions,
+                                        );
+                                    } else {
+                                        await executeFlow(
+                                            latestNodes,
+                                            {
+                                                ...context,
+
+                                                edges:
+                                                    latestEdges,
+                                            },
+                                        );
+                                    }
 
                                     return true;
                                 } catch {

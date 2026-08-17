@@ -56,6 +56,19 @@ const executionState =
         }),
     );
 
+const flowState =
+    vi.hoisted(
+        () => ({
+            nodes:
+                [] as FlowNode[],
+
+            edges:
+                [] as ExecutionContext[
+                "edges"
+                ],
+        }),
+    );
+
 vi.mock(
     "../engine/executeFlow",
     () => ({
@@ -96,6 +109,19 @@ vi.mock(
                         stopExecution:
                             mocks.stopExecution,
                     }),
+                ),
+        },
+    }),
+);
+
+vi.mock(
+    "../../flow/store/useFlowStore",
+    () => ({
+        useFlowStore: {
+            getState:
+                vi.fn(
+                    () =>
+                        flowState,
                 ),
         },
     }),
@@ -187,20 +213,30 @@ const nodes:
 
 const context:
     ExecutionContext = {
-        edges: [],
-    };
+    edges: [],
+};
 
 describe(
     "ExecutionController",
     () => {
         beforeEach(() => {
-            vi.clearAllMocks();
+            vi.resetAllMocks();
 
             executionState.status =
                 "idle";
 
             executionState.nodeResults =
                 {};
+
+            flowState.nodes =
+                structuredClone(
+                    nodes,
+                );
+
+            flowState.edges =
+                structuredClone(
+                    context.edges,
+                );
 
             mocks.deleteSession
                 .mockResolvedValue(
@@ -349,20 +385,20 @@ describe(
                     async () => {
                         const customContext:
                             ExecutionContext =
-                            {
-                                edges: [
-                                    {
-                                        id:
-                                            "edge-1",
+                        {
+                            edges: [
+                                {
+                                    id:
+                                        "edge-1",
 
-                                        source:
-                                            "node-1",
+                                    source:
+                                        "node-1",
 
-                                        target:
-                                            "node-2",
-                                    },
-                                ],
-                            };
+                                    target:
+                                        "node-2",
+                                },
+                            ],
+                        };
 
                         await ExecutionController.run(
                             nodes,
@@ -415,34 +451,34 @@ describe(
                     "propagates flow execution errors when no failure analysis is available",
                     async () => {
                         executionState.nodeResults =
+                        {
+                            "node-1":
                             {
-                                "node-1":
-                                    {
-                                        nodeId:
-                                            "node-1",
+                                nodeId:
+                                    "node-1",
 
-                                        nodeType:
-                                            "tap",
+                                nodeType:
+                                    "tap",
 
-                                        nodeTitle:
-                                            "Tap",
+                                nodeTitle:
+                                    "Tap",
 
-                                        status:
-                                            "failed",
+                                status:
+                                    "failed",
 
-                                        startedAt:
-                                            1000,
+                                startedAt:
+                                    1000,
 
-                                        finishedAt:
-                                            1500,
+                                finishedAt:
+                                    1500,
 
-                                        duration:
-                                            500,
+                                duration:
+                                    500,
 
-                                        error:
-                                            "Flow execution failed",
-                                    },
-                            };
+                                error:
+                                    "Flow execution failed",
+                            },
+                        };
 
                         mocks.analyzeExecutionFailure
                             .mockReturnValue(
@@ -491,49 +527,49 @@ describe(
                     "propagates the original error when self-healing is not available",
                     async () => {
                         const failureAnalysis =
-                            {
-                                context:
-                                    {},
+                        {
+                            context:
+                                {},
 
-                                classification:
-                                    {},
+                            classification:
+                                {},
 
-                                rootCause:
-                                    {},
+                            rootCause:
+                                {},
 
-                                suggestedFix:
-                                    {},
-                            };
+                            suggestedFix:
+                                {},
+                        };
 
                         executionState.nodeResults =
+                        {
+                            "node-1":
                             {
-                                "node-1":
-                                    {
-                                        nodeId:
-                                            "node-1",
+                                nodeId:
+                                    "node-1",
 
-                                        nodeType:
-                                            "tap",
+                                nodeType:
+                                    "tap",
 
-                                        nodeTitle:
-                                            "Tap",
+                                nodeTitle:
+                                    "Tap",
 
-                                        status:
-                                            "failed",
+                                status:
+                                    "failed",
 
-                                        startedAt:
-                                            1000,
+                                startedAt:
+                                    1000,
 
-                                        finishedAt:
-                                            1500,
+                                finishedAt:
+                                    1500,
 
-                                        duration:
-                                            500,
+                                duration:
+                                    500,
 
-                                        error:
-                                            "Operation timed out",
-                                    },
-                            };
+                                error:
+                                    "Operation timed out",
+                            },
+                        };
 
                         mocks.analyzeExecutionFailure
                             .mockReturnValue(
@@ -601,94 +637,94 @@ describe(
                     "applies self-healing and reruns the flow once",
                     async () => {
                         const failureAnalysis =
-                            {
-                                context:
-                                    {},
+                        {
+                            context:
+                                {},
 
-                                classification:
-                                    {},
+                            classification:
+                                {},
 
-                                rootCause:
-                                    {},
+                            rootCause:
+                                {},
 
-                                suggestedFix:
-                                    {
-                                        type:
-                                            "addWait",
-                                    },
-                            };
-
-                        const modificationPlan =
+                            suggestedFix:
                             {
                                 type:
-                                    "modification_plan",
+                                    "addWait",
+                            },
+                        };
 
-                                summary:
-                                    "Add synchronization.",
+                        const modificationPlan =
+                        {
+                            type:
+                                "modification_plan",
 
-                                operation:
-                                    {
-                                        type:
-                                            "addNodeBefore",
+                            summary:
+                                "Add synchronization.",
 
-                                        targetNodeId:
-                                            "node-1",
+                            operation:
+                            {
+                                type:
+                                    "addNodeBefore",
 
-                                        step:
-                                            {
-                                                action:
-                                                    "wait",
+                                targetNodeId:
+                                    "node-1",
 
-                                                title:
-                                                    "Wait Until Element",
+                                step:
+                                {
+                                    action:
+                                        "wait",
 
-                                                description:
-                                                    "Wait for target.",
+                                    title:
+                                        "Wait Until Element",
 
-                                                locatorStrategy:
-                                                    "id",
+                                    description:
+                                        "Wait for target.",
 
-                                                locator:
-                                                    "login",
+                                    locatorStrategy:
+                                        "id",
 
-                                                timeout:
-                                                    10000,
+                                    locator:
+                                        "login",
 
-                                                pollingInterval:
-                                                    500,
-                                            },
-                                    },
-                            };
+                                    timeout:
+                                        10000,
+
+                                    pollingInterval:
+                                        500,
+                                },
+                            },
+                        };
 
                         executionState.nodeResults =
+                        {
+                            "node-1":
                             {
-                                "node-1":
-                                    {
-                                        nodeId:
-                                            "node-1",
+                                nodeId:
+                                    "node-1",
 
-                                        nodeType:
-                                            "tap",
+                                nodeType:
+                                    "tap",
 
-                                        nodeTitle:
-                                            "Tap",
+                                nodeTitle:
+                                    "Tap",
 
-                                        status:
-                                            "failed",
+                                status:
+                                    "failed",
 
-                                        startedAt:
-                                            1000,
+                                startedAt:
+                                    1000,
 
-                                        finishedAt:
-                                            1500,
+                                finishedAt:
+                                    1500,
 
-                                        duration:
-                                            500,
+                                duration:
+                                    500,
 
-                                        error:
-                                            "Operation timed out",
-                                    },
-                            };
+                                error:
+                                    "Operation timed out",
+                            },
+                        };
 
                         mocks.analyzeExecutionFailure
                             .mockReturnValue(
@@ -852,43 +888,81 @@ describe(
                 );
 
                 it(
-                    "propagates a combined error when self-healing and rerun fail",
+                    "reruns using the latest flow after self-healing",
                     async () => {
+                        const originalNodes =
+                            structuredClone(
+                                nodes,
+                            );
+
+                        const originalEdges =
+                            structuredClone(
+                                context.edges,
+                            );
+
+                        const repairedNode =
+                        {
+                            ...originalNodes[0],
+                            id:
+                                "repair-node",
+                        };
+
+                        const repairedNodes = [
+                            ...originalNodes,
+                            repairedNode,
+                        ];
+
                         const failureAnalysis =
-                            {
-                                context:
-                                    {},
+                        {
+                            context: {},
 
-                                classification:
-                                    {},
+                            classification: {},
 
-                                rootCause:
-                                    {},
+                            rootCause: {},
 
-                                suggestedFix:
-                                    {
-                                        type:
-                                            "addWait",
-                                    },
-                            };
-
-                        const modificationPlan =
-                            {
+                            suggestedFix: {
                                 type:
-                                    "modification_plan",
+                                    "addWait",
+                            },
+                        };
 
-                                summary:
-                                    "Add synchronization.",
+                        mocks.analyzeExecutionFailure
+                            .mockReturnValue(
+                                failureAnalysis,
+                            );
 
-                                operation:
+                        mocks.buildSelfHealingPlan
+                            .mockReturnValue(
+                                {
+                                    canAutoApply:
+                                        true,
+
+                                    strategy:
+                                        "modification",
+
+                                    confidence:
+                                        "high",
+
+                                    reason:
+                                        "Deterministic repair plan is available.",
+
+                                    modificationPlan:
                                     {
                                         type:
-                                            "addNodeBefore",
+                                            "modification_plan",
 
-                                        targetNodeId:
-                                            "node-1",
+                                        summary:
+                                            "Add synchronization.",
 
-                                        step:
+                                        operation:
+                                        {
+                                            type:
+                                                "addNodeBefore",
+
+                                            targetNodeId:
+                                                "node-1",
+
+                                            step:
                                             {
                                                 action:
                                                     "wait",
@@ -911,38 +985,209 @@ describe(
                                                 pollingInterval:
                                                     500,
                                             },
+                                        },
                                     },
-                            };
 
-                        executionState.nodeResults =
-                            {
-                                "node-1":
-                                    {
-                                        nodeId:
-                                            "node-1",
+                                    targetNodeId:
+                                        "node-1",
+                                },
+                            );
 
-                                        nodeType:
-                                            "tap",
+                        executeFlowMock
+                            .mockRejectedValueOnce(
+                                new Error(
+                                    "Operation timed out",
+                                ),
+                            )
+                            .mockResolvedValueOnce(
+                                undefined,
+                            );
 
-                                        nodeTitle:
-                                            "Tap",
+                        mocks.executeSelfHealing
+                            .mockImplementation(
+                                async (
+                                    _plan,
+                                    options,
+                                ) => {
+                                    const applyResult =
+                                        await options.applyModificationPlan(
+                                            _plan.modificationPlan,
+                                        );
 
+                                    expect(
+                                        applyResult.success,
+                                    ).toBe(
+                                        true,
+                                    );
+
+                                    /*
+                                     * Simulate the flow store
+                                     * after the repair has been applied.
+                                     */
+                                    flowState.nodes =
+                                        repairedNodes;
+
+                                    flowState.edges =
+                                        originalEdges;
+
+                                    const rerunSucceeded =
+                                        await options.rerun();
+
+                                    return {
                                         status:
-                                            "failed",
+                                            rerunSucceeded
+                                                ? "applied"
+                                                : "failed",
 
-                                        startedAt:
-                                            1000,
+                                        attempted:
+                                            true,
 
-                                        finishedAt:
-                                            1500,
+                                        rerunAttempted:
+                                            true,
 
-                                        duration:
-                                            500,
+                                        rerunSucceeded,
+
+                                        healingAttempts:
+                                            1,
 
                                         error:
-                                            "Operation timed out",
-                                    },
-                            };
+                                            rerunSucceeded
+                                                ? null
+                                                : "Rerun failed.",
+                                    };
+                                },
+                            );
+
+                        await ExecutionController.run(
+                            originalNodes,
+                            {
+                                edges:
+                                    originalEdges,
+                            },
+                        );
+
+                        expect(
+                            executeFlowMock,
+                        ).toHaveBeenCalledTimes(
+                            2,
+                        );
+
+                        expect(
+                            executeFlowMock,
+                        ).toHaveBeenNthCalledWith(
+                            1,
+                            originalNodes,
+                            {
+                                edges:
+                                    originalEdges,
+                            },
+                        );
+
+                        expect(
+                            executeFlowMock,
+                        ).toHaveBeenNthCalledWith(
+                            2,
+                            repairedNodes,
+                            {
+                                edges:
+                                    originalEdges,
+                            },
+                        );
+                    },
+                );
+
+                it(
+                    "propagates a combined error when self-healing and rerun fail",
+                    async () => {
+                        const failureAnalysis =
+                        {
+                            context:
+                                {},
+
+                            classification:
+                                {},
+
+                            rootCause:
+                                {},
+
+                            suggestedFix:
+                            {
+                                type:
+                                    "addWait",
+                            },
+                        };
+
+                        const modificationPlan =
+                        {
+                            type:
+                                "modification_plan",
+
+                            summary:
+                                "Add synchronization.",
+
+                            operation:
+                            {
+                                type:
+                                    "addNodeBefore",
+
+                                targetNodeId:
+                                    "node-1",
+
+                                step:
+                                {
+                                    action:
+                                        "wait",
+
+                                    title:
+                                        "Wait Until Element",
+
+                                    description:
+                                        "Wait for target.",
+
+                                    locatorStrategy:
+                                        "id",
+
+                                    locator:
+                                        "login",
+
+                                    timeout:
+                                        10000,
+
+                                    pollingInterval:
+                                        500,
+                                },
+                            },
+                        };
+
+                        executionState.nodeResults =
+                        {
+                            "node-1":
+                            {
+                                nodeId:
+                                    "node-1",
+
+                                nodeType:
+                                    "tap",
+
+                                nodeTitle:
+                                    "Tap",
+
+                                status:
+                                    "failed",
+
+                                startedAt:
+                                    1000,
+
+                                finishedAt:
+                                    1500,
+
+                                duration:
+                                    500,
+
+                                error:
+                                    "Operation timed out",
+                            },
+                        };
 
                         mocks.analyzeExecutionFailure
                             .mockReturnValue(
@@ -1024,6 +1269,7 @@ describe(
                         );
                     },
                 );
+
             },
         );
 

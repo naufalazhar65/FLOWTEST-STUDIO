@@ -1,26 +1,60 @@
-import type { FlowNode } from "../../flow/types/flowNode";
-import type { ExecutionContext } from "../types/ExecutionContext";
+import type {
+    FlowNode,
+} from "../../flow/types/flowNode";
 
-import { useExecutionStore } from "../store/useExecutionStore";
+import type {
+    ExecutionContext,
+} from "../types/ExecutionContext";
 
-import { validateFlow } from "../../flow/validation/validateFlow";
-import { GraphNavigator } from "../graph/GraphNavigator";
+import {
+    useExecutionStore,
+} from "../store/useExecutionStore";
 
-import { clearVariables } from "../variables/VariableStore";
-import { formatDuration } from "../utils/formatDuration";
+import {
+    validateFlow,
+} from "../../flow/validation/validateFlow";
 
-import { executeNode } from "./executeNode";
-import { executeRepeat } from "./executeRepeat";
-import { executionLogger } from "../services/executionLogger";
-import { waitWhilePaused } from "../utils/waitWhilePaused";
+import {
+    GraphNavigator,
+} from "../graph/GraphNavigator";
+
+import {
+    clearVariables,
+} from "../variables/VariableStore";
+
+import {
+    formatDuration,
+} from "../utils/formatDuration";
+
+import {
+    executeNode,
+} from "./executeNode";
+
+import {
+    executeRepeat,
+} from "./executeRepeat";
+
+import {
+    executionLogger,
+} from "../services/executionLogger";
+
+import {
+    waitWhilePaused,
+} from "../utils/waitWhilePaused";
 
 import {
     recordExecutionReport,
 } from "../../reports/services/reportRecorder";
 
+interface ExecuteFlowOptions {
+    skipNodeIds?:
+    ReadonlySet<string>;
+}
+
 export async function executeFlow(
     nodes: FlowNode[],
     context: ExecutionContext,
+    options?: ExecuteFlowOptions,
 ) {
     const execution =
         useExecutionStore.getState();
@@ -38,24 +72,40 @@ export async function executeFlow(
 
     console.log(
         "[EXECUTION] FLOW NODES:",
-        nodes.map((node) => ({
-            id: node.id,
-            title: node.data.title,
-            action: node.data.action,
-        })),
+        nodes.map(
+            (node) => ({
+                id:
+                    node.id,
+
+                title:
+                    node.data.title,
+
+                action:
+                    node.data.action,
+            }),
+        ),
     );
 
     console.log(
         "[EXECUTION] FLOW EDGES:",
-        context.edges.map((edge) => ({
-            id: edge.id,
-            source: edge.source,
-            sourceHandle:
-                edge.sourceHandle,
-            target: edge.target,
-            targetHandle:
-                edge.targetHandle,
-        })),
+        context.edges.map(
+            (edge) => ({
+                id:
+                    edge.id,
+
+                source:
+                    edge.source,
+
+                sourceHandle:
+                    edge.sourceHandle,
+
+                target:
+                    edge.target,
+
+                targetHandle:
+                    edge.targetHandle,
+            }),
+        ),
     );
 
     const graph =
@@ -85,7 +135,9 @@ export async function executeFlow(
     const validation =
         validateFlow(nodes);
 
-    if (!validation.valid) {
+    if (
+        !validation.valid
+    ) {
         execution.setStatus(
             "failed",
         );
@@ -110,13 +162,18 @@ export async function executeFlow(
         );
 
         validation.errors.forEach(
-            (nodeError, index) => {
+            (
+                nodeError,
+                index,
+            ) => {
                 console.group(
                     `${index + 1}. ${nodeError.nodeTitle} (${nodeError.nodeId})`,
                 );
 
                 nodeError.errors.forEach(
-                    (error) => {
+                    (
+                        error,
+                    ) => {
                         console.error(
                             error,
                         );
@@ -137,7 +194,8 @@ export async function executeFlow(
             startedAt;
 
         recordExecutionReport({
-            status: "failed",
+            status:
+                "failed",
 
             startedAt:
                 reportStartedAt,
@@ -161,9 +219,12 @@ export async function executeFlow(
             graph.getStartNode();
 
         let activeEdgeId:
-            string | null = null;
+            string | null =
+            null;
 
-        while (currentNode) {
+        while (
+            currentNode
+        ) {
             const node =
                 currentNode;
 
@@ -190,17 +251,53 @@ export async function executeFlow(
                 node.id,
             );
 
+            const shouldSkip =
+                options?.skipNodeIds?.has(
+                    node.id,
+                ) ??
+                false;
+
             // ---------------------------------------
-            // Breakpoint
+            // Execute / Skip Node
             // ---------------------------------------
 
             if (
-                node.data.debug
-                    .breakpoint
+                shouldSkip
             ) {
+                const skippedAt =
+                    Date.now();
+
+                execution.setNodeStatus(
+                    node.id,
+                    "passed",
+                );
+
+                execution.setNodeResult({
+                    nodeId:
+                        node.id,
+
+                    nodeType:
+                        node.data.action,
+
+                    nodeTitle:
+                        node.data.title,
+
+                    status:
+                        "passed",
+
+                    startedAt:
+                        skippedAt,
+
+                    finishedAt:
+                        skippedAt,
+
+                    duration:
+                        0,
+                });
+
                 executionLogger.info({
                     message:
-                        "Breakpoint reached",
+                        "Node already executed before flow start; skipping execution.",
 
                     nodeId:
                         node.id,
@@ -211,99 +308,285 @@ export async function executeFlow(
                     nodeTitle:
                         node.data.title,
                 });
+            } else {
+                // ---------------------------------------
+                // Breakpoint
+                // ---------------------------------------
 
-                execution.pauseExecution();
-
-                await waitWhilePaused();
-
-                // Stop may have been
-                // pressed while paused.
                 if (
-                    useExecutionStore
-                        .getState()
-                        .status ===
-                    "stopped"
+                    node.data.debug
+                        .breakpoint
                 ) {
-                    break;
-                }
-            }
+                    executionLogger.info({
+                        message:
+                            "Breakpoint reached",
 
-            // ---------------------------------------
-            // Execute Node
-            // ---------------------------------------
-
-            if (node.data.action === "repeat") {
-                execution.setNodeStatus(
-                    node.id,
-                    "running",
-                );
-
-                const repeatStartedAt =
-                    Date.now();
-
-                try {
-                    const repeatResult =
-                        await executeRepeat(
-                            node,
-                            nodes,
-                            context,
-                        );
-
-                    const repeatFinishedAt =
-                        Date.now();
-
-                    execution.setNodeStatus(
-                        node.id,
-                        "passed",
-                    );
-
-                    execution.setNodeResult({
-                        nodeId: node.id,
+                        nodeId:
+                            node.id,
 
                         nodeType:
                             node.data.action,
 
                         nodeTitle:
                             node.data.title,
-
-                        status: "passed",
-
-                        startedAt:
-                            repeatStartedAt,
-
-                        finishedAt:
-                            repeatFinishedAt,
-
-                        duration:
-                            repeatFinishedAt -
-                            repeatStartedAt,
                     });
 
-                    currentNode =
-                        repeatResult.nextNode;
+                    execution.pauseExecution();
+
+                    await waitWhilePaused();
+
+                    // Stop may have been
+                    // pressed while paused.
+                    if (
+                        useExecutionStore
+                            .getState()
+                            .status ===
+                        "stopped"
+                    ) {
+                        break;
+                    }
+                }
+
+                // ---------------------------------------
+                // Execute Repeat
+                // ---------------------------------------
+
+                if (
+                    node.data.action ===
+                    "repeat"
+                ) {
+                    execution.setNodeStatus(
+                        node.id,
+                        "running",
+                    );
+
+                    const repeatStartedAt =
+                        Date.now();
+
+                    try {
+                        const repeatResult =
+                            await executeRepeat(
+                                node,
+                                nodes,
+                                context,
+                            );
+
+                        const repeatFinishedAt =
+                            Date.now();
+
+                        execution.setNodeStatus(
+                            node.id,
+                            "passed",
+                        );
+
+                        execution.setNodeResult({
+                            nodeId:
+                                node.id,
+
+                            nodeType:
+                                node.data.action,
+
+                            nodeTitle:
+                                node.data.title,
+
+                            status:
+                                "passed",
+
+                            startedAt:
+                                repeatStartedAt,
+
+                            finishedAt:
+                                repeatFinishedAt,
+
+                            duration:
+                                repeatFinishedAt -
+                                repeatStartedAt,
+                        });
+
+                        currentNode =
+                            repeatResult.nextNode;
+
+                        activeEdgeId =
+                            null;
+
+                        continue;
+                    } catch (
+                    error
+                    ) {
+                        execution.setNodeStatus(
+                            node.id,
+                            "failed",
+                        );
+
+                        throw error;
+                    }
+                }
+
+                // ---------------------------------------
+                // Execute Node
+                // ---------------------------------------
+
+                const result =
+                    await executeNode(
+                        node,
+                        context,
+                    );
+
+                // ---------------------------------------
+                // Check Stop After Node
+                // ---------------------------------------
+
+                if (
+                    useExecutionStore
+                        .getState()
+                        .status ===
+                    "stopped"
+                ) {
+                    if (
+                        activeEdgeId
+                    ) {
+                        execution.setEdgeStatus(
+                            activeEdgeId,
+                            "passed",
+                        );
+
+                        activeEdgeId =
+                            null;
+                    }
+
+                    break;
+                }
+
+                // ---------------------------------------
+                // Complete Active Edge
+                // ---------------------------------------
+
+                if (
+                    activeEdgeId
+                ) {
+                    execution.setEdgeStatus(
+                        activeEdgeId,
+                        "passed",
+                    );
 
                     activeEdgeId =
                         null;
+                }
 
-                    continue;
-                } catch (error) {
-                    execution.setNodeStatus(
+                // ---------------------------------------
+                // Resolve Transition
+                // ---------------------------------------
+
+                const output =
+                    result.outputs[0] ??
+                    "next";
+
+                const outgoingEdges =
+                    graph.getOutgoingEdges(
                         node.id,
-                        "failed",
                     );
 
-                    throw error;
+                if (
+                    outgoingEdges.length ===
+                    0
+                ) {
+                    console.log(
+                        "[EXECUTION] Flow reached terminal node:",
+                        {
+                            nodeId:
+                                node.id,
+
+                            nodeTitle:
+                                node.data.title,
+
+                            action:
+                                node.data.action,
+                        },
+                    );
+
+                    currentNode =
+                        null;
+
+                    continue;
                 }
+
+                const transition =
+                    graph.getTransition(
+                        node.id,
+                        output,
+                    );
+
+                if (
+                    transition
+                ) {
+                    execution.setEdgeStatus(
+                        transition.edge.id,
+                        "running",
+                    );
+
+                    activeEdgeId =
+                        transition.edge.id;
+
+                    currentNode =
+                        transition.nextNode;
+                } else {
+                    console.error(
+                        "[EXECUTION] No matching transition found:",
+                        {
+                            nodeId:
+                                node.id,
+
+                            action:
+                                node.data.action,
+
+                            output,
+
+                            availableOutputs:
+                                outgoingEdges.map(
+                                    (
+                                        edge,
+                                    ) =>
+                                        edge.sourceHandle ??
+                                        "next",
+                                ),
+
+                            rawEdges:
+                                JSON.stringify(
+                                    outgoingEdges.map(
+                                        (
+                                            edge,
+                                        ) => ({
+                                            id:
+                                                edge.id,
+
+                                            source:
+                                                edge.source,
+
+                                            sourceHandle:
+                                                edge.sourceHandle,
+
+                                            target:
+                                                edge.target,
+
+                                            targetHandle:
+                                                edge.targetHandle,
+                                        }),
+                                    ),
+                                    null,
+                                    2,
+                                ),
+                        },
+                    );
+
+                    currentNode =
+                        null;
+                }
+
+                continue;
             }
 
-            const result =
-                await executeNode(
-                    node,
-                    context,
-                );
-
             // ---------------------------------------
-            // Check Stop After Node
+            // Check Stop After Skipped Node
             // ---------------------------------------
 
             if (
@@ -312,7 +595,9 @@ export async function executeFlow(
                     .status ===
                 "stopped"
             ) {
-                if (activeEdgeId) {
+                if (
+                    activeEdgeId
+                ) {
                     execution.setEdgeStatus(
                         activeEdgeId,
                         "passed",
@@ -329,7 +614,9 @@ export async function executeFlow(
             // Complete Active Edge
             // ---------------------------------------
 
-            if (activeEdgeId) {
+            if (
+                activeEdgeId
+            ) {
                 execution.setEdgeStatus(
                     activeEdgeId,
                     "passed",
@@ -340,35 +627,34 @@ export async function executeFlow(
             }
 
             // ---------------------------------------
-            // Resolve Transition
+            // Resolve Transition For Skipped Node
             // ---------------------------------------
-
-            const output =
-                result.outputs[0] ??
-                "next";
 
             const outgoingEdges =
                 graph.getOutgoingEdges(
                     node.id,
                 );
 
-            /*
-             * A node with no outgoing edges is a
-             * legitimate terminal node.
-             */
-            if (outgoingEdges.length === 0) {
+            if (
+                outgoingEdges.length ===
+                0
+            ) {
                 console.log(
-                    "[EXECUTION] Flow reached terminal node:",
+                    "[EXECUTION] Skipped node is terminal:",
                     {
-                        nodeId: node.id,
+                        nodeId:
+                            node.id,
+
                         nodeTitle:
                             node.data.title,
+
                         action:
                             node.data.action,
                     },
                 );
 
-                currentNode = null;
+                currentNode =
+                    null;
 
                 continue;
             }
@@ -376,10 +662,12 @@ export async function executeFlow(
             const transition =
                 graph.getTransition(
                     node.id,
-                    output,
+                    "next",
                 );
 
-            if (transition) {
+            if (
+                transition
+            ) {
                 execution.setEdgeStatus(
                     transition.edge.id,
                     "running",
@@ -392,51 +680,35 @@ export async function executeFlow(
                     transition.nextNode;
             } else {
                 console.error(
-                    "[EXECUTION] No matching transition found:",
+                    "[EXECUTION] No matching transition found for skipped node:",
                     {
-                        nodeId: node.id,
-                        action: node.data.action,
-                        output,
+                        nodeId:
+                            node.id,
+
+                        action:
+                            node.data.action,
+
+                        output:
+                            "next",
+
                         availableOutputs:
                             outgoingEdges.map(
-                                (edge) =>
+                                (
+                                    edge,
+                                ) =>
                                     edge.sourceHandle ??
                                     "next",
-                            ),
-                        rawEdges:
-                            JSON.stringify(
-                                outgoingEdges.map(
-                                    (edge) => ({
-                                        id: edge.id,
-                                        source:
-                                            edge.source,
-                                        sourceHandle:
-                                            edge.sourceHandle,
-                                        target:
-                                            edge.target,
-                                        targetHandle:
-                                            edge.targetHandle,
-                                    }),
-                                ),
-                                null,
-                                2,
                             ),
                     },
                 );
 
-                currentNode = null;
+                currentNode =
+                    null;
             }
-
-            // ---------------------------------------
-            // End While
-            // ---------------------------------------
-
         }
 
         // ---------------------------------------
         // Check Final Status
-        // ---------------------------------------
-
         // ---------------------------------------
 
         const finalStatus =
@@ -485,7 +757,8 @@ export async function executeFlow(
             });
 
             recordExecutionReport({
-                status: "stopped",
+                status:
+                    "stopped",
 
                 startedAt:
                     reportStartedAt,
@@ -535,7 +808,8 @@ export async function executeFlow(
         // ---------------------------------------
 
         recordExecutionReport({
-            status: "passed",
+            status:
+                "passed",
 
             startedAt:
                 reportStartedAt,
@@ -545,7 +819,9 @@ export async function executeFlow(
 
             duration,
         });
-    } catch (error) {
+    } catch (
+    error
+    ) {
         // ---------------------------------------
         // Check Whether Execution Was Stopped
         // ---------------------------------------
@@ -596,7 +872,8 @@ export async function executeFlow(
             });
 
             recordExecutionReport({
-                status: "stopped",
+                status:
+                    "stopped",
 
                 startedAt:
                     reportStartedAt,
@@ -637,7 +914,9 @@ export async function executeFlow(
                 reason:
                     error instanceof Error
                         ? error.message
-                        : String(error),
+                        : String(
+                            error,
+                        ),
             },
         });
 
@@ -646,7 +925,8 @@ export async function executeFlow(
         // ---------------------------------------
 
         recordExecutionReport({
-            status: "failed",
+            status:
+                "failed",
 
             startedAt:
                 reportStartedAt,

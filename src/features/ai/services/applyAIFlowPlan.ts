@@ -1,4 +1,6 @@
-import type { LocatorStrategy } from "../../execution/types/LocatorStrategy";
+import type {
+    LocatorStrategy,
+} from "../../execution/types/LocatorStrategy";
 
 import {
     useFlowStore,
@@ -16,6 +18,8 @@ export interface AIFlowApplyResult {
     success: boolean;
 
     appliedSteps: number;
+
+    nodeIds?: string[];
 
     error?: string;
 }
@@ -60,12 +64,12 @@ function getLastNode() {
 
 function applyStep(
     planStep: AIFlowPlan["steps"][number],
-): void {
+): string {
     const store =
         useFlowStore.getState();
 
     switch (
-        planStep.action
+    planStep.action
     ) {
         case "tap": {
             if (
@@ -104,7 +108,7 @@ function applyStep(
                 },
             );
 
-            return;
+            return node.id;
         }
 
         case "input": {
@@ -118,9 +122,9 @@ function applyStep(
 
             if (
                 planStep.text ===
-                    undefined ||
+                undefined ||
                 planStep.text ===
-                    null
+                null
             ) {
                 throw new Error(
                     `Input step "${planStep.title}" is missing text.`,
@@ -159,7 +163,7 @@ function applyStep(
                 },
             );
 
-            return;
+            return node.id;
         }
 
         case "assert": {
@@ -220,15 +224,15 @@ function applyStep(
                 },
             );
 
-            return;
+            return node.id;
         }
 
         case "delay": {
             if (
                 planStep.duration ===
-                    undefined ||
+                undefined ||
                 planStep.duration ===
-                    null ||
+                null ||
                 planStep.duration <= 0
             ) {
                 throw new Error(
@@ -263,7 +267,7 @@ function applyStep(
                 },
             );
 
-            return;
+            return node.id;
         }
 
         case "back":
@@ -327,6 +331,8 @@ export function applyAIFlowPlan(
 
             appliedSteps: 0,
 
+            nodeIds: [],
+
             error:
                 validation.errors.join(
                     " ",
@@ -334,21 +340,35 @@ export function applyAIFlowPlan(
         };
     }
 
-    let appliedSteps = 0;
+    let appliedSteps =
+        0;
+
+    const nodeIds:
+        string[] = [];
 
     try {
         for (
             const step of plan.steps
         ) {
-            applyStep(step);
+            const nodeId =
+                applyStep(
+                    step,
+                );
 
-            appliedSteps += 1;
+            nodeIds.push(
+                nodeId,
+            );
+
+            appliedSteps +=
+                1;
         }
 
         return {
             success: true,
 
             appliedSteps,
+
+            nodeIds,
         };
     } catch (error) {
         return {
@@ -356,10 +376,12 @@ export function applyAIFlowPlan(
 
             appliedSteps,
 
+            nodeIds,
+
             error:
                 error instanceof Error
                     ? error.message
-                    : String(error),
+                    : "Failed to apply AI flow.",
         };
     }
 }
