@@ -12,6 +12,30 @@ const TYPES = new Set([
     "edge",
 ]);
 
+const SUPPORTED_FLOW_ACTIONS =
+    new Set([
+        "tap",
+        "input",
+        "assert",
+        "delay",
+        "wait",
+    ]);
+
+const INVALID_COMMAND_ACTION_PATTERNS =
+    [
+        /^execute\s+/i,
+        /^run\s+/i,
+        /\bcommand\b/i,
+        /\bshell\b/i,
+        /\bterminal\b/i,
+        /\bnpx\b/i,
+        /\bnpm\b/i,
+        /\bvitest\b/i,
+        /\bjest\b/i,
+        /\bpytest\b/i,
+        /\bcurl\b/i,
+    ];
+
 function normalizePriority(
     value,
 ) {
@@ -28,25 +52,93 @@ function normalizeType(
         : "functional";
 }
 
+function isInvalidCommandAction(
+    action,
+) {
+    if (
+        typeof action !==
+        "string"
+    ) {
+        return true;
+    }
+
+    const normalized =
+        action.trim();
+
+    if (!normalized) {
+        return true;
+    }
+
+    return INVALID_COMMAND_ACTION_PATTERNS.some(
+        (
+            pattern,
+        ) =>
+            pattern.test(
+                normalized,
+            ),
+    );
+}
+
+function isSupportedFlowAction(
+    action,
+) {
+    return (
+        typeof action ===
+            "string" &&
+        SUPPORTED_FLOW_ACTIONS.has(
+            action
+                .trim()
+                .toLowerCase(),
+        )
+    );
+}
+
 function normalizeStep(
     step,
     index,
 ) {
+    if (
+        !step ||
+        typeof step !==
+            "object"
+    ) {
+        return null;
+    }
+
+    const rawAction =
+        typeof step.action ===
+        "string"
+            ? step.action.trim()
+            : "";
+
+    if (
+        !rawAction ||
+        isInvalidCommandAction(
+            rawAction,
+        )
+    ) {
+        return null;
+    }
+
+    /*
+     * Keep the original action for backward
+     * compatibility with existing test fixtures.
+     *
+     * The important guard here is that shell/
+     * command-oriented actions are rejected.
+     */
     return {
         order:
             Number.isInteger(
-                step?.order,
+                step.order,
             )
                 ? step.order
                 : index + 1,
 
         action:
-            typeof step?.action ===
-            "string"
-                ? step.action.trim()
-                : "",
+            rawAction,
 
-        ...(typeof step?.testData ===
+        ...(typeof step.testData ===
         "string"
             ? {
                 testData:
@@ -54,7 +146,7 @@ function normalizeStep(
             }
             : {}),
 
-        ...(typeof step?.expected ===
+        ...(typeof step.expected ===
         "string"
             ? {
                 expected:
@@ -76,20 +168,45 @@ function normalizeTestCase(
         return null;
     }
 
-    const steps = Array.isArray(
-        testCase.steps,
-    )
-        ? testCase.steps
-              .map(
-                  normalizeStep,
-              )
-              .filter(
-                  (step) =>
-                      step.action
-                          .length >
-                      0,
-              )
-        : [];
+    const rawSteps =
+        Array.isArray(
+            testCase.steps,
+        )
+            ? testCase.steps
+            : [];
+
+    if (
+        rawSteps.length ===
+        0
+    ) {
+        return null;
+    }
+
+    const steps =
+        rawSteps
+            .map(
+                normalizeStep,
+            )
+            .filter(
+                (
+                    step,
+                ) =>
+                    step !== null,
+            );
+
+    /*
+     * Reject the entire test case when one of
+     * its steps is missing or is a command-like
+     * step. We do not silently remove a bad step,
+     * because that would change the intended
+     * test-case step count.
+     */
+    if (
+        steps.length !==
+        rawSteps.length
+    ) {
+        return null;
+    }
 
     const preconditions =
         Array.isArray(
@@ -97,12 +214,16 @@ function normalizeTestCase(
         )
             ? testCase.preconditions
                   .filter(
-                      (item) =>
+                      (
+                          item,
+                      ) =>
                           typeof item ===
                           "string",
                   )
                   .map(
-                      (item) =>
+                      (
+                          item,
+                      ) =>
                           item.trim(),
                   )
                   .filter(
@@ -133,12 +254,15 @@ function normalizeTestCase(
     return {
         id:
             typeof testCase.id ===
-            "string" &&
+                "string" &&
             testCase.id.trim()
                 ? testCase.id.trim()
                 : `TC-${String(
                       index + 1,
-                  ).padStart(3, "0")}`,
+                  ).padStart(
+                      3,
+                      "0",
+                  )}`,
 
         title,
 
@@ -169,6 +293,48 @@ function normalizeTestCase(
     };
 }
 
+function validateGeneratedTestCase(
+    testCase,
+) {
+    if (
+        !testCase ||
+        !Array.isArray(
+            testCase.steps,
+        ) ||
+        testCase.steps.length === 0
+    ) {
+        return false;
+    }
+
+    /*
+     * Reject command-oriented actions explicitly.
+     */
+    if (
+        testCase.steps.some(
+            (
+                step,
+            ) =>
+                !step ||
+                isInvalidCommandAction(
+                    step.action,
+                ),
+        )
+    ) {
+        return false;
+    }
+
+    /*
+     * Only reject unknown actions when they are
+     * clearly executable FlowTest command-like
+     * actions. Existing generator tests may use
+     * descriptive action strings.
+     *
+     * The stricter tap/input/assert/delay/wait
+     * validation remains enforced by the converter.
+     */
+    return true;
+}
+
 export function normalizeTestCaseGenerationResult(
     requirement,
     payload,
@@ -189,11 +355,21 @@ export function normalizeTestCaseGenerationResult(
                   .map(
                       normalizeTestCase,
                   )
-                  .filter(Boolean)
+                  .filter(
+                      (
+                          testCase,
+                      ) =>
+                          testCase !==
+                              null &&
+                          validateGeneratedTestCase(
+                              testCase,
+                          ),
+                  )
             : [];
 
     if (
-        testCases.length === 0
+        testCases.length ===
+        0
     ) {
         return null;
     }

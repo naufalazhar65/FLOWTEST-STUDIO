@@ -119,6 +119,13 @@ export function AIAssistant({
     );
 
     const [
+        generatedPrerequisiteNodeIds,
+        setGeneratedPrerequisiteNodeIds,
+    ] = useState<Set<string>>(
+        new Set(),
+    );
+
+    const [
         requirement,
         setRequirement,
     ] = useState("");
@@ -335,15 +342,17 @@ export function AIAssistant({
             applyAIFlowPlan(
                 draftPlan,
             );
-        setGeneratedNodeIds(
-            new Set(
-                result.nodeIds,
-            ),
-        );
 
         if (
             !result.success
         ) {
+            setGeneratedNodeIds(
+                new Set(),
+            );
+
+            setGeneratedPrerequisiteNodeIds(
+                new Set(),
+            );
             setStatus(
                 result.error ??
                 "Failed to apply AI flow.",
@@ -352,6 +361,47 @@ export function AIAssistant({
 
             return;
         }
+
+        setGeneratedNodeIds(
+            new Set(
+                result.nodeIds ??
+                [],
+            ),
+        );
+
+        console.log(
+    "[AI EXECUTION] draftPlan before prerequisite state:",
+    JSON.stringify(
+        draftPlan,
+        null,
+        2,
+    ),
+);
+
+console.log(
+    "[AI EXECUTION] Stored prerequisite IDs:",
+    Array.from(
+        draftPlan.prerequisiteNodeIds ??
+        [],
+    ),
+);
+
+        setGeneratedPrerequisiteNodeIds(
+            new Set(
+                draftPlan.prerequisiteNodeIds ??
+                [],
+            ),
+        );
+
+        console.log(
+    "[AI] Generated prerequisite node IDs:",
+    draftPlan.prerequisiteNodeIds,
+);
+
+console.log(
+    "[AI] Generated node IDs:",
+    result.nodeIds,
+);
 
         setStatus(
             `Applied ${result.appliedSteps} step${result.appliedSteps ===
@@ -399,11 +449,118 @@ export function AIAssistant({
             return;
         }
 
-        const initialFlow =
+        const currentFlow =
             useFlowStore.getState();
 
+        /*
+         * ------------------------------------------
+         * 1. Determine AI execution scope
+         * ------------------------------------------
+         */
+        const generatedNodes =
+            currentFlow.nodes.filter(
+                (node) =>
+                    generatedNodeIds.has(
+                        node.id,
+                    ),
+            );
+
+        if (
+            generatedNodes.length ===
+            0
+        ) {
+            setStatus(
+                "No AI-generated nodes are available to execute.",
+                "error",
+            );
+
+            return;
+        }
+
+        const prerequisiteNodes =
+            currentFlow.nodes.filter(
+                (node) =>
+                    generatedPrerequisiteNodeIds.has(
+                        node.id,
+                    ),
+            );
+
+        /*
+         * ------------------------------------------
+         * 2. Validate prerequisite node IDs
+         * ------------------------------------------
+         */
+        if (
+            prerequisiteNodes.length !==
+            generatedPrerequisiteNodeIds.size
+        ) {
+            const missingNodeIds =
+                Array.from(
+                    generatedPrerequisiteNodeIds,
+                ).filter(
+                    (
+                        nodeId,
+                    ) =>
+                        !currentFlow.nodes.some(
+                            (
+                                node,
+                            ) =>
+                                node.id ===
+                                nodeId,
+                        ),
+                );
+
+            setStatus(
+                `AI prerequisite node(s) no longer exist in the current flow: ${missingNodeIds.join(
+                    ", ",
+                )}`,
+                "error",
+            );
+
+            return;
+        }
+
+        /*
+         * ------------------------------------------
+         * 3. Preserve prerequisite order
+         * ------------------------------------------
+         */
+        const orderedPrerequisiteNodes =
+            Array.from(
+                generatedPrerequisiteNodeIds,
+            )
+                .map(
+                    (
+                        nodeId,
+                    ) =>
+                        currentFlow.nodes.find(
+                            (
+                                node,
+                            ) =>
+                                node.id ===
+                                nodeId,
+                        ),
+                )
+                .filter(
+                    (
+                        node,
+                    ): node is (typeof currentFlow.nodes)[number] =>
+                        Boolean(
+                            node,
+                        ),
+                );
+
+        /*
+         * ------------------------------------------
+         * 4. Find Launch App node
+         * ------------------------------------------
+         *
+         * Launch App is the bootstrap for the
+         * Appium session. It does not have to be
+         * included in prerequisiteNodeIds.
+         */
         const launchAppNodes =
-            initialFlow.nodes.filter(
+            currentFlow.nodes.filter(
                 isLaunchAppNode,
             );
 
@@ -412,7 +569,7 @@ export function AIAssistant({
             0
         ) {
             setStatus(
-                "No Launch App node is configured in the current flow. Add a Launch App node before running the generated flow.",
+                "No Launch App node is configured in the current flow. Add and configure a Launch App node before running the generated flow.",
                 "error",
             );
 
@@ -424,7 +581,7 @@ export function AIAssistant({
                     "assistant",
 
                 content:
-                    "The generated flow cannot run yet because the current flow has no Launch App node. Add and configure a Launch App node first.",
+                    "The generated flow cannot run because the current flow has no configured Launch App node.",
 
                 createdAt:
                     Date.now(),
@@ -433,250 +590,373 @@ export function AIAssistant({
             return;
         }
 
-        const launchAppNodeIds =
-            new Set(
-                launchAppNodes.map(
-                    (node) =>
-                        node.id,
-                ),
-            );
-
         /*
-         * ------------------------------------------
-         * 1. Launch App
-         * ------------------------------------------
-         */
-        setIsLaunchingApp(
-            true,
-        );
-
-        setStatus(
-            "Launching the application...",
-            "info",
-        );
-
-        try {
-            for (
-                const node of
-                launchAppNodes
-            ) {
-                await launchAppRunner.run(
-                    node,
-                    {
-                        edges:
-                            initialFlow.edges,
-                    },
-                );
-            }
-        } catch (
-        error
-        ) {
-            const message =
-                error instanceof Error
-                    ? error.message
-                    : String(
-                        error,
-                    );
-
-            setStatus(
-                `Failed to launch the application: ${message}`,
-                "error",
-            );
-
-            addMessage({
-                id:
-                    crypto.randomUUID(),
-
-                role:
-                    "assistant",
-
-                content:
-                    `I could not launch the application: ${message}`,
-
-                createdAt:
-                    Date.now(),
-            });
-
-            return;
-        } finally {
-            setIsLaunchingApp(
-                false,
-            );
-        }
-
-        /*
-         * ------------------------------------------
-         * 2. Resolve Locators
-         * ------------------------------------------
-         */
-        setIsResolvingLocators(
-            true,
-        );
-
-        setStatus(
-            "Resolving locators from the active Appium application...",
-            "info",
-        );
-
-        try {
-            const locatorResult =
-                await applyResolvedAILocatorsToFlow(
-                    generatedNodeIds,
-                );
-
-            if (
-                !locatorResult.success
-            ) {
-                const unresolved =
-                    locatorResult.results
-                        .filter(
-                            (
-                                result,
-                            ) =>
-                                result.status !==
-                                "resolved",
-                        )
-                        .map(
-                            (
-                                result,
-                            ) =>
-                                `${result.target}: ${result.status}`,
-                        );
-
-                const message =
-                    unresolved.length >
-                        0
-                        ? `Unable to resolve ${unresolved.length} locator${unresolved.length ===
-                            1
-                            ? ""
-                            : "s"
-                        }: ${unresolved.join(
-                            ", ",
-                        )}.`
-                        : "Unable to resolve the generated flow locators.";
-
-                setStatus(
-                    message,
-                    "error",
-                );
-
-                addMessage({
-                    id:
-                        crypto.randomUUID(),
-
-                    role:
-                        "assistant",
-
-                    content:
-                        message,
-
-                    createdAt:
-                        Date.now(),
-                });
-
-                return;
-            }
-
-            setStatus(
-                `Resolved ${locatorResult.resolved} locator${locatorResult.resolved ===
-                    1
-                    ? ""
-                    : "s"
-                }. Starting flow execution...`,
-                "info",
-            );
-        } catch (
-        error
-        ) {
-            const message =
-                error instanceof Error
-                    ? error.message
-                    : String(
-                        error,
-                    );
-
-            setStatus(
-                `Locator resolution failed: ${message}`,
-                "error",
-            );
-
-            addMessage({
-                id:
-                    crypto.randomUUID(),
-
-                role:
-                    "assistant",
-
-                content:
-                    `I could not resolve the generated flow locators: ${message}`,
-
-                createdAt:
-                    Date.now(),
-            });
-
-            return;
-        } finally {
-            setIsResolvingLocators(
-                false,
-            );
-        }
-
-        /*
-         * ------------------------------------------
-         * 3. Read latest flow
-         * ------------------------------------------
-         */
-        const latestFlow =
-            useFlowStore.getState();
-
-        const latestNodes =
-            latestFlow.nodes;
-
-        const latestEdges =
-            latestFlow.edges;
-
-        if (
-            latestNodes.length ===
-            0
-        ) {
-            setStatus(
-                "No generated flow is available to execute.",
-                "error",
-            );
-
-            return;
-        }
-
-        /*
-         * ------------------------------------------
-         * 4. Execute
-         * ------------------------------------------
+         * Keep the whole AI execution busy from
+         * this point until the generated flow
+         * finishes.
          */
         setIsRunningGeneratedFlow(
             true,
         );
 
-        setStatus(
-            "Running the generated flow...",
-            "info",
-        );
-
         try {
+            /*
+             * ------------------------------------------
+             * 5. Launch App
+             * ------------------------------------------
+             */
+            setIsLaunchingApp(
+                true,
+            );
+
+            setStatus(
+                "Launching the application...",
+                "info",
+            );
+
+            try {
+                for (
+                    const node of
+                    launchAppNodes
+                ) {
+                    await launchAppRunner.run(
+                        node,
+                        {
+                            edges:
+                                currentFlow.edges,
+                        },
+                    );
+                }
+            } finally {
+                setIsLaunchingApp(
+                    false,
+                );
+            }
+
+            /*
+             * ------------------------------------------
+             * 6. Execute existing prerequisites
+             * ------------------------------------------
+             *
+             * Example:
+             *
+             * Launch App
+             *     ↓
+             * Tap Menu
+             *     ↓
+             * Tap Login
+             *
+             * The Launch App node is excluded here
+             * because it was already executed above.
+             */
+
+            console.log(
+    "[AI EXECUTION] Generated prerequisite node IDs:",
+    Array.from(
+        generatedPrerequisiteNodeIds,
+    ),
+);
+
+console.log(
+    "[AI EXECUTION] Ordered prerequisite nodes:",
+    orderedPrerequisiteNodes.map(
+        (
+            node,
+        ) => ({
+            id:
+                node.id,
+
+            action:
+                node.data.action,
+
+            title:
+                node.data.title,
+
+            locator:
+                "locator" in
+                node.data
+                    ? node.data.locator
+                    : undefined,
+        }),
+    ),
+);
+
+            const prerequisiteExecutionNodes =
+                orderedPrerequisiteNodes.filter(
+                    (
+                        node,
+                    ) =>
+                        !isLaunchAppNode(
+                            node,
+                        ),
+                );
+
+            if (
+                prerequisiteExecutionNodes.length >
+                0
+            ) {
+                const prerequisiteNodeIds =
+                    new Set(
+                        prerequisiteExecutionNodes.map(
+                            (
+                                node,
+                            ) =>
+                                node.id,
+                        ),
+                    );
+
+                const prerequisiteEdges =
+                    currentFlow.edges.filter(
+                        (
+                            edge,
+                        ) =>
+                            prerequisiteNodeIds.has(
+                                edge.source,
+                            ) &&
+                            prerequisiteNodeIds.has(
+                                edge.target,
+                            ),
+                    );
+
+                setStatus(
+                    "Preparing the application state...",
+                    "info",
+                );
+
+                console.log(
+    "[AI EXECUTION] Executing prerequisites:",
+    prerequisiteExecutionNodes.map(
+        (
+            node,
+        ) => ({
+            id:
+                node.id,
+
+            action:
+                node.data.action,
+
+            title:
+                node.data.title,
+
+            locator:
+                "locator" in
+                node.data
+                    ? node.data.locator
+                    : undefined,
+        }),
+    ),
+);
+
+console.log(
+    "[AI EXECUTION] Prerequisite edges:",
+    prerequisiteEdges.map(
+        (
+            edge,
+        ) => ({
+            source:
+                edge.source,
+
+            target:
+                edge.target,
+
+            sourceHandle:
+                edge.sourceHandle,
+
+            targetHandle:
+                edge.targetHandle,
+        }),
+    ),
+);
+
+                await ExecutionController.run(
+                    prerequisiteExecutionNodes,
+                    {
+                        edges:
+                            prerequisiteEdges,
+                    },
+                    {
+                        reuseExistingAppiumSession:
+                            true,
+                    },
+                );
+            }
+
+            /*
+             * ------------------------------------------
+             * 7. Resolve AI locators
+             * ------------------------------------------
+             *
+             * This MUST happen after the prerequisite
+             * path has navigated the application to
+             * the required screen.
+             */
+            setIsResolvingLocators(
+                true,
+            );
+
+            setStatus(
+                "Resolving locators from the active Appium application...",
+                "info",
+            );
+
+            try {
+                const locatorResult =
+                    await applyResolvedAILocatorsToFlow(
+                        generatedNodeIds,
+                    );
+
+                if (
+                    !locatorResult.success
+                ) {
+                    const unresolved =
+                        locatorResult.results
+                            .filter(
+                                (
+                                    result,
+                                ) =>
+                                    result.status !==
+                                    "resolved",
+                            )
+                            .map(
+                                (
+                                    result,
+                                ) =>
+                                    `${result.target}: ${result.status}`,
+                            );
+
+                    const message =
+                        unresolved.length >
+                            0
+                            ? `Unable to resolve ${unresolved.length} locator${unresolved.length ===
+                                1
+                                ? ""
+                                : "s"
+                            }: ${unresolved.join(
+                                ", ",
+                            )}.`
+                            : "Unable to resolve the generated AI locators.";
+
+                    setStatus(
+                        message,
+                        "error",
+                    );
+
+                    addMessage({
+                        id:
+                            crypto.randomUUID(),
+
+                        role:
+                            "assistant",
+
+                        content:
+                            message,
+
+                        createdAt:
+                            Date.now(),
+                    });
+
+                    return;
+                }
+
+                setStatus(
+                    `Resolved ${locatorResult.resolved} locator${locatorResult.resolved ===
+                        1
+                        ? ""
+                        : "s"
+                    }.`,
+                    "success",
+                );
+            } finally {
+                setIsResolvingLocators(
+                    false,
+                );
+            }
+
+            /*
+             * ------------------------------------------
+             * 8. Read latest flow
+             * ------------------------------------------
+             *
+             * Locator resolution updates node data,
+             * so always read FlowStore again.
+             */
+            const latestFlow =
+                useFlowStore.getState();
+
+            const latestGeneratedNodes =
+                latestFlow.nodes.filter(
+                    (node) =>
+                        generatedNodeIds.has(
+                            node.id,
+                        ),
+                );
+
+            if (
+                latestGeneratedNodes.length ===
+                0
+            ) {
+                setStatus(
+                    "No generated AI nodes were found after locator resolution.",
+                    "error",
+                );
+
+                return;
+            }
+
+            /*
+             * ------------------------------------------
+             * 9. Execute generated AI nodes
+             * ------------------------------------------
+             *
+             * Only generated nodes are executed here.
+             * Existing prerequisite nodes have already
+             * been executed in step 6.
+             */
+            const latestGeneratedNodeIds =
+                new Set(
+                    latestGeneratedNodes.map(
+                        (
+                            node,
+                        ) =>
+                            node.id,
+                    ),
+                );
+
+            const generatedEdges =
+                latestFlow.edges.filter(
+                    (
+                        edge,
+                    ) =>
+                        latestGeneratedNodeIds.has(
+                            edge.source,
+                        ) &&
+                        latestGeneratedNodeIds.has(
+                            edge.target,
+                        ),
+                );
+
+            setStatus(
+                "Running the generated flow...",
+                "info",
+            );
+
             await ExecutionController.run(
-                latestNodes,
+                latestGeneratedNodes,
                 {
                     edges:
-                        latestEdges,
+                        generatedEdges,
                 },
                 {
                     reuseExistingAppiumSession:
                         true,
-
-                    skipNodeIds:
-                        launchAppNodeIds,
                 },
             );
 
+            /*
+             * ------------------------------------------
+             * 10. Success
+             * ------------------------------------------
+             */
             setStatus(
                 "Generated flow executed successfully.",
                 "success",
@@ -690,7 +970,7 @@ export function AIAssistant({
                     "assistant",
 
                 content:
-                    "Done. The generated flow launched the application, resolved its locators, and executed successfully.",
+                    "Done. The AI flow executed its prerequisites, resolved its locators, and completed the generated test steps successfully.",
 
                 createdAt:
                     Date.now(),
@@ -724,6 +1004,14 @@ export function AIAssistant({
                     Date.now(),
             });
         } finally {
+            setIsLaunchingApp(
+                false,
+            );
+
+            setIsResolvingLocators(
+                false,
+            );
+
             setIsRunningGeneratedFlow(
                 false,
             );

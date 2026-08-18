@@ -67,22 +67,58 @@ export function buildFlowContext(): AIFlowContext {
     } = useFlowStore.getState();
 
     const contextNodes =
-        nodes.map(buildNodeContext);
+    nodes.map(buildNodeContext);
 
-    const contextEdges: AIFlowContextEdge[] =
-        edges.map((edge) => ({
-            id: edge.id,
+console.log(
+    "[AI Flow Context] All nodes:",
+    contextNodes.map(
+        (
+            node,
+        ) => ({
+            id:
+                node.id,
 
-            source: edge.source,
+            action:
+                node.action,
 
-            target: edge.target,
+            title:
+                node.title,
+
+            subtitle:
+                node.subtitle,
+
+            locator:
+                node.locator,
+        }),
+    ),
+);
+
+const contextEdges: AIFlowContextEdge[] =
+    edges.map(
+        (
+            edge,
+        ) => ({
+            id:
+                edge.id,
+
+            source:
+                edge.source,
+
+            target:
+                edge.target,
 
             sourceHandle:
                 edge.sourceHandle,
 
             targetHandle:
                 edge.targetHandle,
-        }));
+        }),
+    );
+
+console.log(
+    "[AI Flow Context] All edges:",
+    contextEdges,
+);
 
     const selectedNode =
         contextNodes.find(

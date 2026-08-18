@@ -4,6 +4,7 @@ const VALID_ACTIONS = new Set([
     "assert",
     "delay",
     "wait",
+    "pressReturn",
 ]);
 
 const VALID_LOCATOR_STRATEGIES =
@@ -209,6 +210,13 @@ function validateStep(
 ) {
     if (
         step.action ===
+            "pressReturn"
+    ) {
+        return true;
+    }
+
+    if (
+        step.action ===
             "tap" ||
         step.action ===
             "input" ||
@@ -374,6 +382,25 @@ export function normalizeTestCaseFlowResponse(
         return null;
     }
 
+    const prerequisiteNodeIds =
+    Array.isArray(
+        rawPlan.prerequisiteNodeIds,
+    )
+        ? rawPlan.prerequisiteNodeIds.filter(
+            (
+                nodeId,
+            ) =>
+                typeof nodeId ===
+                    "string" &&
+                nodeId.trim(),
+        ).map(
+            (
+                nodeId,
+            ) =>
+                nodeId.trim(),
+        )
+        : [];
+
     const steps =
         rawPlan.steps
             .map(
@@ -422,36 +449,38 @@ export function normalizeTestCaseFlowResponse(
         testCaseId,
 
         flowPlan: {
-            type:
-                "flow_plan",
+    type:
+        "flow_plan",
 
-            summary:
-                normalizeNullableString(
-                    rawPlan.summary,
-                ) ??
-                "Generated flow from test case.",
+    summary:
+        normalizeNullableString(
+            rawPlan.summary,
+        ) ??
+        "Generated flow from test case.",
 
-            steps:
-                steps.map(
-                    ({
-                        sourceStepOrder,
-                        ...step
-                    }) =>
-                        step,
-                ),
+    prerequisiteNodeIds,
 
-            warnings:
-                Array.isArray(
-                    rawPlan.warnings,
-                )
-                    ? rawPlan.warnings.filter(
-                        (
-                            warning,
-                        ) =>
-                            typeof warning ===
-                            "string",
-                    )
-                    : [],
-        },
+    steps:
+        steps.map(
+            ({
+                sourceStepOrder,
+                ...step
+            }) =>
+                step,
+        ),
+
+    warnings:
+        Array.isArray(
+            rawPlan.warnings,
+        )
+            ? rawPlan.warnings.filter(
+                (
+                    warning,
+                ) =>
+                    typeof warning ===
+                    "string",
+            )
+            : [],
+},
     };
 }

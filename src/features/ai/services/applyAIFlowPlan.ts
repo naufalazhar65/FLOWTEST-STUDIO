@@ -62,6 +62,67 @@ function getLastNode() {
     return nodes.at(-1);
 }
 
+function getSemanticTarget(
+    planStep: AIFlowPlan["steps"][number],
+): string | undefined {
+    if (
+        typeof planStep.semanticTarget ===
+        "string" &&
+        planStep.semanticTarget.trim()
+    ) {
+        return planStep.semanticTarget.trim();
+    }
+
+    const title =
+        planStep.title?.trim() ??
+        "";
+
+    if (!title) {
+        return undefined;
+    }
+
+    let target =
+        title
+            .replace(
+                /^(enter|input|type|tap|click|press|verify|check|assert|select|choose)\s+/i,
+                "",
+            )
+            .replace(
+                /\s+(button|field|element|input|textbox|text field|screen)$/i,
+                "",
+            )
+            .trim();
+
+    /*
+     * Known AI-generated semantic mappings.
+     */
+    if (
+        /\busername\b/i.test(
+            target,
+        )
+    ) {
+        return "username";
+    }
+
+    if (
+        /\bpassword\b/i.test(
+            target,
+        )
+    ) {
+        return "password";
+    }
+
+    if (
+        /\blogin\b/i.test(
+            target,
+        )
+    ) {
+        return "login";
+    }
+
+    return target || undefined;
+}
+
 function applyStep(
     planStep: AIFlowPlan["steps"][number],
 ): string {
@@ -106,10 +167,13 @@ function applyStep(
                     subtitle:
                         planStep.description,
 
+                    text:
+                        planStep.text ?? "",
+
                     semanticTarget:
-                        planStep.semanticTarget ??
-                        planStep.locator ??
-                        planStep.title,
+                        getSemanticTarget(
+                            planStep,
+                        ),
                 },
             );
 
@@ -164,12 +228,9 @@ function applyStep(
                         planStep.description,
 
                     semanticTarget:
-                        planStep.semanticTarget ??
-                        planStep.locator ??
-                        planStep.title,
-
-                    text:
-                        planStep.text,
+                        getSemanticTarget(
+                            planStep,
+                        ),
                 },
             );
 

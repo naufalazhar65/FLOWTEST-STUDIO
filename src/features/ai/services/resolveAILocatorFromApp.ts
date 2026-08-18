@@ -26,24 +26,29 @@ export type AILocatorAppResolutionStatus =
 
 export interface AILocatorAppResolution {
     status:
-        AILocatorAppResolutionStatus;
+    AILocatorAppResolutionStatus;
 
     target: string;
 
     selected:
-        LocatorCandidate | null;
+    LocatorCandidate | null;
 
     candidates:
-        LocatorCandidate[];
+    LocatorCandidate[];
 
     matchedElementId:
-        string | null;
+    string | null;
 
     error?: string;
 }
 
 export async function resolveAILocatorFromApp(
     target: string,
+    action:
+        | "input"
+        | "tap"
+        | "wait"
+        | "generic" = "generic",
 ): Promise<AILocatorAppResolution> {
     const normalizedTarget =
         target.trim();
@@ -75,6 +80,10 @@ export async function resolveAILocatorFromApp(
     try {
         source =
             await getPageSource();
+            console.log(
+    "[AI LOCATOR] Active page source:",
+    source,
+);
     } catch (error) {
         return {
             status:
@@ -108,6 +117,14 @@ export async function resolveAILocatorFromApp(
             parsePageSource(
                 source,
             );
+            console.log(
+    "[AI LOCATOR] Parsed elements:",
+    JSON.stringify(
+        elements,
+        null,
+        2,
+    ),
+);
     } catch (error) {
         return {
             status:
@@ -137,6 +154,7 @@ export async function resolveAILocatorFromApp(
         resolveAILocator(
             elements,
             normalizedTarget,
+            action,
         );
 
     if (
@@ -190,12 +208,12 @@ export async function resolveAILocatorFromApp(
                     normalizedTarget,
 
                 selected:
-                    {
-                        ...candidate,
+                {
+                    ...candidate,
 
-                        recommended:
-                            true,
-                    },
+                    recommended:
+                        true,
+                },
 
                 candidates:
                     resolution.candidates,

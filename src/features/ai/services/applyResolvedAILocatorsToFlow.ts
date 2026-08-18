@@ -77,7 +77,6 @@ function isLocatorNode(
     return (
         action === "tap" ||
         action === "input" ||
-        action === "assert" ||
         action === "wait" ||
         action === "longPress" ||
         action === "doubleTap" ||
@@ -97,64 +96,27 @@ function getSemanticTarget(
     node: ReturnType<
         typeof useFlowStore.getState
     >["nodes"][number],
-    useSemanticTarget: boolean,
 ): string | null {
     const data =
         node.data;
 
-    /*
-     * AI-scoped resolution:
-     *
-     * semanticTarget is preferred because the
-     * generated locator may still be a placeholder
-     * such as XCUIElementTypeTextField.
-     */
     if (
-        useSemanticTarget &&
+        "semanticTarget" in data &&
         typeof data.semanticTarget ===
-        "string" &&
-        data.semanticTarget.trim()
+        "string"
     ) {
-        return normalizeSemanticTarget(
-            data.semanticTarget,
-        );
-    }
+        const semanticTarget =
+            normalizeSemanticTarget(
+                data.semanticTarget,
+            );
 
-    /*
-     * AI-scoped fallback:
-     *
-     * Older AI nodes may not have semanticTarget,
-     * so derive the semantic target from the title.
-     */
-    if (
-        useSemanticTarget
-    ) {
-        const title =
-            typeof data.title ===
-                "string"
-                ? data.title.trim()
-                : "";
-
-        if (title) {
-            const normalizedTitle =
-                normalizeSemanticTarget(
-                    title,
-                );
-
-            if (
-                normalizedTitle
-            ) {
-                return normalizedTitle;
-            }
+        if (
+            semanticTarget
+        ) {
+            return semanticTarget;
         }
     }
 
-    /*
-     * Legacy behavior:
-     *
-     * When nodeIds are not supplied, preserve the
-     * existing locator-based resolver behavior.
-     */
     if (
         "locator" in data &&
         typeof data.locator ===
@@ -163,7 +125,9 @@ function getSemanticTarget(
         const locator =
             data.locator.trim();
 
-        if (locator) {
+        if (
+            locator
+        ) {
             return locator;
         }
     }
@@ -318,8 +282,6 @@ export async function applyResolvedAILocatorsToFlow(
         const target =
             getSemanticTarget(
                 node,
-                nodeIds !==
-                undefined,
             );
 
         if (!target) {
@@ -331,10 +293,20 @@ export async function applyResolvedAILocatorsToFlow(
             continue;
         }
 
-        const resolution =
-            await resolveAILocatorFromApp(
-                target,
-            );
+        const action =
+    node.data.action;
+
+const resolution =
+    await resolveAILocatorFromApp(
+        target,
+        action === "input"
+            ? "input"
+            : action === "tap"
+                ? "tap"
+                : action === "wait"
+                    ? "wait"
+                    : "generic",
+    );
 
         if (
             resolution.status !==

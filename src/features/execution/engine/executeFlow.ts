@@ -218,6 +218,27 @@ export async function executeFlow(
         let currentNode =
             graph.getStartNode();
 
+            console.log(
+    "[AI EXECUTION] Start node:",
+    currentNode
+        ? {
+            id:
+                currentNode.id,
+
+            action:
+                currentNode.data.action,
+
+            title:
+                currentNode.data.title,
+
+            locator:
+                "locator" in currentNode.data
+                    ? currentNode.data.locator
+                    : undefined,
+        }
+        : null,
+);
+
         let activeEdgeId:
             string | null =
             null;
@@ -426,6 +447,24 @@ export async function executeFlow(
                 // Execute Node
                 // ---------------------------------------
 
+                console.log(
+    "[AI EXECUTION] Executing node:",
+    {
+        id:
+            node.id,
+
+        action:
+            node.data.action,
+
+        title:
+            node.data.title,
+
+        locator:
+            "locator" in node.data
+                ? node.data.locator
+                : undefined,
+    },
+);
                 const result =
                     await executeNode(
                         node,
@@ -507,6 +546,7 @@ export async function executeFlow(
                     currentNode =
                         null;
 
+                    
                     continue;
                 }
 
@@ -515,6 +555,22 @@ export async function executeFlow(
                         node.id,
                         output,
                     );
+
+                    console.log(
+    "[AI EXECUTION] Next node:",
+    currentNode
+        ? {
+            id:
+                currentNode.id,
+
+            action:
+                currentNode.data.action,
+
+            title:
+                currentNode.data.title,
+        }
+        : null,
+);
 
                 if (
                     transition

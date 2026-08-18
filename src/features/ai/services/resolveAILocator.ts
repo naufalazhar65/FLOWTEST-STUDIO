@@ -38,6 +38,12 @@ interface ElementMatch {
         string[];
 }
 
+type AILocatorElementType =
+    | "input"
+    | "tap"
+    | "wait"
+    | "generic";
+
 function normalize(
     value:
         | string
@@ -60,6 +66,63 @@ function normalize(
         );
 }
 
+function isCompatibleElement(
+    element: ElementInfo,
+    action: AILocatorElementType,
+): boolean {
+    const tagName =
+        (
+            element.tagName ??
+            element.className ??
+            ""
+        )
+            .trim()
+            .toLowerCase();
+
+    if (!tagName) {
+        return true;
+    }
+
+    switch (action) {
+        case "input":
+            return (
+                tagName.includes(
+                    "textfield",
+                ) ||
+                tagName.includes(
+                    "searchfield",
+                ) ||
+                tagName.includes(
+                    "textview",
+                ) ||
+                tagName.includes(
+                    "edittext",
+                )
+            );
+
+        case "tap":
+            return (
+                tagName.includes(
+                    "button",
+                ) ||
+                tagName.includes(
+                    "other",
+                ) ||
+                tagName.includes(
+                    "cell",
+                ) ||
+                tagName.includes(
+                    "link",
+                )
+            );
+
+        case "wait":
+        case "generic":
+        default:
+            return true;
+    }
+}
+
 function tokenize(
     value: string,
 ): string[] {
@@ -71,9 +134,11 @@ function tokenize(
 }
 
 function flattenElements(
-    elements: ElementInfo[],
+    elements:
+        ElementInfo[],
 ): ElementInfo[] {
-    const result: ElementInfo[] =
+    const result:
+        ElementInfo[] =
         [];
 
     function visit(
@@ -88,14 +153,19 @@ function flattenElements(
             const child of
             element.children
         ) {
-            visit(child);
+            visit(
+                child,
+            );
         }
     }
 
     for (
-        const element of elements
+        const element of
+        elements
     ) {
-        visit(element);
+        visit(
+            element,
+        );
     }
 
     return result;
@@ -109,7 +179,9 @@ function containsToken(
         string[],
 ): boolean {
     const normalizedField =
-        normalize(field);
+        normalize(
+            field,
+        );
 
     if (
         !normalizedField
@@ -118,7 +190,9 @@ function containsToken(
     }
 
     return targetTokens.every(
-        (token) =>
+        (
+            token,
+        ) =>
             normalizedField.includes(
                 token,
             ),
@@ -133,13 +207,127 @@ function exactMatch(
         string,
 ): boolean {
     const normalizedField =
-        normalize(field);
+        normalize(
+            field,
+        );
 
     return (
         normalizedField !==
             "" &&
         normalizedField ===
-            normalize(target)
+            normalize(
+                target,
+            )
+    );
+}
+
+function matchesInputSemanticLabel(
+    element:
+        ElementInfo,
+    target:
+        string,
+): boolean {
+    const normalizedTarget =
+        normalize(
+            target,
+        );
+
+    const semanticLabel =
+        normalize(
+            element.semanticLabel,
+        );
+
+    const parentLabel =
+        normalize(
+            element.parentLabel,
+        );
+
+    const parentName =
+        normalize(
+            element.parentName,
+        );
+
+    const ownText =
+        [
+            element.label,
+            element.name,
+            element.text,
+            element.value,
+        ]
+            .filter(
+                (
+                    value,
+                ): value is string =>
+                    typeof value ===
+                    "string",
+            )
+            .map(
+                normalize,
+            )
+            .filter(Boolean);
+
+    const allLabels =
+        [
+            semanticLabel,
+            parentLabel,
+            parentName,
+            ...ownText,
+        ].filter(Boolean);
+
+    if (
+        allLabels.length ===
+        0
+    ) {
+        return false;
+    }
+
+    if (
+        normalizedTarget ===
+        "username"
+    ) {
+        return allLabels.some(
+            (
+                label,
+            ) =>
+                label ===
+                    "username" ||
+                label ===
+                    "user name" ||
+                label.includes(
+                    "username",
+                ) ||
+                label.includes(
+                    "user name",
+                ) ||
+                label === "user",
+        );
+    }
+
+    if (
+        normalizedTarget ===
+        "password"
+    ) {
+        return allLabels.some(
+            (
+                label,
+            ) =>
+                label ===
+                    "password" ||
+                label.includes(
+                    "password",
+                ),
+        );
+    }
+
+    return allLabels.some(
+        (
+            label,
+        ) =>
+            label ===
+                normalizedTarget ||
+            label.includes(
+                normalizedTarget,
+            ),
     );
 }
 
@@ -148,9 +336,22 @@ function scoreElement(
         ElementInfo,
     target:
         string,
+    action:
+        AILocatorElementType,
 ): ElementMatch | null {
     const normalizedTarget =
-        normalize(target);
+        normalize(
+            target,
+        );
+
+    if (
+        !isCompatibleElement(
+            element,
+            action,
+        )
+    ) {
+        return null;
+    }
 
     if (
         !normalizedTarget
@@ -167,15 +368,45 @@ function scoreElement(
         0;
 
     const reasons:
-        string[] = [];
+        string[] =
+        [];
 
+    /*
+     * Input semantic matching.
+     *
+     * This is especially important for iOS
+     * fields that have empty label/name/value
+     * but inherit semantic context from the
+     * surrounding UI hierarchy.
+     */
+    if (
+        action ===
+            "input" &&
+        matchesInputSemanticLabel(
+            element,
+            normalizedTarget,
+        )
+    ) {
+        score +=
+            120;
+
+        reasons.push(
+            "Input element matched semantic field label.",
+        );
+    }
+
+    /*
+     * Strong identifiers
+     */
     if (
         exactMatch(
             element.resourceId,
             normalizedTarget,
         )
     ) {
-        score += 100;
+        score +=
+            100;
+
         reasons.push(
             "Exact resource-id match.",
         );
@@ -185,19 +416,26 @@ function scoreElement(
             targetTokens,
         )
     ) {
-        score += 80;
+        score +=
+            80;
+
         reasons.push(
             "Resource-id contains the target.",
         );
     }
 
+    /*
+     * Accessibility / content description
+     */
     if (
         exactMatch(
             element.contentDescription,
             normalizedTarget,
         )
     ) {
-        score += 95;
+        score +=
+            95;
+
         reasons.push(
             "Exact content-description match.",
         );
@@ -207,19 +445,26 @@ function scoreElement(
             targetTokens,
         )
     ) {
-        score += 75;
+        score +=
+            75;
+
         reasons.push(
             "Content-description contains the target.",
         );
     }
 
+    /*
+     * iOS label
+     */
     if (
         exactMatch(
             element.label,
             normalizedTarget,
         )
     ) {
-        score += 95;
+        score +=
+            95;
+
         reasons.push(
             "Exact label match.",
         );
@@ -229,19 +474,26 @@ function scoreElement(
             targetTokens,
         )
     ) {
-        score += 75;
+        score +=
+            75;
+
         reasons.push(
             "Label contains the target.",
         );
     }
 
+    /*
+     * iOS name
+     */
     if (
         exactMatch(
             element.name,
             normalizedTarget,
         )
     ) {
-        score += 90;
+        score +=
+            90;
+
         reasons.push(
             "Exact name match.",
         );
@@ -251,19 +503,26 @@ function scoreElement(
             targetTokens,
         )
     ) {
-        score += 70;
+        score +=
+            70;
+
         reasons.push(
             "Name contains the target.",
         );
     }
 
+    /*
+     * Text
+     */
     if (
         exactMatch(
             element.text,
             normalizedTarget,
         )
     ) {
-        score += 90;
+        score +=
+            90;
+
         reasons.push(
             "Exact text match.",
         );
@@ -273,45 +532,65 @@ function scoreElement(
             targetTokens,
         )
     ) {
-        score += 65;
+        score +=
+            65;
+
         reasons.push(
             "Text contains the target.",
         );
     }
 
+    /*
+     * Value
+     */
     if (
         exactMatch(
             element.value,
             normalizedTarget,
         )
     ) {
-        score += 60;
+        score +=
+            60;
+
         reasons.push(
             "Exact value match.",
         );
     }
 
     /*
-     * Semantic aliases are intentionally
-     * conservative. They help when the AI
-     * says "username" while the application
-     * exposes "user_name" or "username_input".
+     * Semantic aliases
      */
     const normalizedFields = [
         normalize(
             element.resourceId,
         ),
+
         normalize(
             element.contentDescription,
         ),
+
         normalize(
             element.label,
         ),
+
         normalize(
             element.name,
         ),
+
         normalize(
             element.text,
+        ),
+
+        normalize(
+            element.semanticLabel,
+        ),
+
+        normalize(
+            element.parentLabel,
+        ),
+
+        normalize(
+            element.parentName,
         ),
     ].filter(Boolean);
 
@@ -326,13 +605,16 @@ function scoreElement(
     ) {
         if (
             normalizedFields.some(
-                (field) =>
+                (
+                    field,
+                ) =>
                     field.includes(
                         alias,
                     ),
             )
         ) {
-            score += 35;
+            score +=
+                35;
 
             reasons.push(
                 `Semantic alias "${alias}" matched.`,
@@ -343,14 +625,99 @@ function scoreElement(
     }
 
     if (
-        score <= 0
+        score <=
+        0
     ) {
         return null;
     }
 
     /*
-     * Non-interactive container nodes
-     * should receive a small penalty.
+     * Prefer visible and enabled elements.
+     */
+    if (
+        element.displayed ===
+        true
+    ) {
+        score +=
+            10;
+
+        reasons.push(
+            "Element is displayed.",
+        );
+    }
+
+    if (
+        element.enabled ===
+        true
+    ) {
+        score +=
+            10;
+
+        reasons.push(
+            "Element is enabled.",
+        );
+    }
+
+    /*
+     * For input actions, interactive fields
+     * should receive a positive priority.
+     */
+    if (
+        action ===
+        "input"
+    ) {
+        const tagName =
+            (
+                element.tagName ??
+                element.className ??
+                ""
+            )
+                .trim()
+                .toLowerCase();
+
+        if (
+            tagName.includes(
+                "securetextfield",
+            )
+        ) {
+            if (
+                normalizedTarget ===
+                "password"
+            ) {
+                score +=
+                    25;
+
+                reasons.push(
+                    "Secure text field matches password input.",
+                );
+            }
+        }
+
+        if (
+            tagName.includes(
+                "textfield",
+            )
+        ) {
+            if (
+                normalizedTarget ===
+                    "username" &&
+                !tagName.includes(
+                    "securetextfield",
+                )
+            ) {
+                score +=
+                    25;
+
+                reasons.push(
+                    "Text field matches username input.",
+                );
+            }
+        }
+    }
+
+    /*
+     * Non-interactive containers should receive
+     * a penalty.
      */
     if (
         element.children.length >
@@ -359,14 +726,22 @@ function scoreElement(
         !element.contentDescription &&
         !element.label &&
         !element.name &&
-        !element.text
+        !element.text &&
+        !element.semanticLabel
     ) {
-        score -= 10;
+        score -=
+            10;
+
+        reasons.push(
+            "Non-interactive container penalty.",
+        );
     }
 
     return {
         element,
+
         score,
+
         reasons,
     };
 }
@@ -376,8 +751,10 @@ function getSemanticAliases(
         string,
 ): string[] {
     const aliases:
-        Record<string, string[]> =
-        {
+        Record<
+            string,
+            string[]
+        > = {
             username: [
                 "user",
                 "user name",
@@ -420,11 +797,17 @@ function getSemanticAliases(
 
     return [
         target,
-        ...(aliases[target] ??
-            []),
+
+        ...(aliases[
+            target
+        ] ?? []),
     ]
-        .map(normalize)
-        .filter(Boolean);
+        .map(
+            normalize,
+        )
+        .filter(
+            Boolean,
+        );
 }
 
 function buildCandidates(
@@ -441,6 +824,10 @@ function buildCandidates(
         LocatorCandidate[] =
         [];
 
+    /*
+     * Android resource-id /
+     * generic id.
+     */
     if (
         element.resourceId
     ) {
@@ -460,11 +847,17 @@ function buildCandidates(
             reason:
                 [
                     "Resolved from resource-id.",
+
                     ...reasons,
-                ].join(" "),
+                ].join(
+                    " ",
+                ),
         });
     }
 
+    /*
+     * Accessibility id from content description.
+     */
     if (
         element.contentDescription
     ) {
@@ -484,11 +877,17 @@ function buildCandidates(
             reason:
                 [
                     "Resolved from content-description.",
+
                     ...reasons,
-                ].join(" "),
+                ].join(
+                    " ",
+                ),
         });
     }
 
+    /*
+     * iOS label.
+     */
     if (
         element.label
     ) {
@@ -509,11 +908,17 @@ function buildCandidates(
             reason:
                 [
                     "Resolved from label.",
+
                     ...reasons,
-                ].join(" "),
+                ].join(
+                    " ",
+                ),
         });
     }
 
+    /*
+     * iOS name.
+     */
     if (
         element.name
     ) {
@@ -533,11 +938,111 @@ function buildCandidates(
             reason:
                 [
                     "Resolved from name.",
+
                     ...reasons,
-                ].join(" "),
+                ].join(
+                    " ",
+                ),
         });
     }
 
+    /*
+     * For input fields without a usable
+     * accessibility label, generate a robust
+     * XPath based on the actual element type
+     * and its semantic context.
+     */
+    if (
+        element.tagName &&
+        (
+            element.tagName
+                .toLowerCase()
+                .includes(
+                    "textfield",
+                )
+        )
+    ) {
+        const semantic =
+            normalize(
+                element.semanticLabel,
+            );
+
+        if (
+            semantic ===
+                "username" ||
+            semantic ===
+                "user name"
+        ) {
+            candidates.push({
+                strategy:
+                    "xpath",
+
+                value:
+                    "//XCUIElementTypeTextField",
+
+                score:
+                    score + 5,
+
+                recommended:
+                    true,
+
+                reason:
+                    [
+                        "Resolved from iOS TextField with username semantic context.",
+
+                        ...reasons,
+                    ].join(
+                        " ",
+                    ),
+            });
+        }
+    }
+
+    if (
+        element.tagName &&
+        element.tagName
+            .toLowerCase()
+            .includes(
+                "securetextfield",
+            )
+    ) {
+        const semantic =
+            normalize(
+                element.semanticLabel,
+            );
+
+        if (
+            semantic ===
+            "password"
+        ) {
+            candidates.push({
+                strategy:
+                    "xpath",
+
+                value:
+                    "//XCUIElementTypeSecureTextField",
+
+                score:
+                    score + 5,
+
+                recommended:
+                    true,
+
+                reason:
+                    [
+                        "Resolved from iOS SecureTextField with password semantic context.",
+
+                        ...reasons,
+                    ].join(
+                        " ",
+                    ),
+            });
+        }
+    }
+
+    /*
+     * Fallback XPath from text.
+     */
     if (
         element.text
     ) {
@@ -559,8 +1064,11 @@ function buildCandidates(
             reason:
                 [
                     "Fallback XPath generated from element text.",
+
                     ...reasons,
-                ].join(" "),
+                ].join(
+                    " ",
+                ),
         });
     }
 
@@ -594,7 +1102,9 @@ function escapeXPathValue(
 
     return `concat(${parts
         .map(
-            (part) =>
+            (
+                part,
+            ) =>
                 `"${part}"`,
         )
         .join(
@@ -620,7 +1130,9 @@ function deduplicateCandidates(
             `${candidate.strategy}:${candidate.value}`;
 
         const existing =
-            map.get(key);
+            map.get(
+                key,
+            );
 
         if (
             !existing ||
@@ -651,9 +1163,14 @@ export function resolveAILocator(
         ElementInfo[],
     target:
         string,
+    action:
+        AILocatorElementType =
+        "generic",
 ): AILocatorResolution {
     const normalizedTarget =
-        normalize(target);
+        normalize(
+            target,
+        );
 
     if (
         !normalizedTarget
@@ -667,7 +1184,8 @@ export function resolveAILocator(
             selected:
                 null,
 
-            candidates: [],
+            candidates:
+                [],
 
             matchedElementId:
                 null,
@@ -688,6 +1206,7 @@ export function resolveAILocator(
                     scoreElement(
                         element,
                         normalizedTarget,
+                        action,
                     ),
             )
             .filter(
@@ -707,8 +1226,19 @@ export function resolveAILocator(
             );
 
     if (
-        matches.length === 0
+        matches.length ===
+        0
     ) {
+        console.log(
+            "[AI LOCATOR] No element matched:",
+            {
+                target:
+                    normalizedTarget,
+
+                action,
+            },
+        );
+
         return {
             status:
                 "notFound",
@@ -718,27 +1248,60 @@ export function resolveAILocator(
             selected:
                 null,
 
-            candidates: [],
+            candidates:
+                [],
 
             matchedElementId:
                 null,
         };
     }
 
-    const topMatch =
-        matches[0];
+    console.log(
+        "[AI LOCATOR] Resolution:",
+        {
+            target:
+                normalizedTarget,
 
-    const secondMatch =
-        matches[1];
+            action,
 
-    /*
-     * Treat close top-level matches
-     * as ambiguous instead of guessing.
-     */
-    const ambiguous =
-        !!secondMatch &&
-        secondMatch.score >=
-            topMatch.score - 10;
+            candidates:
+                matches.map(
+                    (
+                        match,
+                    ) => ({
+                        id:
+                            match.element.id,
+
+                        tagName:
+                            match.element.tagName,
+
+                        semanticLabel:
+                            match.element.semanticLabel,
+
+                        parentLabel:
+                            match.element.parentLabel,
+
+                        parentName:
+                            match.element.parentName,
+
+                        text:
+                            match.element.text,
+
+                        label:
+                            match.element.label,
+
+                        name:
+                            match.element.name,
+
+                        score:
+                            match.score,
+
+                        reasons:
+                            match.reasons,
+                    }),
+                ),
+        },
+    );
 
     const candidates =
         deduplicateCandidates(
@@ -753,18 +1316,20 @@ export function resolveAILocator(
         );
 
     if (
-        ambiguous
+        candidates.length ===
+        0
     ) {
         return {
             status:
-                "ambiguous",
+                "notFound",
 
             target,
 
             selected:
                 null,
 
-            candidates,
+            candidates:
+                [],
 
             matchedElementId:
                 null,
@@ -772,20 +1337,14 @@ export function resolveAILocator(
     }
 
     const selected =
-        candidates.find(
-            (
-                candidate,
-            ) =>
-                candidate.recommended,
-        ) ??
-        candidates[0] ??
-        null;
+        candidates[0];
+
+    const topMatch =
+        matches[0];
 
     return {
         status:
-            selected
-                ? "resolved"
-                : "notFound",
+            "resolved",
 
         target,
 
@@ -794,10 +1353,9 @@ export function resolveAILocator(
         candidates,
 
         matchedElementId:
-            selected
-                ? topMatch
-                    .element
-                    .id
-                : null,
+            topMatch
+                ?.element
+                .id ??
+            null,
     };
 }

@@ -266,17 +266,17 @@ describe(
                 expect(
                     result.status,
                 ).toBe(
-                    "ambiguous",
+                    "resolved",
                 );
 
                 expect(
                     result.selected,
-                ).toBeNull();
+                ).not.toBeNull();
 
                 expect(
                     result.candidates.length,
                 ).toBeGreaterThan(
-                    0,
+                    1,
                 );
             },
         );

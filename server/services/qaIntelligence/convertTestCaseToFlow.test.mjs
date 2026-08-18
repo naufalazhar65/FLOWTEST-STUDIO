@@ -315,11 +315,11 @@ describe(
                 );
 
                 expect(
-                    result.flowPlan.steps[2]
-                        .locator,
-                ).toBe(
-                    "Login",
-                );
+    result.flowPlan.steps[2]
+        .locator,
+).toBe(
+    "login",
+);
 
                 expect(
                     result.flowPlan.steps[3]
@@ -403,13 +403,13 @@ describe(
                         context,
                     ),
                 ).rejects.toThrow(
-                    "Expected 4 flow step(s).",
-                );
+    "Ollama returned 1 flow step(s), but 4 test-case step(s) were expected.",
+)
             },
         );
 
         it(
-            "rejects a flow with duplicated source step orders",
+            "repairs duplicated source step orders",
             async () => {
                 const invalidPayload =
                     createValidFlowPayload();
@@ -428,14 +428,30 @@ describe(
                     ),
                 );
 
-                await expect(
-                    convertTestCaseToFlow(
-                        testCase,
-                        context,
-                    ),
-                ).rejects.toThrow(
-                    "Expected 4 flow step(s).",
-                );
+                const result =
+    await convertTestCaseToFlow(
+        testCase,
+        context,
+    );
+
+expect(
+    result.flowPlan.steps,
+).toHaveLength(
+    4,
+);
+expect(
+    result.flowPlan.steps.map(
+        (
+            step,
+        ) =>
+            step.id,
+    ),
+).toEqual([
+    "ai-step-1",
+    "ai-step-2",
+    "ai-step-3",
+    "ai-step-4",
+]);
             },
         );
 

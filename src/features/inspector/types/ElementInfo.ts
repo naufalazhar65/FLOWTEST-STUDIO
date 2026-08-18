@@ -27,5 +27,11 @@ export interface ElementInfo {
 
     accessible?: boolean;
 
+    semanticLabel?: string;
+
+    parentLabel?: string;
+
+    parentName?: string;
+
     children: ElementInfo[];
 }
