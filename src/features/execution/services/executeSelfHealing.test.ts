@@ -17,6 +17,28 @@ import type {
     SelfHealingPlan,
 } from "./buildSelfHealingPlan";
 
+function createRuntimeRecoveryPlan(): SelfHealingPlan {
+    return {
+        canAutoApply:
+            true,
+
+        strategy:
+            "runtimeRecovery",
+
+        confidence:
+            "high",
+
+        reason:
+            "A deterministic application state recovery plan is available.",
+
+        modificationPlan:
+            null,
+
+        targetNodeId:
+            "node-1",
+    };
+}
+
 function createModificationPlan(): AIModificationPlan {
     return {
         type:
@@ -503,5 +525,78 @@ describe(
                 );
             },
         );
+
+        it(
+    "does not rerun when runtime recovery fails",
+    async () => {
+        const recover =
+            vi.fn()
+                .mockResolvedValue({
+                    success:
+                        false,
+
+                    error:
+                        "Unable to restore application state.",
+                });
+
+        const apply =
+            vi.fn();
+
+        const rerun =
+            vi.fn();
+
+        const result =
+            await executeSelfHealing(
+                createRuntimeRecoveryPlan(),
+                {
+                    applyModificationPlan:
+                        apply,
+
+                    executeRecovery:
+                        recover,
+
+                    rerun,
+                },
+            );
+
+        expect(
+            result.status,
+        ).toBe(
+            "failed",
+        );
+
+        expect(
+            result.rerunAttempted,
+        ).toBe(
+            false,
+        );
+
+        expect(
+            result.healingAttempts,
+        ).toBe(
+            1,
+        );
+
+        expect(
+            result.error,
+        ).toBe(
+            "Unable to restore application state.",
+        );
+
+        expect(
+            recover,
+        ).toHaveBeenCalledTimes(
+            1,
+        );
+
+        expect(
+            apply,
+        ).not.toHaveBeenCalled();
+
+        expect(
+            rerun,
+        ).not.toHaveBeenCalled();
+    },
+);
     },
 );

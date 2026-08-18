@@ -6,6 +6,10 @@ import type {
     FailureContext,
 } from "./buildFailureContext";
 
+import {
+    detectApplicationStateMismatch,
+} from "./detectApplicationStateMismatch";
+
 export type RootCauseCategory =
     | "staleLocator"
     | "invalidLocator"
@@ -40,16 +44,52 @@ export function analyzeFailureRootCause(
     switch (
     classification.category
     ) {
-        case "elementNotFound":
+        case "elementNotFound": {
+            const stateMismatch =
+                detectApplicationStateMismatch(
+                    context,
+                );
+
+            if (
+                stateMismatch.detected
+            ) {
+                return {
+                    category:
+                        "wrongApplicationState",
+
+                    title:
+                        "Application is in an unexpected state",
+
+                    explanation:
+                        "The failed target was not present in the active UI after a state-changing predecessor, indicating that the application may no longer be on the screen expected by the flow.",
+
+                    confidence:
+                        stateMismatch.confidence,
+
+                    evidence: [
+                        ...classification.evidence,
+
+                        ...stateMismatch.evidence,
+                    ],
+
+                    likelyCauses: [
+                        "The application navigated to another screen.",
+                        "A previous state-changing action changed the current application state.",
+                        "The app was returned to a previous screen.",
+                        "The test flow is attempting to interact with an element from another application state.",
+                    ],
+                };
+            }
+
             if (
                 context.node.locator
             ) {
                 return {
                     category:
-                        "invalidLocator",
+                        "staleLocator",
 
                     title:
-                        "Target element could not be located",
+                        "Target locator may be stale",
 
                     explanation:
                         "The configured locator did not resolve to an element during execution. The locator may no longer match the current UI hierarchy or the application may not be in the expected state.",
@@ -74,10 +114,34 @@ export function analyzeFailureRootCause(
                         "Locator became stale after a UI change.",
                         "The application is on a different screen.",
                         "The target element is not currently rendered.",
-                        "The target locator is too specific.",
+                        "The locator is too specific.",
                     ],
                 };
             }
+
+            return {
+                category:
+                    "elementNotReady",
+
+                title:
+                    "Target element was not available",
+
+                explanation:
+                    "The target element could not be found and the node does not contain a usable locator.",
+
+                confidence:
+                    "medium",
+
+                evidence:
+                    classification.evidence,
+
+                likelyCauses: [
+                    "The target element was not rendered yet.",
+                    "The application is on an unexpected screen.",
+                    "The node configuration is incomplete.",
+                ],
+            };
+        }
 
             return {
                 category:

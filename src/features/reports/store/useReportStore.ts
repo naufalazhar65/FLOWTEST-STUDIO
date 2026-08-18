@@ -115,7 +115,10 @@ export const useReportStore =
                         reports: [
                             report,
                             ...state.reports,
-                        ],
+                        ].slice(
+                            0,
+                            20,
+                        ),
                     }));
                 },
 

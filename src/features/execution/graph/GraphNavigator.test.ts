@@ -222,6 +222,61 @@ describe("GraphNavigator", () => {
         ).toEqual([]);
     });
 
+    it("returns the path to a target node", () => {
+        const graph = new GraphNavigator(
+            [
+                { id: "A" } as FlowNode,
+                { id: "B" } as FlowNode,
+                { id: "C" } as FlowNode,
+            ],
+            [
+                {
+                    id: "1",
+                    source: "A",
+                    target: "B",
+                },
+                {
+                    id: "2",
+                    source: "B",
+                    target: "C",
+                },
+            ],
+        );
+
+        expect(
+            graph
+                .getPathToNode("C")
+                .map(
+                    (node) => node.id,
+                ),
+        ).toEqual([
+            "A",
+            "B",
+            "C",
+        ]);
+    });
+
+    it("returns an empty path when the target node is unreachable", () => {
+        const graph = new GraphNavigator(
+            [
+                { id: "A" } as FlowNode,
+                { id: "B" } as FlowNode,
+                { id: "C" } as FlowNode,
+            ],
+            [
+                {
+                    id: "1",
+                    source: "A",
+                    target: "B",
+                },
+            ],
+        );
+
+        expect(
+            graph.getPathToNode("C"),
+        ).toEqual([]);
+    });
+
     it("does not loop forever when graph contains a cycle", () => {
         const graph = new GraphNavigator(
             [
@@ -259,5 +314,7 @@ describe("GraphNavigator", () => {
             "B",
             "C",
         ]);
+
+
     });
 });

@@ -18,22 +18,22 @@ export type SelfHealingExecutionStatus =
 
 export interface SelfHealingExecutionResult {
     status:
-        SelfHealingExecutionStatus;
+    SelfHealingExecutionStatus;
 
     attempted:
-        boolean;
+    boolean;
 
     rerunAttempted:
-        boolean;
+    boolean;
 
     rerunSucceeded:
-        boolean;
+    boolean;
 
     healingAttempts:
-        number;
+    number;
 
     error:
-        string | null;
+    string | null;
 }
 
 export interface SelfHealingExecutorOptions {
@@ -42,6 +42,10 @@ export interface SelfHealingExecutorOptions {
             SelfHealingPlan["modificationPlan"]
         >,
     ):
+        | SelfHealingApplyResult
+        | Promise<SelfHealingApplyResult>;
+
+    executeRecovery?():
         | SelfHealingApplyResult
         | Promise<SelfHealingApplyResult>;
 
@@ -85,8 +89,7 @@ export async function executeSelfHealing(
      * application is not allowed.
      */
     if (
-        !plan.canAutoApply ||
-        !plan.modificationPlan
+        !plan.canAutoApply
     ) {
         return {
             status:
@@ -112,10 +115,69 @@ export async function executeSelfHealing(
     /*
      * One and only one healing attempt.
      */
-    const applyResult =
-        await options.applyModificationPlan(
-            plan.modificationPlan,
-        );
+    let applyResult:
+        | SelfHealingApplyResult;
+
+    if (
+        plan.strategy ===
+        "runtimeRecovery"
+    ) {
+        if (
+            !options.executeRecovery
+        ) {
+            return {
+                status:
+                    "failed",
+
+                attempted:
+                    false,
+
+                rerunAttempted:
+                    false,
+
+                rerunSucceeded:
+                    false,
+
+                healingAttempts:
+                    0,
+
+                error:
+                    "Runtime recovery executor is not configured.",
+            };
+        }
+
+        applyResult =
+            await options.executeRecovery();
+    } else {
+        if (
+            !plan.modificationPlan
+        ) {
+            return {
+                status:
+                    "manualReview",
+
+                attempted:
+                    false,
+
+                rerunAttempted:
+                    false,
+
+                rerunSucceeded:
+                    false,
+
+                healingAttempts:
+                    0,
+
+                error:
+                    "No modification plan is available.",
+            };
+        }
+
+        applyResult =
+            await options.applyModificationPlan(
+                plan.modificationPlan,
+            );
+    }
 
     if (
         !applyResult.success
@@ -172,7 +234,7 @@ export async function executeSelfHealing(
                     : "Flow still failed after self-healing.",
         };
     } catch (
-        error
+    error
     ) {
         return {
             status:

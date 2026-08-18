@@ -59,11 +59,13 @@ function createContext(
             error,
         },
 
-        previousNodeIds:
-            [],
+        previousNodeIds: [],
 
-        nextNodeIds:
-            [],
+        previousNodes: [],
+
+        nextNodeIds: [],
+
+        nextNodes: [],
     };
 }
 

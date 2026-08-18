@@ -16,6 +16,16 @@ import type {
 
 const mocks = vi.hoisted(
     () => ({
+
+        buildApplicationStateRecoveryPlan:
+            vi.fn(),
+
+        executeRecoveryPath:
+            vi.fn(),
+        recoverApplicationState:
+            vi.fn(),
+        executeNode:
+            vi.fn(),
         deleteSession:
             vi.fn(),
 
@@ -74,6 +84,14 @@ vi.mock(
     () => ({
         executeFlow:
             vi.fn(),
+    }),
+);
+
+vi.mock(
+    "../services/appium/recoverApplicationState",
+    () => ({
+        recoverApplicationState:
+            mocks.recoverApplicationState,
     }),
 );
 
@@ -159,6 +177,42 @@ vi.mock(
     }),
 );
 
+vi.mock(
+    "./buildApplicationStateRecoveryPlan",
+    () => ({
+        buildApplicationStateRecoveryPlan:
+            mocks.buildApplicationStateRecoveryPlan,
+    }),
+);
+
+vi.mock(
+    "../engine/executeRecoveryPath",
+    () => ({
+        executeRecoveryPath:
+            mocks.executeRecoveryPath,
+    }),
+);
+
+vi.mock(
+    "../engine/executeNode",
+    () => ({
+        executeNode:
+            mocks.executeNode,
+    }),
+);
+
+import {
+    buildApplicationStateRecoveryPlan,
+} from "./buildApplicationStateRecoveryPlan";
+
+import {
+    executeRecoveryPath,
+} from "../engine/executeRecoveryPath";
+
+import {
+    executeNode,
+} from "../engine/executeNode";
+
 import {
     executeFlow,
 } from "../engine/executeFlow";
@@ -170,6 +224,21 @@ import {
 const executeFlowMock =
     vi.mocked(
         executeFlow,
+    );
+
+const buildApplicationStateRecoveryPlanMock =
+    vi.mocked(
+        buildApplicationStateRecoveryPlan,
+    );
+
+const executeRecoveryPathMock =
+    vi.mocked(
+        executeRecoveryPath,
+    );
+
+const executeNodeMock =
+    vi.mocked(
+        executeNode,
     );
 
 const nodes:
@@ -221,6 +290,12 @@ describe(
     () => {
         beforeEach(() => {
             vi.resetAllMocks();
+
+            buildApplicationStateRecoveryPlanMock
+                .mockReturnValue([]);
+
+            executeRecoveryPathMock
+                .mockResolvedValue(undefined);
 
             executionState.status =
                 "idle";
@@ -571,10 +646,64 @@ describe(
                             },
                         };
 
+                        flowState.nodes = [
+                            {
+                                id:
+                                    "launch-node",
+
+                                type:
+                                    "flow",
+
+                                position: {
+                                    x: 0,
+
+                                    y: 0,
+                                },
+
+                                data: {
+                                    action:
+                                        "launchApp",
+
+                                    title:
+                                        "Launch App",
+
+                                    subtitle:
+                                        "Launch application",
+
+                                    platform:
+                                        "iOS",
+
+                                    appPackage:
+                                        "",
+
+                                    appActivity:
+                                        "",
+
+                                    bundleId:
+                                        "com.demo.ios",
+
+                                    app:
+                                        "",
+
+                                    noReset:
+                                        false,
+
+                                    debug: {
+                                        breakpoint:
+                                            false,
+                                    },
+                                },
+                            } as FlowNode,
+                        ];
+
+                        flowState.edges = [];
+
                         mocks.analyzeExecutionFailure
                             .mockReturnValue(
                                 failureAnalysis,
                             );
+
+
 
                         mocks.buildSelfHealingPlan
                             .mockReturnValue(
@@ -1264,6 +1393,288 @@ describe(
 
                         expect(
                             mocks.deleteSession,
+                        ).toHaveBeenCalledTimes(
+                            1,
+                        );
+                    },
+                );
+
+                it(
+                    "executes runtime recovery before rerunning the flow",
+                    async () => {
+                        const failureAnalysis =
+                        {
+                            context: {
+                                node: {
+                                    id:
+                                        "node-1",
+                                },
+                            },
+
+                            classification: {
+                                category:
+                                    "applicationStateError",
+                            },
+
+                            rootCause: {
+                                category:
+                                    "wrongApplicationState",
+                            },
+
+                            suggestedFix: {
+                                type:
+                                    "restoreApplicationState",
+                            },
+                        };
+
+                        const recoveryPath = [
+                            {
+                                id:
+                                    "recovery-node-1",
+
+                                type:
+                                    "default",
+
+                                position: {
+                                    x: 0,
+
+                                    y: 0,
+                                },
+
+                                data: {
+                                    action:
+                                        "tap",
+
+                                    title:
+                                        "Tap Recovery",
+
+                                    subtitle:
+                                        "Restore application state",
+
+                                    debug: {
+                                        breakpoint:
+                                            false,
+                                    },
+
+                                    locatorStrategy:
+                                        "id",
+
+                                    locator:
+                                        "recovery",
+                                },
+                            } as FlowNode,
+                        ];
+
+                        executionState.nodeResults =
+                        {
+                            "node-1": {
+                                nodeId:
+                                    "node-1",
+
+                                nodeType:
+                                    "tap",
+
+                                nodeTitle:
+                                    "Tap",
+
+                                status:
+                                    "failed",
+
+                                startedAt:
+                                    1000,
+
+                                finishedAt:
+                                    1500,
+
+                                duration:
+                                    500,
+
+                                error:
+                                    "Application is in an unexpected state.",
+                            },
+                        };
+
+                        mocks.analyzeExecutionFailure
+                            .mockReturnValue(
+                                failureAnalysis,
+                            );
+
+                        mocks.buildSelfHealingPlan
+                            .mockReturnValue(
+                                {
+                                    canAutoApply:
+                                        true,
+
+                                    strategy:
+                                        "runtimeRecovery",
+
+                                    confidence:
+                                        "high",
+
+                                    reason:
+                                        "Deterministic runtime recovery plan is available.",
+
+                                    modificationPlan:
+                                        null,
+
+                                    targetNodeId:
+                                        "node-1",
+                                },
+                            );
+
+                        buildApplicationStateRecoveryPlanMock
+                            .mockReturnValue(
+                                recoveryPath,
+                            );
+
+                        flowState.nodes = [
+                            {
+                                id:
+                                    "launch-node",
+
+                                type:
+                                    "flow",
+
+                                position: {
+                                    x: 0,
+
+                                    y: 0,
+                                },
+
+                                data: {
+                                    action:
+                                        "launchApp",
+
+                                    title:
+                                        "Launch App",
+
+                                    subtitle:
+                                        "Launch application",
+
+                                    platform:
+                                        "iOS",
+
+                                    appPackage:
+                                        "",
+
+                                    appActivity:
+                                        "",
+
+                                    bundleId:
+                                        "com.demo.ios",
+
+                                    app:
+                                        "",
+
+                                    noReset:
+                                        false,
+
+                                    debug: {
+                                        breakpoint:
+                                            false,
+                                    },
+                                },
+                            } as FlowNode,
+                        ];
+
+                        flowState.edges = [];
+
+                        
+
+                        executeNodeMock
+                            .mockResolvedValue({
+                                outputs: [
+                                    "next",
+                                ],
+                            });
+
+                        mocks.executeSelfHealing
+                            .mockImplementation(
+                                async (
+                                    plan,
+                                    options,
+                                ) => {
+                                    expect(
+                                        plan.strategy,
+                                    ).toBe(
+                                        "runtimeRecovery",
+                                    );
+
+                                    const recoveryResult =
+                                        await options.executeRecovery?.();
+
+                                    expect(
+                                        recoveryResult
+                                            ?.success,
+                                    ).toBe(
+                                        true,
+                                    );
+
+                                
+
+                                    const rerunSucceeded =
+                                        await options.rerun();
+
+                                    expect(
+                                        executeNodeMock,
+                                    ).toHaveBeenCalledTimes(
+                                        1,
+                                    );
+
+                                    expect(
+                                        executeNodeMock,
+                                    ).toHaveBeenCalledWith(
+                                        expect.objectContaining({
+                                            id:
+                                                "node-1",
+                                        }),
+                                        expect.objectContaining({
+                                            edges: [],
+                                        }),
+                                    );
+
+                                    return {
+                                        status:
+                                            rerunSucceeded
+                                                ? "applied"
+                                                : "failed",
+
+                                        attempted:
+                                            true,
+
+                                        rerunAttempted:
+                                            true,
+
+                                        rerunSucceeded,
+
+                                        healingAttempts:
+                                            1,
+
+                                        error:
+                                            rerunSucceeded
+                                                ? null
+                                                : "Rerun failed.",
+                                    };
+                                },
+                            );
+
+                        await ExecutionController.run(
+                            nodes,
+                            {
+                                edges: [],
+                            },
+                        );
+
+                        expect(
+                            executeFlowMock,
+                        ).toHaveBeenCalledTimes(
+                            1,
+                        );
+
+                       
+
+                        expect(
+                            executeFlowMock,
                         ).toHaveBeenCalledTimes(
                             1,
                         );

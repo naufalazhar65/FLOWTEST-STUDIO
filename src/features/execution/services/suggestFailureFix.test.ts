@@ -63,7 +63,11 @@ function createContext(): FailureContext {
 
         previousNodeIds: [],
 
+        previousNodes: [],
+
         nextNodeIds: [],
+
+        nextNodes: [],
     };
 }
 

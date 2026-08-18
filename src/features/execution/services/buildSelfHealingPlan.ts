@@ -31,6 +31,7 @@ export interface SelfHealingPlan {
 
     strategy:
     | "modification"
+    | "runtimeRecovery"
     | "manual"
     | "none";
 
@@ -398,6 +399,61 @@ export async function buildSelfHealingPlan(
                 `A verified replacement locator was found for "${semanticTarget}".`,
 
             modificationPlan,
+
+            targetNodeId:
+                targetNode.id,
+        };
+    }
+
+        /*
+     * --------------------------------------------------
+     * Runtime application state recovery
+     * --------------------------------------------------
+     */
+    if (
+        fix.type ===
+        "restoreApplicationState"
+    ) {
+        const targetNode =
+            analysis.context?.node;
+
+        if (!targetNode) {
+            return {
+                canAutoApply:
+                    false,
+
+                strategy:
+                    "manual",
+
+                confidence:
+                    fix.confidence,
+
+                reason:
+                    "The failed node context is unavailable for application state recovery.",
+
+                modificationPlan:
+                    null,
+
+                targetNodeId:
+                    fix.targetNodeId,
+            };
+        }
+
+        return {
+            canAutoApply:
+                true,
+
+            strategy:
+                "runtimeRecovery",
+
+            confidence:
+                fix.confidence,
+
+            reason:
+                "A deterministic runtime recovery strategy is available for the failed application state.",
+
+            modificationPlan:
+                null,
 
             targetNodeId:
                 targetNode.id,

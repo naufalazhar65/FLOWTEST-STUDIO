@@ -1,5 +1,6 @@
 import type {
     FlowNode,
+    LaunchAppNodeData,
 } from "../../flow/types/flowNode";
 
 import type {
@@ -17,6 +18,10 @@ import {
 import {
     appiumClient,
 } from "../services/appium/AppiumClient";
+
+import {
+    recoverApplicationState,
+} from "../services/appium/recoverApplicationState";
 
 import {
     applyAIModificationPlan,
@@ -37,6 +42,18 @@ import {
 import {
     useFlowStore,
 } from "../../flow/store/useFlowStore";
+
+import {
+    buildApplicationStateRecoveryPlan,
+} from "./buildApplicationStateRecoveryPlan";
+
+import {
+    executeRecoveryPath,
+} from "../engine/executeRecoveryPath";
+
+import {
+    executeNode,
+} from "../engine/executeNode";
 
 interface ExecutionControllerOptions {
     reuseExistingAppiumSession?:
@@ -105,7 +122,9 @@ export class ExecutionController {
                     options,
                 );
 
-            if (executeOptions) {
+            if (
+                executeOptions
+            ) {
                 await executeFlow(
                     nodes,
                     context,
@@ -120,7 +139,7 @@ export class ExecutionController {
 
             return;
         } catch (
-        originalError
+            originalError
         ) {
             /*
              * ------------------------------------------
@@ -141,7 +160,9 @@ export class ExecutionController {
                     error:
                         originalError instanceof Error
                             ? originalError.message
-                            : String(originalError),
+                            : String(
+                                originalError,
+                            ),
 
                     executionResults,
                 },
@@ -186,14 +207,16 @@ export class ExecutionController {
              * and propagate the original error.
              */
             if (
-                !selfHealingPlan.canAutoApply ||
-                !selfHealingPlan.modificationPlan
+                !selfHealingPlan.canAutoApply
             ) {
                 console.log(
                     "[SELF-HEALING] No automatic repair available.",
                     {
                         canAutoApply:
                             selfHealingPlan.canAutoApply,
+
+                        strategy:
+                            selfHealingPlan.strategy,
 
                         modificationPlan:
                             selfHealingPlan.modificationPlan,
@@ -224,9 +247,151 @@ export class ExecutionController {
 
             const healingResult =
                 await executeSelfHealing(
-
                     selfHealingPlan,
                     {
+                        executeRecovery:
+                            async () => {
+                                if (
+                                    selfHealingPlan.strategy !==
+                                    "runtimeRecovery"
+                                ) {
+                                    return {
+                                        success:
+                                            false,
+
+                                        error:
+                                            "Runtime recovery was requested for a non-runtime self-healing strategy.",
+                                    };
+                                }
+
+                                const failedNodeId =
+                                    failureAnalysis
+                                        .context
+                                        ?.node.id;
+
+                                if (
+                                    !failedNodeId
+                                ) {
+                                    return {
+                                        success:
+                                            false,
+
+                                        error:
+                                            "Failed node context is unavailable for application state recovery.",
+                                    };
+                                }
+
+                                const latestFlow =
+                                    useFlowStore.getState();
+
+                                const launchNode =
+                                    latestFlow.nodes.find(
+                                        (
+                                            node,
+                                        ): node is FlowNode & {
+                                            data:
+                                            LaunchAppNodeData;
+                                        } =>
+                                            node.data.action ===
+                                            "launchApp",
+                                    );
+
+                                if (
+                                    !launchNode
+                                ) {
+                                    return {
+                                        success:
+                                            false,
+
+                                        error:
+                                            "No Launch App node was available for application state recovery.",
+                                    };
+                                }
+
+                                const recoveryPath =
+                                    buildApplicationStateRecoveryPlan(
+                                        latestFlow.nodes,
+                                        latestFlow.edges,
+                                        failedNodeId,
+                                    );
+
+                                if (
+                                    recoveryPath.length === 0
+                                ) {
+                                    return {
+                                        success:
+                                            false,
+
+                                        error:
+                                            "No deterministic application state recovery path was available.",
+                                    };
+                                }
+
+                                console.log(
+                                    "[SELF-HEALING] Executing application state recovery path.",
+                                    {
+                                        failedNodeId,
+
+                                        recoveryPath:
+                                            recoveryPath.map(
+                                                (
+                                                    node,
+                                                ) => ({
+                                                    id:
+                                                        node.id,
+
+                                                    action:
+                                                        node.data.action,
+
+                                                    title:
+                                                        node.data.title,
+                                                }),
+                                            ),
+                                    },
+                                );
+
+                                try {
+                                    await recoverApplicationState(
+                                        launchNode.data,
+                                    );
+
+                                    await executeRecoveryPath(
+                                        recoveryPath,
+                                        {
+                                            ...context,
+
+                                            edges:
+                                                latestFlow.edges,
+                                        },
+                                    );
+
+                                    return {
+                                        success:
+                                            true,
+
+                                        appliedSteps:
+                                            recoveryPath.length,
+                                    };
+                                } catch (
+                                    error
+                                ) {
+                                    return {
+                                        success:
+                                            false,
+
+                                        appliedSteps:
+                                            0,
+
+                                        error:
+                                            error instanceof Error
+                                                ? error.message
+                                                : String(
+                                                    error,
+                                                ),
+                                    };
+                                }
+                            },
+
                         applyModificationPlan:
                             (
                                 modificationPlan,
@@ -238,16 +403,15 @@ export class ExecutionController {
                         rerun:
                             async () => {
                                 /*
-                                 * If the caller already owns
-                                 * an active Appium session,
-                                 * preserve that session.
+                                 * Runtime recovery has already created
+                                 * a fresh Appium session.
                                  *
-                                 * This is important for AI
-                                 * execution because the
-                                 * Launch App node is skipped
-                                 * during execution.
+                                 * Do not delete that session before
+                                 * retrying the failed node.
                                  */
                                 if (
+                                    selfHealingPlan.strategy !==
+                                    "runtimeRecovery" &&
                                     !options?.reuseExistingAppiumSession
                                 ) {
                                     await appiumClient.deleteSession();
@@ -262,13 +426,97 @@ export class ExecutionController {
                                 const latestEdges =
                                     latestFlow.edges;
 
+                                if (
+                                    selfHealingPlan.strategy ===
+                                    "runtimeRecovery"
+                                ) {
+                                    const failedNodeId =
+                                        failureAnalysis
+                                            .context
+                                            ?.node.id;
+
+                                    if (
+                                        !failedNodeId
+                                    ) {
+                                        console.error(
+                                            "[SELF-HEALING] Failed node is unavailable for runtime recovery rerun.",
+                                        );
+
+                                        return false;
+                                    }
+
+                                    const failedNode =
+                                        latestNodes.find(
+                                            (
+                                                node,
+                                            ) =>
+                                                node.id ===
+                                                failedNodeId,
+                                        );
+
+                                    if (
+                                        !failedNode
+                                    ) {
+                                        console.error(
+                                            "[SELF-HEALING] Failed node could not be found in the latest flow.",
+                                            {
+                                                failedNodeId,
+                                            },
+                                        );
+
+                                        return false;
+                                    }
+
+                                    console.log(
+                                        "[SELF-HEALING] Retrying failed node after runtime recovery.",
+                                        {
+                                            nodeId:
+                                                failedNode.id,
+
+                                            action:
+                                                failedNode.data.action,
+
+                                            title:
+                                                failedNode.data.title,
+
+                                            locator:
+                                                "locator" in
+                                                    failedNode.data
+                                                    ? failedNode.data.locator
+                                                    : undefined,
+                                        },
+                                    );
+
+                                    try {
+                                        await executeNode(
+                                            failedNode,
+                                            {
+                                                ...context,
+
+                                                edges:
+                                                    latestEdges,
+                                            },
+                                        );
+
+                                        useExecutionStore
+                                            .getState()
+                                            .finalizeRecoveredExecution();
+
+                                        return true;
+                                    } catch {
+                                        return false;
+                                    }
+                                }
+
                                 try {
                                     const executeOptions =
                                         buildExecuteFlowOptions(
                                             options,
                                         );
 
-                                    if (executeOptions) {
+                                    if (
+                                        executeOptions
+                                    ) {
                                         await executeFlow(
                                             latestNodes,
                                             {
@@ -303,10 +551,12 @@ export class ExecutionController {
                 "[SELF-HEALING] Healing result:",
                 healingResult,
             );
+
             console.log(
                 "[SELF-HEALING] Rerun status:",
                 healingResult.status,
             );
+
             /*
              * The repair and rerun succeeded.
              */

@@ -8,6 +8,10 @@ import type {
     NodeExecutionResult,
 } from "../types/NodeExecutionResult";
 
+import {
+    findPathToNode,
+} from "../graph/findPathToNode";
+
 export interface FailureContextNode {
     id: string;
 
@@ -18,12 +22,12 @@ export interface FailureContextNode {
     subtitle: string;
 
     locatorStrategy:
-        | string
-        | null;
+    | string
+    | null;
 
     locator:
-        | string
-        | null;
+    | string
+    | null;
 }
 
 export interface FailureContext {
@@ -33,7 +37,13 @@ export interface FailureContext {
 
     previousNodeIds: string[];
 
+    previousNodes: FailureContextNode[];
+
     nextNodeIds: string[];
+
+    nextNodes: FailureContextNode[];
+
+    executionPathNodes?: FailureContextNode[];
 }
 
 function buildOutgoingMap(
@@ -112,6 +122,37 @@ function buildIncomingMap(
     return incoming;
 }
 
+function toFailureContextNode(
+    node: FlowNode,
+): FailureContextNode {
+    return {
+        id:
+            node.id,
+
+        action:
+            node.data.action,
+
+        title:
+            node.data.title,
+
+        subtitle:
+            node.data.subtitle,
+
+        locatorStrategy:
+            "locatorStrategy" in
+                node.data
+                ? node.data
+                    .locatorStrategy
+                : null,
+
+        locator:
+            "locator" in
+                node.data
+                ? node.data.locator
+                : null,
+    };
+}
+
 export function buildFailureContext(
     result: NodeExecutionResult,
     nodes: FlowNode[],
@@ -120,7 +161,7 @@ export function buildFailureContext(
     if (
         !result ||
         result.status !==
-            "failed"
+        "failed"
     ) {
         return null;
     }
@@ -148,33 +189,28 @@ export function buildFailureContext(
             edges,
         );
 
+    const executionPath =
+        findPathToNode(
+            nodes,
+            edges,
+            node.id,
+        );
+
+    const executionPathNodes =
+        executionPath
+            .slice(
+                0,
+                -1,
+            )
+            .map(
+                toFailureContextNode,
+            );
+
     return {
-        node: {
-            id:
-                node.id,
-
-            action:
-                node.data.action,
-
-            title:
-                node.data.title,
-
-            subtitle:
-                node.data.subtitle,
-
-            locatorStrategy:
-                "locatorStrategy" in
-                    node.data
-                    ? node.data
-                        .locatorStrategy
-                    : null,
-
-            locator:
-                "locator" in
-                    node.data
-                    ? node.data.locator
-                    : null,
-        },
+        node:
+            toFailureContextNode(
+                node,
+            ),
 
         execution:
             result,
@@ -184,9 +220,69 @@ export function buildFailureContext(
                 node.id,
             ) ?? [],
 
+        previousNodes:
+            (
+                incoming.get(
+                    node.id,
+                ) ?? []
+            )
+                .map(
+                    (
+                        nodeId,
+                    ) =>
+                        nodes.find(
+                            (
+                                candidate,
+                            ) =>
+                                candidate.id ===
+                                nodeId,
+                        ),
+                )
+                .filter(
+                    (
+                        candidate,
+                    ): candidate is FlowNode =>
+                        candidate !==
+                        undefined,
+                )
+                .map(
+                    toFailureContextNode,
+                ),
+
         nextNodeIds:
             outgoing.get(
                 node.id,
             ) ?? [],
+
+        nextNodes:
+            (
+                outgoing.get(
+                    node.id,
+                ) ?? []
+            )
+                .map(
+                    (
+                        nodeId,
+                    ) =>
+                        nodes.find(
+                            (
+                                candidate,
+                            ) =>
+                                candidate.id ===
+                                nodeId,
+                        ),
+                )
+                .filter(
+                    (
+                        candidate,
+                    ): candidate is FlowNode =>
+                        candidate !==
+                        undefined,
+                )
+                .map(
+                    toFailureContextNode,
+                ),
+
+        executionPathNodes,
     };
 }

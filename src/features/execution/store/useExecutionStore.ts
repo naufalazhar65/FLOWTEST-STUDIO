@@ -125,6 +125,8 @@ interface ExecutionStore {
 
     finishExecution(): void;
 
+    finalizeRecoveredExecution(): void;
+
     pauseExecution(): void;
 
     resumeExecution(): void;
@@ -368,6 +370,63 @@ export const useExecutionStore =
                         started,
 
                     progress: 100,
+
+                    currentNodeId:
+                        null,
+                });
+            },
+
+            finalizeRecoveredExecution() {
+                const state =
+                    get();
+
+                const results =
+                    Object.values(
+                        state.nodeResults,
+                    );
+
+                const passedNodes =
+                    results.filter(
+                        (result) =>
+                            result.status ===
+                            "passed",
+                    ).length;
+
+                const failedNodes =
+                    results.filter(
+                        (result) =>
+                            result.status ===
+                            "failed",
+                    ).length;
+
+                const executedNodes =
+                    results.length;
+
+                const finished =
+                    performance.now();
+
+                const started =
+                    state.startedAt ??
+                    finished;
+
+                set({
+                    status:
+                        "passed",
+
+                    executedNodes,
+
+                    passedNodes,
+
+                    failedNodes,
+
+                    progress: 100,
+
+                    finishedAt:
+                        finished,
+
+                    duration:
+                        finished -
+                        started,
 
                     currentNodeId:
                         null,

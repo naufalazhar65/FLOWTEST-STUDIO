@@ -22,12 +22,12 @@ interface CreateAnalysisOptions {
     action?: string;
 
     locatorStrategy:
-        | string
-        | null;
+    | string
+    | null;
 
     locator:
-        | string
-        | null;
+    | string
+    | null;
 }
 
 function createAnalysis(
@@ -55,13 +55,13 @@ function createAnalysis(
 
                 locatorStrategy:
                     options?.locatorStrategy ===
-                    undefined
+                        undefined
                         ? "accessibilityId"
                         : options.locatorStrategy,
 
                 locator:
                     options?.locator ===
-                    undefined
+                        undefined
                         ? "Login"
                         : options.locator,
             },
@@ -92,11 +92,13 @@ function createAnalysis(
                     "Operation timed out",
             },
 
-            previousNodeIds:
-                [],
+            previousNodeIds: [],
 
-            nextNodeIds:
-                [],
+            previousNodes: [],
+
+            nextNodeIds: [],
+
+            nextNodes: [],
         },
 
         classification: {
@@ -136,9 +138,9 @@ function createAnalysis(
         suggestedFix: {
             type:
                 fixType as
-                    | "addWait"
-                    | "reviewLocator"
-                    | "none",
+                | "addWait"
+                | "reviewLocator"
+                | "none",
 
             title:
                 "Add synchronization",

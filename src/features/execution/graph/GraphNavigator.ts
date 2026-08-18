@@ -6,6 +6,7 @@ import { findOutgoingEdges } from "./findOutgoingEdges";
 import { findNextNode } from "./findNextNode";
 import { findStartNode } from "./findStartNode";
 import type { GraphTransition } from "../types/GraphTransition";
+import { findPathToNode } from "./findPathToNode";
 
 export class GraphNavigator {
     private readonly nodes: FlowNode[];
@@ -17,6 +18,16 @@ export class GraphNavigator {
     ) {
         this.nodes = nodes;
         this.edges = edges;
+    }
+
+    getPathToNode(
+        targetNodeId: string,
+    ): FlowNode[] {
+        return findPathToNode(
+            this.nodes,
+            this.edges,
+            targetNodeId,
+        );
     }
 
     getStartNode(): FlowNode | null {

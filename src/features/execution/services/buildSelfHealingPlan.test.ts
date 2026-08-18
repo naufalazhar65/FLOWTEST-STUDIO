@@ -17,6 +17,7 @@ function createAnalysis(
         fixType?:
         | "addWait"
         | "reviewLocator"
+        | "restoreApplicationState"
         | "none";
 
         autoApplicable?:
@@ -98,11 +99,13 @@ function createAnalysis(
                     "Operation timed out",
             },
 
-            previousNodeIds:
-                [],
+            previousNodeIds: [],
 
-            nextNodeIds:
-                [],
+            previousNodes: [],
+
+            nextNodeIds: [],
+
+            nextNodes: [],
         },
 
         classification: {
@@ -362,6 +365,67 @@ describe(
                 expect(
                     result.targetNodeId,
                 ).toBeNull();
+            },
+        );
+
+        it(
+            "creates a runtime recovery plan for application state failures",
+            async () => {
+                const analysis =
+                    createAnalysis({
+                        fixType:
+                            "restoreApplicationState",
+
+                        autoApplicable:
+                            true,
+                    });
+
+                analysis.rootCause = {
+                    category:
+                        "wrongApplicationState",
+
+                    title:
+                        "Application is in an unexpected state",
+
+                    explanation:
+                        "The application is not in the expected state.",
+
+                    confidence:
+                        "high",
+
+                    evidence: [
+                        "Unexpected application state.",
+                    ],
+
+                    likelyCauses: [
+                        "Previous navigation step did not produce the expected state.",
+                    ],
+                };
+
+                const result =
+                    await buildSelfHealingPlan(
+                        analysis,
+                    );
+
+                expect(
+                    result.canAutoApply,
+                ).toBe(true);
+
+                expect(
+                    result.strategy,
+                ).toBe(
+                    "runtimeRecovery",
+                );
+
+                expect(
+                    result.modificationPlan,
+                ).toBeNull();
+
+                expect(
+                    result.targetNodeId,
+                ).toBe(
+                    "node-1",
+                );
             },
         );
     },

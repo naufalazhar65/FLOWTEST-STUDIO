@@ -228,6 +228,34 @@ describe(
                 ]);
 
                 expect(
+                    result?.previousNodes.map(
+                        (node) => node.id,
+                    ),
+                ).toEqual([
+                    "input-username",
+                ]);
+
+                expect(
+                    result?.previousNodes[0]?.action,
+                ).toBe(
+                    "input",
+                );
+
+                expect(
+                    result?.previousNodes[0]?.title,
+                ).toBe(
+                    "Input Username",
+                );
+
+                expect(
+                    result?.nextNodes.map(
+                        (node) => node.id,
+                    ),
+                ).toEqual([
+                    "assert-login",
+                ]);
+
+                expect(
                     result?.nextNodeIds,
                 ).toEqual([
                     "assert-login",
@@ -311,5 +339,239 @@ describe(
                 ).toBeNull();
             },
         );
+
+        it(
+    "builds the full execution path before the failed node",
+    () => {
+        const result =
+            buildFailureContext(
+                {
+                    nodeId:
+                        "failed-node",
+
+                    nodeType:
+                        "tap",
+
+                    nodeTitle:
+                        "Tap Failed",
+
+                    status:
+                        "failed",
+
+                    startedAt:
+                        1000,
+
+                    finishedAt:
+                        1500,
+
+                    duration:
+                        500,
+
+                    error:
+                        "Element not found",
+                },
+
+                [
+                    {
+                        id:
+                            "launch",
+
+                        type:
+                            "flow",
+
+                        position: {
+                            x: 0,
+                            y: 0,
+                        },
+
+                        data: {
+                            action:
+                                "launchApp",
+
+                            title:
+                                "Launch App",
+
+                            subtitle:
+                                "Launch application",
+
+                            platform:
+                                "iOS",
+
+                            appPackage:
+                                "",
+
+                            appActivity:
+                                "",
+
+                            bundleId:
+                                "com.example.app",
+
+                            app:
+                                "",
+
+                            noReset:
+                                false,
+
+                            debug: {
+                                breakpoint:
+                                    false,
+                            },
+                        },
+                    },
+
+                    {
+                        id:
+                            "menu",
+
+                        type:
+                            "flow",
+
+                        position: {
+                            x: 0,
+                            y: 100,
+                        },
+
+                        data: {
+                            action:
+                                "tap",
+
+                            title:
+                                "Tap Menu",
+
+                            subtitle:
+                                "Open menu",
+
+                            locatorStrategy:
+                                "accessibilityId",
+
+                            locator:
+                                "Menu Icons",
+
+                            debug: {
+                                breakpoint:
+                                    false,
+                            },
+                        },
+                    },
+
+                    {
+                        id:
+                            "reset",
+
+                        type:
+                            "flow",
+
+                        position: {
+                            x: 0,
+                            y: 200,
+                        },
+
+                        data: {
+                            action:
+                                "tap",
+
+                            title:
+                                "Reset App",
+
+                            subtitle:
+                                "Reset application",
+
+                            locatorStrategy:
+                                "accessibilityId",
+
+                            locator:
+                                "Reset App State",
+
+                            debug: {
+                                breakpoint:
+                                    false,
+                            },
+                        },
+                    },
+
+                    {
+                        id:
+                            "failed-node",
+
+                        type:
+                            "flow",
+
+                        position: {
+                            x: 0,
+                            y: 300,
+                        },
+
+                        data: {
+                            action:
+                                "tap",
+
+                            title:
+                                "Tap Failed",
+
+                            subtitle:
+                                "Tap target",
+
+                            locatorStrategy:
+                                "accessibilityId",
+
+                            locator:
+                                "ProductItem",
+
+                            debug: {
+                                breakpoint:
+                                    false,
+                            },
+                        },
+                    },
+                ],
+
+                [
+                    {
+                        id:
+                            "edge-1",
+
+                        source:
+                            "launch",
+
+                        target:
+                            "menu",
+                    },
+
+                    {
+                        id:
+                            "edge-2",
+
+                        source:
+                            "menu",
+
+                        target:
+                            "reset",
+                    },
+
+                    {
+                        id:
+                            "edge-3",
+
+                        source:
+                            "reset",
+
+                        target:
+                            "failed-node",
+                    },
+                ],
+            );
+
+        expect(
+            result?.executionPathNodes?.map(
+                (node) =>
+                    node.id,
+            ),
+        ).toEqual([
+            "launch",
+            "menu",
+            "reset",
+        ]);
+    },
+);
     },
 );

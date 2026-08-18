@@ -63,11 +63,13 @@ function createContext(
             error,
         },
 
-        previousNodeIds:
-            [],
+        previousNodeIds: [],
 
-        nextNodeIds:
-            [],
+        previousNodes: [],
+
+        nextNodeIds: [],
+
+        nextNodes: [],
     };
 }
 
@@ -84,17 +86,17 @@ describe(
 
                 const classification:
                     FailureClassification =
-                    {
-                        category:
-                            "elementNotFound",
+                {
+                    category:
+                        "elementNotFound",
 
-                        confidence:
-                            "high",
+                    confidence:
+                        "high",
 
-                        evidence: [
-                            "Element not found",
-                        ],
-                    };
+                    evidence: [
+                        "Element not found",
+                    ],
+                };
 
                 const result =
                     analyzeFailureRootCause(
@@ -126,17 +128,17 @@ describe(
 
                 const classification:
                     FailureClassification =
-                    {
-                        category:
-                            "invalidLocator",
+                {
+                    category:
+                        "invalidLocator",
 
-                        confidence:
-                            "high",
+                    confidence:
+                        "high",
 
-                        evidence: [
-                            "Invalid selector",
-                        ],
-                    };
+                    evidence: [
+                        "Invalid selector",
+                    ],
+                };
 
                 const result =
                     analyzeFailureRootCause(
@@ -162,17 +164,17 @@ describe(
 
                 const classification:
                     FailureClassification =
-                    {
-                        category:
-                            "timeout",
+                {
+                    category:
+                        "timeout",
 
-                        confidence:
-                            "high",
+                    confidence:
+                        "high",
 
-                        evidence: [
-                            "Operation timed out",
-                        ],
-                    };
+                    evidence: [
+                        "Operation timed out",
+                    ],
+                };
 
                 const result =
                     analyzeFailureRootCause(
@@ -199,17 +201,17 @@ describe(
 
                 const classification:
                     FailureClassification =
-                    {
-                        category:
-                            "assertionFailure",
+                {
+                    category:
+                        "assertionFailure",
 
-                        confidence:
-                            "high",
+                    confidence:
+                        "high",
 
-                        evidence: [
-                            "expected Product but received empty",
-                        ],
-                    };
+                    evidence: [
+                        "expected Product but received empty",
+                    ],
+                };
 
                 const result =
                     analyzeFailureRootCause(
@@ -235,17 +237,17 @@ describe(
 
                 const classification:
                     FailureClassification =
-                    {
-                        category:
-                            "sessionError",
+                {
+                    category:
+                        "sessionError",
 
-                        confidence:
-                            "high",
+                    confidence:
+                        "high",
 
-                        evidence: [
-                            "Invalid session id",
-                        ],
-                    };
+                    evidence: [
+                        "Invalid session id",
+                    ],
+                };
 
                 const result =
                     analyzeFailureRootCause(
@@ -271,17 +273,17 @@ describe(
 
                 const classification:
                     FailureClassification =
-                    {
-                        category:
-                            "applicationStateError",
+                {
+                    category:
+                        "applicationStateError",
 
-                        confidence:
-                            "medium",
+                    confidence:
+                        "medium",
 
-                        evidence: [
-                            "Unexpected screen",
-                        ],
-                    };
+                    evidence: [
+                        "Unexpected screen",
+                    ],
+                };
 
                 const result =
                     analyzeFailureRootCause(
@@ -307,17 +309,17 @@ describe(
 
                 const classification:
                     FailureClassification =
-                    {
-                        category:
-                            "unknown",
+                {
+                    category:
+                        "unknown",
 
-                        confidence:
-                            "low",
+                    confidence:
+                        "low",
 
-                        evidence: [
-                            "Something strange happened",
-                        ],
-                    };
+                    evidence: [
+                        "Something strange happened",
+                    ],
+                };
 
                 const result =
                     analyzeFailureRootCause(
@@ -335,6 +337,77 @@ describe(
                     result.confidence,
                 ).toBe(
                     "low",
+                );
+            },
+        );
+
+        it(
+            "detects wrong application state when runtime UI evidence indicates a state mismatch",
+            () => {
+                const context =
+                    createContext(
+                        "Element not found",
+                    );
+
+                context.execution.pageSource =
+                    "<XCUIElementTypeApplication><XCUIElementTypeStaticText name='Home' /></XCUIElementTypeApplication>";
+
+                context.previousNodeIds = [
+                    "back",
+                ];
+
+                context.previousNodes = [
+                    {
+                        id:
+                            "back",
+
+                        action:
+                            "back",
+
+                        title:
+                            "Back",
+
+                        subtitle:
+                            "Go back",
+
+                        locatorStrategy:
+                            null,
+
+                        locator:
+                            null,
+                    },
+                ];
+
+                const classification:
+                    FailureClassification =
+                {
+                    category:
+                        "elementNotFound",
+
+                    confidence:
+                        "high",
+
+                    evidence: [
+                        "Element not found",
+                    ],
+                };
+
+                const result =
+                    analyzeFailureRootCause(
+                        context,
+                        classification,
+                    );
+
+                expect(
+                    result.category,
+                ).toBe(
+                    "wrongApplicationState",
+                );
+
+                expect(
+                    result.confidence,
+                ).toBe(
+                    "high",
                 );
             },
         );
