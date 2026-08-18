@@ -15,20 +15,20 @@ import type {
 function createAnalysis(
     options?: {
         fixType?:
-            | "addWait"
-            | "reviewLocator"
-            | "none";
+        | "addWait"
+        | "reviewLocator"
+        | "none";
 
         autoApplicable?:
-            boolean;
+        boolean;
 
         action?: string;
 
         locatorStrategy?:
-            string | null;
+        string | null;
 
         locator?:
-            string | null;
+        string | null;
     },
 ): ExecutionFailureAnalysis {
     const fixType =
@@ -60,13 +60,13 @@ function createAnalysis(
 
                 locatorStrategy:
                     options?.locatorStrategy ===
-                    undefined
+                        undefined
                         ? "accessibilityId"
                         : options.locatorStrategy,
 
                 locator:
                     options?.locator ===
-                    undefined
+                        undefined
                         ? "Login"
                         : options.locator,
             },
@@ -145,7 +145,7 @@ function createAnalysis(
 
             title:
                 fixType ===
-                "addWait"
+                    "addWait"
                     ? "Add synchronization"
                     : fixType ===
                         "reviewLocator"
@@ -154,7 +154,7 @@ function createAnalysis(
 
             description:
                 fixType ===
-                "addWait"
+                    "addWait"
                     ? "Add wait."
                     : fixType ===
                         "reviewLocator"
@@ -163,7 +163,7 @@ function createAnalysis(
 
             targetNodeId:
                 fixType ===
-                "none"
+                    "none"
                     ? null
                     : "node-1",
 
@@ -183,9 +183,9 @@ describe(
     () => {
         it(
             "creates an auto-applicable modification plan when a deterministic repair exists",
-            () => {
+            async () => {
                 const result =
-                    buildSelfHealingPlan(
+                    await buildSelfHealingPlan(
                         createAnalysis({
                             fixType:
                                 "addWait",
@@ -213,8 +213,8 @@ describe(
 
                 expect(
                     result.modificationPlan &&
-                        "operation" in
-                            result.modificationPlan,
+                    "operation" in
+                    result.modificationPlan,
                 ).toBe(
                     true,
                 );
@@ -229,9 +229,9 @@ describe(
 
         it(
             "requires manual review when the fix is not auto applicable",
-            () => {
+            async () => {
                 const result =
-                    buildSelfHealingPlan(
+                    await buildSelfHealingPlan(
                         createAnalysis({
                             fixType:
                                 "addWait",
@@ -261,9 +261,9 @@ describe(
 
         it(
             "requires manual review when no deterministic plan can be built",
-            () => {
+            async () => {
                 const result =
-                    buildSelfHealingPlan(
+                    await buildSelfHealingPlan(
                         createAnalysis({
                             fixType:
                                 "addWait",
@@ -299,9 +299,9 @@ describe(
 
         it(
             "returns manual review for fixes that are not currently supported for automatic healing",
-            () => {
+            async () => {
                 const result =
-                    buildSelfHealingPlan(
+                    await buildSelfHealingPlan(
                         createAnalysis({
                             fixType:
                                 "reviewLocator",
@@ -331,9 +331,9 @@ describe(
 
         it(
             "returns none when no fix exists",
-            () => {
+            async () => {
                 const result =
-                    buildSelfHealingPlan(
+                    await buildSelfHealingPlan(
                         createAnalysis({
                             fixType:
                                 "none",

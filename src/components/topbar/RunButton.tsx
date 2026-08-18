@@ -32,18 +32,67 @@ export function RunButton() {
                 state.appiumConnection,
         );
 
-    const handleRun = useCallback(async () => {
-        try {
-            await ExecutionController.run(
-                nodes,
+    const handleRun =
+    useCallback(
+        async () => {
+            console.log(
+                "[RUN BUTTON] Starting flow execution.",
                 {
-                    edges,
+                    nodeCount:
+                        nodes.length,
+
+                    edgeCount:
+                        edges.length,
+
+                    nodes:
+                        nodes.map(
+                            (
+                                node,
+                            ) => ({
+                                id:
+                                    node.id,
+
+                                action:
+                                    node.data.action,
+
+                                title:
+                                    node.data.title,
+
+                                locator:
+                                    "locator" in
+                                    node.data
+                                        ? node
+                                            .data
+                                            .locator
+                                        : undefined,
+                            }),
+                        ),
                 },
             );
-        } catch (error) {
-            console.error(error);
-        }
-    }, [nodes, edges]);
+
+            try {
+                await ExecutionController.run(
+                    nodes,
+                    {
+                        edges,
+                    },
+                );
+
+                console.log(
+                    "[RUN BUTTON] Flow execution completed successfully.",
+                );
+            } catch (error) {
+                console.error(
+                    "[RUN BUTTON] Flow execution failed:",
+                    error,
+                );
+            }
+        },
+        [
+            nodes,
+            edges,
+        ],
+    );
 
     if (status === "idle") {
         return (

@@ -141,7 +141,7 @@ describe(
                 expect(
                     result.type,
                 ).toBe(
-                    "reviewLocator",
+                    "repairLocator",
                 );
 
                 expect(

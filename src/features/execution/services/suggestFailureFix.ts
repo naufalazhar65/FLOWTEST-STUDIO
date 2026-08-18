@@ -8,6 +8,7 @@ import type {
 
 export type FailureFixType =
     | "reviewLocator"
+    | "repairLocator"
     | "addWait"
     | "reviewAssertion"
     | "restoreApplicationState"
@@ -16,19 +17,19 @@ export type FailureFixType =
 
 export interface FailureFixSuggestion {
     type:
-        FailureFixType;
+    FailureFixType;
 
     title: string;
 
     description: string;
 
     targetNodeId:
-        string | null;
+    string | null;
 
     confidence:
-        | "high"
-        | "medium"
-        | "low";
+    | "high"
+    | "medium"
+    | "low";
 
     reason: string;
 
@@ -40,7 +41,7 @@ export function suggestFailureFix(
     rootCause: FailureRootCause,
 ): FailureFixSuggestion {
     switch (
-        rootCause.category
+    rootCause.category
     ) {
         case "staleLocator":
             return {
@@ -69,13 +70,13 @@ export function suggestFailureFix(
         case "invalidLocator":
             return {
                 type:
-                    "reviewLocator",
+                    "repairLocator",
 
                 title:
-                    "Replace invalid locator",
+                    "Repair invalid locator",
 
                 description:
-                    "Replace the current locator with a valid locator strategy and value.",
+                    "Resolve and replace the failed locator with a verified locator from the active application UI.",
 
                 targetNodeId:
                     context.node.id,
@@ -84,35 +85,35 @@ export function suggestFailureFix(
                     "high",
 
                 reason:
-                    "The automation driver rejected the configured locator.",
+                    "The automation driver could not locate the target using the configured locator.",
 
                 autoApplicable:
                     true,
             };
 
         case "elementNotReady":
-    return {
-        type:
-            "addWait",
+            return {
+                type:
+                    "addWait",
 
-        title:
-            "Add synchronization",
+                title:
+                    "Add synchronization",
 
-        description:
-            "Add an appropriate wait or synchronization step before the failed interaction.",
+                description:
+                    "Add an appropriate wait or synchronization step before the failed interaction.",
 
-        targetNodeId:
-            context.node.id,
+                targetNodeId:
+                    context.node.id,
 
-        confidence:
-            rootCause.confidence,
+                confidence:
+                    rootCause.confidence,
 
-        reason:
-            "The target element or operation was not ready within the available execution window.",
+                reason:
+                    "The target element or operation was not ready within the available execution window.",
 
-        autoApplicable:
-            true,
-    };
+                autoApplicable:
+                    true,
+            };
 
         case "assertionMismatch":
             return {

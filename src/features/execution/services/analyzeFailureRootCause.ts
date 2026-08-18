@@ -17,16 +17,16 @@ export type RootCauseCategory =
 
 export interface FailureRootCause {
     category:
-        RootCauseCategory;
+    RootCauseCategory;
 
     title: string;
 
     explanation: string;
 
     confidence:
-        | "high"
-        | "medium"
-        | "low";
+    | "high"
+    | "medium"
+    | "low";
 
     evidence: string[];
 
@@ -38,7 +38,7 @@ export function analyzeFailureRootCause(
     classification: FailureClassification,
 ): FailureRootCause {
     switch (
-        classification.category
+    classification.category
     ) {
         case "elementNotFound":
             if (
@@ -46,7 +46,7 @@ export function analyzeFailureRootCause(
             ) {
                 return {
                     category:
-                        "staleLocator",
+                        "invalidLocator",
 
                     title:
                         "Target element could not be located",
@@ -60,15 +60,13 @@ export function analyzeFailureRootCause(
                     evidence: [
                         ...classification.evidence,
 
-                        `Locator strategy: ${
-                            context.node
-                                .locatorStrategy ??
-                            "unknown"
+                        `Locator strategy: ${context.node
+                            .locatorStrategy ??
+                        "unknown"
                         }`,
 
-                        `Locator: ${
-                            context.node
-                                .locator
+                        `Locator: ${context.node
+                            .locator
                         }`,
                     ],
 
@@ -121,16 +119,14 @@ export function analyzeFailureRootCause(
                 evidence: [
                     ...classification.evidence,
 
-                    `Locator strategy: ${
-                        context.node
-                            .locatorStrategy ??
-                        "unknown"
+                    `Locator strategy: ${context.node
+                        .locatorStrategy ??
+                    "unknown"
                     }`,
 
-                    `Locator: ${
-                        context.node
-                            .locator ??
-                        "empty"
+                    `Locator: ${context.node
+                        .locator ??
+                    "empty"
                     }`,
                 ],
 

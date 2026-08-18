@@ -135,12 +135,29 @@ export class ExecutionController {
                     executionState.nodeResults,
                 );
 
+            console.log(
+                "[SELF-HEALING] Execution failed. Starting failure analysis.",
+                {
+                    error:
+                        originalError instanceof Error
+                            ? originalError.message
+                            : String(originalError),
+
+                    executionResults,
+                },
+            );
+
             const failureAnalysis =
                 analyzeExecutionFailure(
                     executionResults,
                     nodes,
                     context.edges,
                 );
+
+            console.log(
+                "[SELF-HEALING] Failure analysis result:",
+                failureAnalysis,
+            );
 
             /*
              * If there is not enough evidence to
@@ -159,7 +176,7 @@ export class ExecutionController {
              * ------------------------------------------
              */
             const selfHealingPlan =
-                buildSelfHealingPlan(
+                await buildSelfHealingPlan(
                     failureAnalysis,
                 );
 
@@ -172,6 +189,20 @@ export class ExecutionController {
                 !selfHealingPlan.canAutoApply ||
                 !selfHealingPlan.modificationPlan
             ) {
+                console.log(
+                    "[SELF-HEALING] No automatic repair available.",
+                    {
+                        canAutoApply:
+                            selfHealingPlan.canAutoApply,
+
+                        modificationPlan:
+                            selfHealingPlan.modificationPlan,
+
+                        reason:
+                            selfHealingPlan.reason,
+                    },
+                );
+
                 throw originalError;
             }
 
@@ -183,8 +214,17 @@ export class ExecutionController {
              * executeSelfHealing() owns the one-attempt
              * safety guard.
              */
+            console.log(
+                "[SELF-HEALING] Applying repair and rerunning flow...",
+                {
+                    modificationPlan:
+                        selfHealingPlan.modificationPlan,
+                },
+            );
+
             const healingResult =
                 await executeSelfHealing(
+
                     selfHealingPlan,
                     {
                         applyModificationPlan:
@@ -259,6 +299,14 @@ export class ExecutionController {
                     },
                 );
 
+            console.log(
+                "[SELF-HEALING] Healing result:",
+                healingResult,
+            );
+            console.log(
+                "[SELF-HEALING] Rerun status:",
+                healingResult.status,
+            );
             /*
              * The repair and rerun succeeded.
              */

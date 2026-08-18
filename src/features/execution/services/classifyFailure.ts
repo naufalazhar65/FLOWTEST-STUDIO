@@ -54,6 +54,7 @@ const FAILURE_RULES: FailureRule[] = [
             /unable\s+to\s+find\s+element/i,
             /could\s+not\s+find\s+element/i,
             /element\s+was\s+not\s+found/i,
+            /could\s+not\s+be\s+located\s+on\s+the\s+page/i,
         ],
 
         evidence:

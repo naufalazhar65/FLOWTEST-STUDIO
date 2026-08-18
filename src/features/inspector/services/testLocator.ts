@@ -34,6 +34,7 @@ function toExecutionStrategy(
 
         case "iosClassChain":
             return "iOSClassChain";
+            
 
         default:
             throw new Error(
