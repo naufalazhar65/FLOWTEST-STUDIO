@@ -100,6 +100,56 @@ describe(
         );
 
         it(
+            "returns notFound when the target is empty",
+            async () => {
+                const result =
+                    await resolveAILocatorFromApp(
+                        "   ",
+                    );
+
+                expect(
+                    result.status,
+                ).toBe(
+                    "notFound",
+                );
+
+                expect(
+                    result.target,
+                ).toBe(
+                    "   ",
+                );
+
+                expect(
+                    result.selected,
+                ).toBeNull();
+
+                expect(
+                    result.candidates,
+                ).toEqual(
+                    [],
+                );
+
+                expect(
+                    result.matchedElementId,
+                ).toBeNull();
+
+                expect(
+                    result.error,
+                ).toBe(
+                    "Locator target is required.",
+                );
+
+                expect(
+                    mocks.getPageSource,
+                ).not.toHaveBeenCalled();
+
+                expect(
+                    mocks.testLocator,
+                ).not.toHaveBeenCalled();
+            },
+        );
+
+        it(
             "resolves a semantic target against the active app",
             async () => {
                 const result =

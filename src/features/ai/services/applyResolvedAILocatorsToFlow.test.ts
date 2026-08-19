@@ -111,13 +111,13 @@ const flowState =
             nodes:
                 [] as Array<{
                     id:
-                        string;
+                    string;
 
                     data:
-                        Record<
-                            string,
-                            unknown
-                        >;
+                    Record<
+                        string,
+                        unknown
+                    >;
                 }>,
         }),
     );
@@ -221,17 +221,17 @@ describe(
                             let resolved:
                                 | {
                                     strategy:
-                                        | "id"
-                                        | "xpath"
-                                        | "accessibilityId";
+                                    | "id"
+                                    | "xpath"
+                                    | "accessibilityId";
 
                                     value:
-                                        string;
+                                    string;
                                 }
                                 | undefined;
 
                             switch (
-                                target
+                            target
                             ) {
                                 case "username":
                                     resolved = {
@@ -383,6 +383,100 @@ describe(
 
                         locator:
                             "com.demo:id/login_button",
+                    },
+                );
+            },
+        );
+
+        it(
+            "resolves only the supplied node ids",
+            async () => {
+                mocks.resolveAILocatorFromApp
+                    .mockImplementation(
+                        async (
+                            target: string,
+                        ) => ({
+                            status:
+                                "resolved",
+
+                            target,
+
+                            selected: {
+                                strategy:
+                                    "id",
+
+                                value:
+                                    `com.demo:id/${target}`,
+
+                                score:
+                                    100,
+
+                                recommended:
+                                    true,
+                            },
+
+                            candidates:
+                                [],
+
+                            matchedElementId:
+                                `${target}-element`,
+                        }),
+                    );
+
+                const result =
+                    await applyResolvedAILocatorsToFlow(
+                        new Set([
+                            "node-login",
+                        ]),
+                    );
+
+                expect(
+                    result.success,
+                ).toBe(
+                    true,
+                );
+
+                expect(
+                    result.resolved,
+                ).toBe(
+                    1,
+                );
+
+                expect(
+                    result.unresolved,
+                ).toBe(
+                    0,
+                );
+
+                expect(
+                    mocks.resolveAILocatorFromApp,
+                ).toHaveBeenCalledTimes(
+                    1,
+                );
+
+                expect(
+                    mocks.resolveAILocatorFromApp,
+                ).toHaveBeenCalledWith(
+                    "login",
+                    "tap",
+                );
+
+                expect(
+                    mocks.updateNodeData,
+                ).toHaveBeenCalledTimes(
+                    1,
+                );
+
+                expect(
+                    mocks.updateNodeData,
+                ).toHaveBeenCalledWith(
+                    "node-login",
+                    {
+                        locatorStrategy:
+                            "id",
+
+                        locator:
+                            "com.demo:id/login",
                     },
                 );
             },
