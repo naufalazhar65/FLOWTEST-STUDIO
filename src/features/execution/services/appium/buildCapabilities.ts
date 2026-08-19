@@ -76,10 +76,5 @@ export function buildCapabilities(
     }
   }
 
-  console.log(
-    "Capabilities:",
-    capabilities,
-  );
-
   return capabilities;
 }

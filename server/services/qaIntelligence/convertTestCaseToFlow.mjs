@@ -1278,23 +1278,7 @@ export async function convertTestCaseToFlow(
         );
 
 
-        console.log(
-    "[AI Test Case Flow] Context nodes received:",
-    JSON.stringify(
-        input.context?.nodes,
-        null,
-        2,
-    ),
-);
 
-console.log(
-    "[AI Test Case Flow] Context edges received:",
-    JSON.stringify(
-        input.context?.edges,
-        null,
-        2,
-    ),
-);
 
     const expectedStepCount =
         input.testCase.steps.length;
@@ -1430,19 +1414,7 @@ console.log(
         );
     }
 
-    console.log(
-        "[AI Test Case Flow] Expected step count:",
-        expectedStepCount,
-    );
 
-    console.log(
-        "[AI Test Case Flow] Parsed Ollama response:",
-        JSON.stringify(
-            parsed,
-            null,
-            2,
-        ),
-    );
 
     const rawFlowSteps =
         Array.isArray(
@@ -1814,49 +1786,6 @@ if (
     }
 }
 
-    console.log(
-    "[AI Test Case Flow] Deterministic prerequisite:",
-    {
-        modelPrerequisiteNodeIds,
-        prerequisiteNodeIds,
-        loginNavigationNodeId:
-            findNodeBySemanticTarget(
-                input.context?.nodes,
-                "login",
-            )?.id ?? null,
-        prerequisiteNodes:
-            prerequisiteNodeIds.map(
-                (
-                    nodeId,
-                ) =>
-                    input.context?.nodes?.find(
-                        (
-                            node,
-                        ) =>
-                            node.id ===
-                            nodeId,
-                    ),
-            ).map(
-                (
-                    node,
-                ) =>
-                    node
-                        ? {
-                            id:
-                                node.id,
-                            action:
-                                node.action,
-                            title:
-                                node.title,
-                            subtitle:
-                                node.subtitle,
-                            locator:
-                                node.locator,
-                        }
-                        : null,
-            ),
-    },
-);
 
     const invalidPrerequisiteNodeIds =
         prerequisiteNodeIds.filter(
@@ -1980,14 +1909,6 @@ if (
             },
         };
 
-        console.log(
-    "[AI Test Case Flow] Final normalized flow plan:",
-    JSON.stringify(
-        normalizedPayload.flowPlan,
-        null,
-        2,
-    ),
-);
 
     const result =
         normalizeTestCaseFlowResponse(

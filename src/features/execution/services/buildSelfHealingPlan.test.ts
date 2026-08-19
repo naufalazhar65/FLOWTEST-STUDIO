@@ -554,14 +554,7 @@ describe(
                     result.modificationPlan,
                 ).not.toBeNull();
 
-                console.log(
-                    "[TEST] Locator repair modification plan:",
-                    JSON.stringify(
-                        result.modificationPlan,
-                        null,
-                        2,
-                    ),
-                );
+                ;
                 expect(
                     result.modificationPlan,
                 ).toMatchObject({

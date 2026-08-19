@@ -313,9 +313,6 @@ app.post(
 
 app.listen(
     port,
-    () => {
-        console.log(
-            `FlowTest AI server running on http://localhost:${port}`,
-        );
+    () => { 
     },
 );

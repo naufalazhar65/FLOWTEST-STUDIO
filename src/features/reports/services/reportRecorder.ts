@@ -142,11 +142,6 @@ export function recordExecutionReport({
         ),
     };
 
-    console.log(
-        "[Report Environment]",
-        environment,
-    );
-
     useReportStore
         .getState()
         .addReport(report);

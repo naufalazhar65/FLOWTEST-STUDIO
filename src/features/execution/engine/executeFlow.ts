@@ -70,44 +70,6 @@ export async function executeFlow(
 
     execution.reset();
 
-    console.log(
-        "[EXECUTION] FLOW NODES:",
-        nodes.map(
-            (node) => ({
-                id:
-                    node.id,
-
-                title:
-                    node.data.title,
-
-                action:
-                    node.data.action,
-            }),
-        ),
-    );
-
-    console.log(
-        "[EXECUTION] FLOW EDGES:",
-        context.edges.map(
-            (edge) => ({
-                id:
-                    edge.id,
-
-                source:
-                    edge.source,
-
-                sourceHandle:
-                    edge.sourceHandle,
-
-                target:
-                    edge.target,
-
-                targetHandle:
-                    edge.targetHandle,
-            }),
-        ),
-    );
-
     const graph =
         new GraphNavigator(
             nodes,
@@ -217,27 +179,6 @@ export async function executeFlow(
 
         let currentNode =
             graph.getStartNode();
-
-            console.log(
-    "[AI EXECUTION] Start node:",
-    currentNode
-        ? {
-            id:
-                currentNode.id,
-
-            action:
-                currentNode.data.action,
-
-            title:
-                currentNode.data.title,
-
-            locator:
-                "locator" in currentNode.data
-                    ? currentNode.data.locator
-                    : undefined,
-        }
-        : null,
-);
 
         let activeEdgeId:
             string | null =
@@ -447,24 +388,6 @@ export async function executeFlow(
                 // Execute Node
                 // ---------------------------------------
 
-                console.log(
-    "[AI EXECUTION] Executing node:",
-    {
-        id:
-            node.id,
-
-        action:
-            node.data.action,
-
-        title:
-            node.data.title,
-
-        locator:
-            "locator" in node.data
-                ? node.data.locator
-                : undefined,
-    },
-);
                 const result =
                     await executeNode(
                         node,
@@ -529,24 +452,11 @@ export async function executeFlow(
                     outgoingEdges.length ===
                     0
                 ) {
-                    console.log(
-                        "[EXECUTION] Flow reached terminal node:",
-                        {
-                            nodeId:
-                                node.id,
-
-                            nodeTitle:
-                                node.data.title,
-
-                            action:
-                                node.data.action,
-                        },
-                    );
 
                     currentNode =
                         null;
 
-                    
+
                     continue;
                 }
 
@@ -555,22 +465,6 @@ export async function executeFlow(
                         node.id,
                         output,
                     );
-
-                    console.log(
-    "[AI EXECUTION] Next node:",
-    currentNode
-        ? {
-            id:
-                currentNode.id,
-
-            action:
-                currentNode.data.action,
-
-            title:
-                currentNode.data.title,
-        }
-        : null,
-);
 
                 if (
                     transition
@@ -695,19 +589,6 @@ export async function executeFlow(
                 outgoingEdges.length ===
                 0
             ) {
-                console.log(
-                    "[EXECUTION] Skipped node is terminal:",
-                    {
-                        nodeId:
-                            node.id,
-
-                        nodeTitle:
-                            node.data.title,
-
-                        action:
-                            node.data.action,
-                    },
-                );
 
                 currentNode =
                     null;

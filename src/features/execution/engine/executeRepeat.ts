@@ -15,26 +15,6 @@ export async function executeRepeat(
             context.edges,
         );
 
-    const outgoingEdges =
-        graph.getOutgoingEdges(
-            repeatNode.id,
-        );
-
-    console.log(
-        "[REPEAT] OUTGOING EDGES:",
-        outgoingEdges.map(
-            (edge) => ({
-                id: edge.id,
-                source: edge.source,
-                sourceHandle:
-                    edge.sourceHandle,
-                target: edge.target,
-                targetHandle:
-                    edge.targetHandle,
-            }),
-        ),
-    );
-
     const bodyTransition =
         graph.getTransition(
             repeatNode.id,
@@ -46,16 +26,6 @@ export async function executeRepeat(
             repeatNode.id,
             "next",
         );
-
-    console.log(
-        "[REPEAT] BODY TRANSITION:",
-        bodyTransition,
-    );
-
-    console.log(
-        "[REPEAT] NEXT TRANSITION:",
-        nextTransition,
-    );
 
     if (!bodyTransition) {
         throw new Error(
@@ -71,7 +41,7 @@ export async function executeRepeat(
 
     const count =
         repeatNode.data.action ===
-        "repeat"
+            "repeat"
             ? Math.max(
                 1,
                 Math.floor(
@@ -91,13 +61,6 @@ export async function executeRepeat(
         iteration < count;
         iteration++
     ) {
-        console.log(
-            "[REPEAT] ITERATION:",
-            iteration + 1,
-            "/",
-            count,
-        );
-
         let currentNode:
             | FlowNode
             | null =
@@ -109,7 +72,7 @@ export async function executeRepeat(
         while (
             currentNode &&
             currentNode.id !==
-                exitNode.id
+            exitNode.id
         ) {
             if (
                 visited.has(
@@ -123,25 +86,6 @@ export async function executeRepeat(
 
             visited.add(
                 currentNode.id,
-            );
-
-            console.log(
-                "[REPEAT] EXECUTING BODY NODE:",
-                {
-                    iteration:
-                        iteration + 1,
-
-                    nodeId:
-                        currentNode.id,
-
-                    nodeTitle:
-                        currentNode.data
-                            .title,
-
-                    action:
-                        currentNode.data
-                            .action,
-                },
             );
 
             const result =
@@ -170,20 +114,6 @@ export async function executeRepeat(
              * iteration.
              */
             if (!transition) {
-                console.log(
-                    "[REPEAT] BODY END:",
-                    {
-                        nodeId:
-                            currentNode.id,
-
-                        nodeTitle:
-                            currentNode.data
-                                .title,
-
-                        output,
-                    },
-                );
-
                 currentNode = null;
 
                 break;
@@ -197,22 +127,6 @@ export async function executeRepeat(
                 transition.nextNode.id ===
                 exitNode.id
             ) {
-                console.log(
-                    "[REPEAT] BODY REACHED EXIT:",
-                    {
-                        nodeId:
-                            transition
-                                .nextNode
-                                .id,
-
-                        nodeTitle:
-                            transition
-                                .nextNode
-                                .data
-                                .title,
-                    },
-                );
-
                 currentNode = null;
 
                 break;
@@ -222,18 +136,6 @@ export async function executeRepeat(
                 transition.nextNode;
         }
     }
-
-    console.log(
-        "[REPEAT] COMPLETE:",
-        {
-            nodeId: repeatNode.id,
-            count,
-            nextNode:
-                exitNode.id,
-            nextNodeTitle:
-                exitNode.data.title,
-        },
-    );
 
     return {
         nextNode:

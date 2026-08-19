@@ -281,20 +281,6 @@ export const useAIStore =
                             },
                         );
 
-                        console.log(
-    "[AI STORE] convertAITestCaseToFlow result:",
-    JSON.stringify(
-        result,
-        null,
-        2,
-    ),
-);
-
-console.log(
-    "[AI STORE] result.flowPlan.prerequisiteNodeIds:",
-    result.flowPlan.prerequisiteNodeIds,
-);
-
                     const validation =
                         validateAIFlowPlan(
                             result.flowPlan,
@@ -309,15 +295,7 @@ console.log(
                             ),
                         );
                     }
-                    
-                    console.log(
-    "[AI STORE] Saving draftPlan:",
-    JSON.stringify(
-        result.flowPlan,
-        null,
-        2,
-    ),
-);
+
                     set({
                         draftPlan:
                             result.flowPlan,

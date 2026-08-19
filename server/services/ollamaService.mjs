@@ -4490,11 +4490,6 @@ For analyzeSelectedNode:
         );
     }
 
-    console.log(
-        "[Ollama raw response]",
-        content,
-    );
-
     let parsed;
 
     try {
@@ -4704,27 +4699,6 @@ if (
         }
     }
 
-    console.log(
-    "[AI clarification target]",
-    JSON.stringify(
-        {
-            originalMessage:
-                clarificationOriginalMessage,
-
-            reply:
-                message,
-
-            candidateIndex:
-                clarificationCandidateIndex,
-
-            targetNodeId:
-                clarificationTargetNodeId,
-        },
-        null,
-        2,
-    ),
-);
-
     /*
      * --------------------------------------------------
      * Log raw AI modification plan
@@ -4763,15 +4737,6 @@ if (
         ambiguousTargets.length >
         1
     ) {
-        console.log(
-            "[AI clarification]",
-            JSON.stringify(
-                ambiguousTargets,
-                null,
-                2,
-            ),
-        );
-
         const candidateLines =
             ambiguousTargets
                 .map(
@@ -4827,15 +4792,6 @@ if (
         effectiveMessage,
     );
 
-    console.log(
-        "[AI normalized modification plan]",
-        JSON.stringify(
-            modificationPlan,
-            null,
-            2,
-        ),
-    );
-
     /*
      * --------------------------------------------------
      * Invalid modification plan
@@ -4877,24 +4833,6 @@ if (
     intent ===
     "generateFlow"
 ) {
-    console.log(
-        "[AI parsed response]",
-        JSON.stringify(
-            parsed,
-            null,
-            2,
-        ),
-    );
-
-    console.log(
-        "[AI raw flowPlan]",
-        JSON.stringify(
-            parsed.flowPlan,
-            null,
-            2,
-        ),
-    );
-
     const normalizedPlan =
         normalizeModelFlowPlan(
             parsed.flowPlan,
@@ -4902,15 +4840,6 @@ if (
         );
 
     
-
-    console.log(
-        "[AI normalized flowPlan]",
-        JSON.stringify(
-            normalizedPlan,
-            null,
-            2,
-        ),
-    );
 
     
 
@@ -4939,15 +4868,6 @@ if (
     flowPlan,
 };
 
-console.log(
-    "[AI final response]",
-    JSON.stringify(
-        finalResponse,
-        null,
-        2,
-    ),
-);
-
 function buildAssistantMessage(
     parsedMessage,
     intent,
@@ -4972,12 +4892,3 @@ function buildAssistantMessage(
 
 return finalResponse;
 }
-
-console.log(
-    "TEST MODIFY INTENT:",
-    normalizeIntent(
-        "generateFlow",
-        {},
-        "Tambahkan tap Login setelah node yang dipilih.",
-    ),
-);

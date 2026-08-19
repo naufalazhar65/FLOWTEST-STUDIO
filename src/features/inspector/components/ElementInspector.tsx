@@ -48,10 +48,6 @@ export function ElementInspector() {
                 state.error,
         );
 
-    console.log(
-        "[Inspector] Selected element:",
-        selectedElement,
-    );
     const locators =
         selectedElement
 
@@ -315,7 +311,7 @@ export function ElementInspector() {
                                     locators
                                 }
                             />
-                            
+
                             <ElementHighlight
                                 element={selectedElement}
                             />

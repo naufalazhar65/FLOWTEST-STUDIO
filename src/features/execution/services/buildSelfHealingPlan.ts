@@ -257,31 +257,10 @@ export async function buildSelfHealingPlan(
             };
         }
 
-        console.log(
-            "[SELF-HEALING] Resolving replacement locator.",
-            {
-                nodeId:
-                    targetNode.id,
-
-                semanticTarget,
-
-                currentLocator:
-                    targetNode.locator,
-
-                currentStrategy:
-                    targetNode.locatorStrategy,
-            },
-        );
-
         const resolution =
             await resolveAILocatorFromApp(
                 semanticTarget,
             );
-
-        console.log(
-            "[SELF-HEALING] Locator resolution result.",
-            resolution,
-        );
 
         if (
             resolution.status !==
@@ -405,7 +384,7 @@ export async function buildSelfHealingPlan(
         };
     }
 
-        /*
+    /*
      * --------------------------------------------------
      * Runtime application state recovery
      * --------------------------------------------------
@@ -518,8 +497,7 @@ export async function buildSelfHealingPlan(
                     ? `The suggested fix "${fix.title}" requires manual review before it can be applied automatically.`
                     : fix.description,
 
-            modificationPlan:
-                modificationPlan,
+            modificationPlan,
 
             targetNodeId:
                 fix.targetNodeId,

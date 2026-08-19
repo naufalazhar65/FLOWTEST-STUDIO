@@ -152,16 +152,6 @@ export class AppiumClient {
         sessionId,
       });
 
-    console.log(
-      "[FlowTest Environment]",
-      {
-        platform,
-        osVersion,
-        device,
-        automationName,
-        sessionId,
-      },
-    );
   }
 
   private async sessionGet<T>(

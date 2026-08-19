@@ -33,66 +33,20 @@ export function RunButton() {
         );
 
     const handleRun =
-    useCallback(
-        async () => {
-            console.log(
-                "[RUN BUTTON] Starting flow execution.",
-                {
-                    nodeCount:
-                        nodes.length,
-
-                    edgeCount:
-                        edges.length,
-
-                    nodes:
-                        nodes.map(
-                            (
-                                node,
-                            ) => ({
-                                id:
-                                    node.id,
-
-                                action:
-                                    node.data.action,
-
-                                title:
-                                    node.data.title,
-
-                                locator:
-                                    "locator" in
-                                    node.data
-                                        ? node
-                                            .data
-                                            .locator
-                                        : undefined,
-                            }),
-                        ),
-                },
-            );
-
-            try {
+        useCallback(
+            async () => {
                 await ExecutionController.run(
                     nodes,
                     {
                         edges,
                     },
                 );
-
-                console.log(
-                    "[RUN BUTTON] Flow execution completed successfully.",
-                );
-            } catch (error) {
-                console.error(
-                    "[RUN BUTTON] Flow execution failed:",
-                    error,
-                );
-            }
-        },
-        [
-            nodes,
-            edges,
-        ],
-    );
+            },
+            [
+                nodes,
+                edges,
+            ],
+        );
 
     if (status === "idle") {
         return (

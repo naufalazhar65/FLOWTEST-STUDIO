@@ -1229,15 +1229,6 @@ export function resolveAILocator(
         matches.length ===
         0
     ) {
-        console.log(
-            "[AI LOCATOR] No element matched:",
-            {
-                target:
-                    normalizedTarget,
-
-                action,
-            },
-        );
 
         return {
             status:
@@ -1255,53 +1246,6 @@ export function resolveAILocator(
                 null,
         };
     }
-
-    console.log(
-        "[AI LOCATOR] Resolution:",
-        {
-            target:
-                normalizedTarget,
-
-            action,
-
-            candidates:
-                matches.map(
-                    (
-                        match,
-                    ) => ({
-                        id:
-                            match.element.id,
-
-                        tagName:
-                            match.element.tagName,
-
-                        semanticLabel:
-                            match.element.semanticLabel,
-
-                        parentLabel:
-                            match.element.parentLabel,
-
-                        parentName:
-                            match.element.parentName,
-
-                        text:
-                            match.element.text,
-
-                        label:
-                            match.element.label,
-
-                        name:
-                            match.element.name,
-
-                        score:
-                            match.score,
-
-                        reasons:
-                            match.reasons,
-                    }),
-                ),
-        },
-    );
 
     const candidates =
         deduplicateCandidates(

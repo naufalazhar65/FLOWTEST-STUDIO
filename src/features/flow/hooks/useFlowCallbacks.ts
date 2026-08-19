@@ -48,28 +48,14 @@ export function useFlowCallbacks() {
     connectNodes(connection);
   };
 
- const onNodeClick = (
+  const onNodeClick = (
     _event: React.MouseEvent,
     node: Node,
-) => {
-    console.log(
-        "[Flow Selection] clicked:",
-        {
-            id: node.id,
-            type: node.type,
-            action: node.data?.action,
-            title: node.data?.title,
-        },
-    );
+  ) => {
 
     setSelectedNode(node.id);
 
-    console.log(
-        "[Flow Selection] store after click:",
-        useFlowStore.getState()
-            .selectedNodeId,
-    );
-};
+  };
 
   const onPaneClick = () => {
     setSelectedNode(null);

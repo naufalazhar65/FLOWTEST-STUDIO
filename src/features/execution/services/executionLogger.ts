@@ -17,8 +17,6 @@ class ExecutionLogger {
   }
 
   success(log: ExecutionLogInput) {
-    console.log("LOGGER SUCCESS:", log, typeof log);
-
     useExecutionLogStore.getState().addLog({
       ...log,
       level: "success",
@@ -44,4 +42,5 @@ class ExecutionLogger {
   }
 }
 
-export const executionLogger = new ExecutionLogger();
+export const executionLogger =
+  new ExecutionLogger();

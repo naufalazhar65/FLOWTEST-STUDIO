@@ -67,89 +67,50 @@ export function buildFlowContext(): AIFlowContext {
     } = useFlowStore.getState();
 
     const contextNodes =
-    nodes.map(buildNodeContext);
+        nodes.map(
+            buildNodeContext,
+        );
 
-console.log(
-    "[AI Flow Context] All nodes:",
-    contextNodes.map(
-        (
-            node,
-        ) => ({
-            id:
-                node.id,
+    const contextEdges:
+        AIFlowContextEdge[] =
+        edges.map(
+            (
+                edge,
+            ) => ({
+                id:
+                    edge.id,
 
-            action:
-                node.action,
+                source:
+                    edge.source,
 
-            title:
-                node.title,
+                target:
+                    edge.target,
 
-            subtitle:
-                node.subtitle,
+                sourceHandle:
+                    edge.sourceHandle,
 
-            locator:
-                node.locator,
-        }),
-    ),
-);
-
-const contextEdges: AIFlowContextEdge[] =
-    edges.map(
-        (
-            edge,
-        ) => ({
-            id:
-                edge.id,
-
-            source:
-                edge.source,
-
-            target:
-                edge.target,
-
-            sourceHandle:
-                edge.sourceHandle,
-
-            targetHandle:
-                edge.targetHandle,
-        }),
-    );
-
-console.log(
-    "[AI Flow Context] All edges:",
-    contextEdges,
-);
+                targetHandle:
+                    edge.targetHandle,
+            }),
+        );
 
     const selectedNode =
         contextNodes.find(
             (node) =>
-                node.id === selectedNodeId,
+                node.id ===
+                selectedNodeId,
         ) ?? null;
-
-    console.log(
-        "[AI Flow Context] selectedNodeId:",
-        selectedNodeId,
-    );
-
-    console.log(
-        "[AI Flow Context] selectedNode:",
-        selectedNode
-            ? {
-                id: selectedNode.id,
-                action: selectedNode.action,
-                title: selectedNode.title,
-            }
-            : null,
-    );
 
     return {
         selectedNodeId,
 
         selectedNode,
 
-        nodes: contextNodes,
+        nodes:
+            contextNodes,
 
-        edges: contextEdges,
+        edges:
+            contextEdges,
 
         nodeCount:
             contextNodes.length,

@@ -369,39 +369,12 @@ export function AIAssistant({
             ),
         );
 
-        console.log(
-    "[AI EXECUTION] draftPlan before prerequisite state:",
-    JSON.stringify(
-        draftPlan,
-        null,
-        2,
-    ),
-);
-
-console.log(
-    "[AI EXECUTION] Stored prerequisite IDs:",
-    Array.from(
-        draftPlan.prerequisiteNodeIds ??
-        [],
-    ),
-);
-
         setGeneratedPrerequisiteNodeIds(
             new Set(
                 draftPlan.prerequisiteNodeIds ??
                 [],
             ),
         );
-
-        console.log(
-    "[AI] Generated prerequisite node IDs:",
-    draftPlan.prerequisiteNodeIds,
-);
-
-console.log(
-    "[AI] Generated node IDs:",
-    result.nodeIds,
-);
 
         setStatus(
             `Applied ${result.appliedSteps} step${result.appliedSteps ===
@@ -650,37 +623,6 @@ console.log(
              * because it was already executed above.
              */
 
-            console.log(
-    "[AI EXECUTION] Generated prerequisite node IDs:",
-    Array.from(
-        generatedPrerequisiteNodeIds,
-    ),
-);
-
-console.log(
-    "[AI EXECUTION] Ordered prerequisite nodes:",
-    orderedPrerequisiteNodes.map(
-        (
-            node,
-        ) => ({
-            id:
-                node.id,
-
-            action:
-                node.data.action,
-
-            title:
-                node.data.title,
-
-            locator:
-                "locator" in
-                node.data
-                    ? node.data.locator
-                    : undefined,
-        }),
-    ),
-);
-
             const prerequisiteExecutionNodes =
                 orderedPrerequisiteNodes.filter(
                     (
@@ -722,51 +664,6 @@ console.log(
                     "Preparing the application state...",
                     "info",
                 );
-
-                console.log(
-    "[AI EXECUTION] Executing prerequisites:",
-    prerequisiteExecutionNodes.map(
-        (
-            node,
-        ) => ({
-            id:
-                node.id,
-
-            action:
-                node.data.action,
-
-            title:
-                node.data.title,
-
-            locator:
-                "locator" in
-                node.data
-                    ? node.data.locator
-                    : undefined,
-        }),
-    ),
-);
-
-console.log(
-    "[AI EXECUTION] Prerequisite edges:",
-    prerequisiteEdges.map(
-        (
-            edge,
-        ) => ({
-            source:
-                edge.source,
-
-            target:
-                edge.target,
-
-            sourceHandle:
-                edge.sourceHandle,
-
-            targetHandle:
-                edge.targetHandle,
-        }),
-    ),
-);
 
                 await ExecutionController.run(
                     prerequisiteExecutionNodes,
