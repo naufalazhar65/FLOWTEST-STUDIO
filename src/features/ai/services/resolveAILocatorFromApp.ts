@@ -80,17 +80,12 @@ export async function resolveAILocatorFromApp(
     try {
         source =
             await getPageSource();
-            console.log(
-    "[AI LOCATOR] Active page source:",
-    source,
-);
     } catch (error) {
         return {
             status:
                 "unavailable",
 
             target:
-
                 normalizedTarget,
 
             selected:
@@ -117,14 +112,6 @@ export async function resolveAILocatorFromApp(
             parsePageSource(
                 source,
             );
-            console.log(
-    "[AI LOCATOR] Parsed elements:",
-    JSON.stringify(
-        elements,
-        null,
-        2,
-    ),
-);
     } catch (error) {
         return {
             status:

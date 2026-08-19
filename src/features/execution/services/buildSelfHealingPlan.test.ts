@@ -2,6 +2,7 @@ import {
     describe,
     expect,
     it,
+    vi,
 } from "vitest";
 
 import {
@@ -12,11 +13,24 @@ import type {
     ExecutionFailureAnalysis,
 } from "./analyzeExecutionFailure";
 
+import {
+    resolveAILocatorFromApp,
+} from "../../ai/services/resolveAILocatorFromApp";
+
+vi.mock(
+    "../../ai/services/resolveAILocatorFromApp",
+    () => ({
+        resolveAILocatorFromApp:
+            vi.fn(),
+    }),
+);
+
 function createAnalysis(
     options?: {
         fixType?:
         | "addWait"
         | "reviewLocator"
+        | "repairLocator"
         | "restoreApplicationState"
         | "none";
 
@@ -40,7 +54,9 @@ function createAnalysis(
         options?.autoApplicable ??
         (
             fixType ===
-            "addWait"
+            "addWait" ||
+            fixType ===
+            "repairLocator"
         );
 
     return {
@@ -153,7 +169,10 @@ function createAnalysis(
                     : fixType ===
                         "reviewLocator"
                         ? "Review locator"
-                        : "Manual investigation required",
+                        : fixType ===
+                            "repairLocator"
+                            ? "Repair invalid locator"
+                            : "Manual investigation required",
 
             description:
                 fixType ===
@@ -162,7 +181,10 @@ function createAnalysis(
                     : fixType ===
                         "reviewLocator"
                         ? "Review locator."
-                        : "Manual investigation required.",
+                        : fixType ===
+                            "repairLocator"
+                            ? "Repair locator."
+                            : "Manual investigation required.",
 
             targetNodeId:
                 fixType ===
@@ -426,6 +448,142 @@ describe(
                 ).toBe(
                     "node-1",
                 );
+            },
+        );
+
+        it(
+            "creates an auto-applicable locator repair plan",
+            async () => {
+                vi.mocked(
+                    resolveAILocatorFromApp,
+                ).mockResolvedValueOnce({
+                    status:
+                        "resolved",
+
+                    target:
+                        "Login",
+
+                    selected: {
+                        strategy:
+                            "accessibilityId",
+
+                        value:
+                            "login-button",
+
+                        score:
+                            0.98,
+
+                        reason:
+                            "Exact accessibility label match.",
+
+                        recommended:
+                            true,
+                    },
+
+                    candidates: [
+                        {
+                            strategy:
+                                "accessibilityId",
+
+                            value:
+                                "login-button",
+
+                            score:
+                                0.98,
+
+                            reason:
+                                "Exact accessibility label match.",
+
+                            recommended:
+                                true,
+                        },
+                    ],
+
+                    matchedElementId:
+                        "element-login-button",
+                });
+
+                const result =
+                    await buildSelfHealingPlan(
+                        createAnalysis({
+                            fixType:
+                                "repairLocator",
+
+                            autoApplicable:
+                                true,
+
+                            locatorStrategy:
+                                "accessibilityId",
+
+                            locator:
+                                "Login",
+                        }),
+                    );
+
+                expect(
+                    resolveAILocatorFromApp,
+                ).toHaveBeenCalledTimes(
+                    1,
+                );
+
+                expect(
+                    resolveAILocatorFromApp,
+                ).toHaveBeenCalledWith(
+                    "login",
+                );
+
+                expect(
+                    result.canAutoApply,
+                ).toBe(
+                    true,
+                );
+
+                expect(
+                    result.strategy,
+                ).toBe(
+                    "modification",
+                );
+
+                expect(
+                    result.targetNodeId,
+                ).toBe(
+                    "node-1",
+                );
+
+                expect(
+                    result.modificationPlan,
+                ).not.toBeNull();
+
+                console.log(
+                    "[TEST] Locator repair modification plan:",
+                    JSON.stringify(
+                        result.modificationPlan,
+                        null,
+                        2,
+                    ),
+                );
+                expect(
+                    result.modificationPlan,
+                ).toMatchObject({
+                    type:
+                        "modification_plan",
+
+                    operation: {
+                        type:
+                            "updateNode",
+
+                        targetNodeId:
+                            "node-1",
+
+                        step: {
+                            locatorStrategy:
+                                "accessibilityId",
+
+                            locator:
+                                "login-button",
+                        },
+                    },
+                });
             },
         );
     },

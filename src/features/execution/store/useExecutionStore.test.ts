@@ -422,6 +422,112 @@ describe("useExecutionStore", () => {
         });
     });
 
+    it("finalizes a recovered execution as passed", () => {
+        const store =
+            useExecutionStore.getState();
+
+        store.startExecution(2);
+
+        store.setNodeResult({
+            nodeId: "node-1",
+            nodeType: "tap",
+            nodeTitle: "Tap",
+            status: "passed",
+            startedAt: 1000,
+            finishedAt: 1100,
+            duration: 100,
+        });
+
+        store.setNodeResult({
+            nodeId: "node-2",
+            nodeType: "tap",
+            nodeTitle: "Tap Login",
+            status: "failed",
+            startedAt: 1200,
+            finishedAt: 1300,
+            duration: 100,
+            error: "Element not found",
+        });
+
+        store.setNodeStatus(
+            "node-1",
+            "passed",
+        );
+
+        store.setNodeStatus(
+            "node-2",
+            "passed",
+        );
+
+        store.setEdgeStatus(
+            "edge-1",
+            "failed",
+        );
+
+        store.setEdgeStatus(
+            "edge-2",
+            "running",
+        );
+
+        store.setNodeResult({
+            nodeId: "node-2",
+            nodeType: "tap",
+            nodeTitle: "Tap Login",
+            status: "passed",
+            startedAt: 2000,
+            finishedAt: 2100,
+            duration: 100,
+        });
+
+        store.finalizeRecoveredExecution();
+
+        const state =
+            useExecutionStore.getState();
+
+        expect(
+            state.status,
+        ).toBe("passed");
+
+        expect(
+            state.nodeResults["node-1"]?.status,
+        ).toBe("passed");
+
+        expect(
+            state.nodeResults["node-2"]?.status,
+        ).toBe("passed");
+
+        expect(
+            state.passedNodes,
+        ).toBe(2);
+
+        expect(
+            state.failedNodes,
+        ).toBe(0);
+
+        expect(
+            state.executedNodes,
+        ).toBe(2);
+
+        expect(
+            state.progress,
+        ).toBe(100);
+
+        expect(
+            state.edgeStatus,
+        ).toEqual({
+            "edge-1": "passed",
+            "edge-2": "passed",
+        });
+
+        expect(
+            state.currentNodeId,
+        ).toBeNull();
+
+        expect(
+            state.finishedAt,
+        ).not.toBeNull();
+    });
+
     it("resets execution state", () => {
         const store =
             useExecutionStore.getState();
