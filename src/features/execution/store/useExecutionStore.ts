@@ -430,6 +430,18 @@ export const useExecutionStore =
 
                     currentNodeId:
                         null,
+
+                    edgeStatus:
+                        Object.fromEntries(
+                            Object.keys(
+                                state.edgeStatus,
+                            ).map(
+                                (edgeId) => [
+                                    edgeId,
+                                    "passed",
+                                ],
+                            ),
+                        ),
                 });
             },
 
