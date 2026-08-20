@@ -28,6 +28,8 @@ export interface FailureContextNode {
     locator:
     | string
     | null;
+
+    text?: string;
 }
 
 export interface FailureContext {
@@ -124,6 +126,10 @@ function buildIncomingMap(
 
 function toFailureContextNode(
     node: FlowNode,
+    executionLocatorStrategy?:
+        string | null,
+    executionLocator?:
+        string | null,
 ): FailureContextNode {
     return {
         id:
@@ -139,17 +145,29 @@ function toFailureContextNode(
             node.data.subtitle,
 
         locatorStrategy:
-            "locatorStrategy" in
-                node.data
-                ? node.data
-                    .locatorStrategy
-                : null,
+            executionLocatorStrategy ??
+            (
+                "locatorStrategy" in
+                    node.data
+                    ? node.data
+                        .locatorStrategy
+                    : null
+            ),
 
         locator:
-            "locator" in
+            executionLocator ??
+            (
+                "locator" in
+                    node.data
+                    ? node.data.locator
+                    : null
+            ),
+
+        text:
+            "text" in
                 node.data
-                ? node.data.locator
-                : null,
+                ? node.data.text
+                : undefined,
     };
 }
 
@@ -203,13 +221,20 @@ export function buildFailureContext(
                 -1,
             )
             .map(
-                toFailureContextNode,
+                (
+                    pathNode,
+                ) =>
+                    toFailureContextNode(
+                        pathNode,
+                    ),
             );
 
     return {
         node:
             toFailureContextNode(
                 node,
+                result.locatorStrategy,
+                result.locator,
             ),
 
         execution:
@@ -246,7 +271,12 @@ export function buildFailureContext(
                         undefined,
                 )
                 .map(
-                    toFailureContextNode,
+                    (
+                        previousNode,
+                    ) =>
+                        toFailureContextNode(
+                            previousNode,
+                        ),
                 ),
 
         nextNodeIds:
@@ -280,7 +310,12 @@ export function buildFailureContext(
                         undefined,
                 )
                 .map(
-                    toFailureContextNode,
+                    (
+                        nextNode,
+                    ) =>
+                        toFailureContextNode(
+                            nextNode,
+                        ),
                 ),
 
         executionPathNodes,

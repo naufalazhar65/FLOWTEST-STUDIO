@@ -15,6 +15,12 @@ export interface NodeExecutionResult {
 
     duration: number;
 
+    locatorStrategy?:
+        string | null;
+
+    locator?:
+        string | null;
+
     error?: string;
 
     screenshot?: string;

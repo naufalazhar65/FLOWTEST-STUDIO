@@ -44,6 +44,7 @@ export async function executeNode(
     });
 
     try {
+
         const result =
             await runner.run(
                 node,
@@ -74,6 +75,16 @@ export async function executeNode(
 
             status:
                 "passed",
+
+            locatorStrategy:
+                "locatorStrategy" in node.data
+                    ? node.data.locatorStrategy
+                    : null,
+
+            locator:
+                "locator" in node.data
+                    ? node.data.locator
+                    : null,
 
             startedAt,
 
@@ -153,7 +164,18 @@ export async function executeNode(
             nodeTitle:
                 node.data.title,
 
-            status: "failed",
+            status:
+                "failed",
+
+            locatorStrategy:
+                "locatorStrategy" in node.data
+                    ? node.data.locatorStrategy
+                    : null,
+
+            locator:
+                "locator" in node.data
+                    ? node.data.locator
+                    : null,
 
             startedAt,
 

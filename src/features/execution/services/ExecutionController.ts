@@ -35,6 +35,10 @@ import {
     buildSelfHealingPlan,
 } from "./buildSelfHealingPlan";
 
+import type {
+    SelfHealingPlan,
+} from "./buildSelfHealingPlan";
+
 import {
     executeSelfHealing,
 } from "./executeSelfHealing";
@@ -61,6 +65,13 @@ interface ExecutionControllerOptions {
 
     skipNodeIds?:
     ReadonlySet<string>;
+
+    onManualHealingPlan?:
+    (
+        plan: NonNullable<
+            SelfHealingPlan["modificationPlan"]
+        >,
+    ) => void;
 }
 
 function buildExecuteFlowOptions(
@@ -139,7 +150,7 @@ export class ExecutionController {
 
             return;
         } catch (
-            originalError
+        originalError
         ) {
             /*
              * ------------------------------------------
@@ -202,7 +213,18 @@ export class ExecutionController {
              * executeSelfHealing() owns the one-attempt
              * safety guard.
              */
-            
+
+            console.log(
+                "[SELF-HEALING] Starting",
+                {
+                    strategy:
+                        selfHealingPlan.strategy,
+
+                    canAutoApply:
+                        selfHealingPlan.canAutoApply,
+                },
+            );
+
 
             const healingResult =
                 await executeSelfHealing(
@@ -210,6 +232,9 @@ export class ExecutionController {
                     {
                         executeRecovery:
                             async () => {
+                                console.log(
+                                    "[SELF-HEALING] executeRecovery called",
+                                );
                                 if (
                                     selfHealingPlan.strategy !==
                                     "runtimeRecovery"
@@ -292,14 +317,35 @@ export class ExecutionController {
                                         launchNode.data,
                                     );
 
+                                    const recoveryPathWithoutLaunch =
+                                        recoveryPath.filter(
+                                            (node) =>
+                                                node.data.action !==
+                                                "launchApp",
+                                        );
+
+                                    console.log(
+                                        "[SELF-HEALING] Recovery path started",
+                                        recoveryPathWithoutLaunch.map(
+                                            (node) => ({
+                                                id: node.id,
+                                                action: node.data.action,
+                                                title: node.data.title,
+                                            }),
+                                        ),
+                                    );
+
                                     await executeRecoveryPath(
-                                        recoveryPath,
+                                        recoveryPathWithoutLaunch,
                                         {
                                             ...context,
-
                                             edges:
                                                 latestFlow.edges,
                                         },
+                                    );
+
+                                    console.log(
+                                        "[SELF-HEALING] Recovery path completed",
                                     );
 
                                     return {
@@ -310,7 +356,7 @@ export class ExecutionController {
                                             recoveryPath.length,
                                     };
                                 } catch (
-                                    error
+                                error
                                 ) {
                                     return {
                                         success:
@@ -339,6 +385,13 @@ export class ExecutionController {
 
                         rerun:
                             async () => {
+                                console.log(
+                                    "[SELF-HEALING] Rerun started",
+                                    {
+                                        strategy:
+                                            selfHealingPlan.strategy,
+                                    },
+                                );
                                 /*
                                  * Runtime recovery has already created
                                  * a fresh Appium session.
@@ -405,6 +458,24 @@ export class ExecutionController {
                                     }
 
                                     try {
+                                        console.log(
+                                            "[SELF-HEALING] Rerunning failed node",
+                                            {
+                                                nodeId:
+                                                    failedNode.id,
+
+                                                action:
+                                                    failedNode.data.action,
+
+                                                title:
+                                                    failedNode.data.title,
+
+                                                locator:
+                                                    "locator" in failedNode.data
+                                                        ? failedNode.data.locator
+                                                        : undefined,
+                                            },
+                                        );
                                         await executeNode(
                                             failedNode,
                                             {
@@ -464,14 +535,171 @@ export class ExecutionController {
                     },
                 );
 
+            console.log(
+                "[SELF-HEALING] Result",
+                healingResult,
+            );
+
             /*
-             * The repair and rerun succeeded.
-             */
+  * The repair and rerun succeeded.
+  */
             if (
                 healingResult.status ===
                 "applied"
             ) {
                 return;
+            }
+
+            /*
+ * ------------------------------------------
+ * Second healing phase
+ * ------------------------------------------
+ *
+ * Runtime recovery may restore the application
+ * state successfully, but the failed node can
+ * still fail afterward because its locator is
+ * stale.
+ *
+ * Re-analyze the latest execution result before
+ * attempting a second healing strategy.
+ *
+ * Maximum healing phases:
+ *
+ * 1. Runtime recovery + rerun
+ * 2. Locator repair + rerun
+ *
+ * Never attempt a third automatic healing phase.
+ */
+            if (
+                selfHealingPlan.strategy ===
+                "runtimeRecovery" &&
+                healingResult.status ===
+                "failed"
+            ) {
+                const latestExecutionState =
+                    useExecutionStore.getState();
+
+                const latestExecutionResults =
+                    Object.values(
+                        latestExecutionState.nodeResults,
+                    );
+
+                const latestFailureAnalysis =
+                    analyzeExecutionFailure(
+                        latestExecutionResults,
+                        useFlowStore.getState().nodes,
+                        useFlowStore.getState().edges,
+                    );
+
+                if (
+                    latestFailureAnalysis
+                ) {
+                    const secondHealingPlan =
+                        await buildSelfHealingPlan(
+                            latestFailureAnalysis,
+                        );
+
+                    /*
+                     * Only locator repair is allowed as
+                     * the second automatic healing phase.
+                     *
+                     * This prevents recovery → recovery →
+                     * recovery loops.
+                     */
+                    if (
+                        secondHealingPlan.strategy ===
+                        "modification" &&
+                        secondHealingPlan.canAutoApply &&
+                        secondHealingPlan.modificationPlan
+                    ) {
+                        const secondHealingResult =
+                            await executeSelfHealing(
+                                secondHealingPlan,
+                                {
+                                    applyModificationPlan:
+                                        (
+                                            modificationPlan,
+                                        ) =>
+                                            applyAIModificationPlan(
+                                                modificationPlan,
+                                            ),
+
+                                    rerun:
+                                        async () => {
+                                            const latestFlow =
+                                                useFlowStore.getState();
+
+                                            const failedNodeId =
+                                                latestFailureAnalysis
+                                                    .context
+                                                    ?.node.id;
+
+                                            if (
+                                                !failedNodeId
+                                            ) {
+                                                return false;
+                                            }
+
+                                            const failedNode =
+                                                latestFlow.nodes.find(
+                                                    (
+                                                        node,
+                                                    ) =>
+                                                        node.id ===
+                                                        failedNodeId,
+                                                );
+
+                                            if (
+                                                !failedNode
+                                            ) {
+                                                return false;
+                                            }
+
+                                            try {
+                                                await executeNode(
+                                                    failedNode,
+                                                    {
+                                                        ...context,
+
+                                                        edges:
+                                                            latestFlow.edges,
+                                                    },
+                                                );
+
+                                                return true;
+                                            } catch {
+                                                return false;
+                                            }
+                                        },
+                                },
+                            );
+
+                        if (
+                            secondHealingResult.status ===
+                            "applied"
+                        ) {
+                            return;
+                        }
+                    }
+                }
+            }
+
+            /*
+             * A verified fix exists, but it requires
+             * explicit user approval.
+             *
+             * Do not modify the flow and do not rerun.
+             */
+            if (
+                healingResult.status ===
+                "manualReview" &&
+                selfHealingPlan.modificationPlan
+            ) {
+                options?.onManualHealingPlan?.(
+                    selfHealingPlan.modificationPlan,
+                );
+
+                throw originalError;
             }
 
             /*

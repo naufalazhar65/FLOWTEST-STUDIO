@@ -2,6 +2,7 @@ import type {
     AIRequest,
     AIResponse,
     AIQARecommendation,
+    AIFlowContext,
 } from "../types/AIRequest";
 
 import type {
@@ -16,6 +17,8 @@ import type {
     AITestCaseFlowRequest,
     AITestCaseFlowResponse,
 } from "../types/AITestCaseFlow";
+
+
 
 const AI_API_URL =
     import.meta.env.VITE_AI_API_URL ??
@@ -57,7 +60,7 @@ export async function sendAIRequest(
 
 export async function requestQAFixPlan(
     recommendation: AIQARecommendation,
-    context: AIRequest["context"],
+    context: AIFlowContext,
 ): Promise<AIModificationPlan> {
     const response = await fetch(
         `${AI_API_URL}/api/ai/qa/fix`,

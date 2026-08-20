@@ -29,6 +29,7 @@ const model =
 const VALID_INTENTS = new Set([
     "analyzeFlow",
     "analyzeSelectedNode",
+    "analyzeExecution",
     "generateFlow",
     "modifyFlow",
     "reviewFlow",
@@ -375,6 +376,55 @@ function normalizeIntent(
         )
     ) {
         return "modifyFlow";
+    }
+
+        /*
+     * --------------------------------------------------
+     * Execution / failure analysis.
+     * --------------------------------------------------
+     *
+     * Questions about why a node or test execution
+     * failed must be routed to execution analysis.
+     *
+     * This is different from selected-node analysis:
+     *
+     * "Apa yang dilakukan node ini?"
+     *     -> analyzeSelectedNode
+     *
+     * "Kenapa node ini gagal?"
+     *     -> analyzeExecution
+     */
+    const executionAnalysisPatterns = [
+        /\bkenapa\s+.+\s+gagal\b/i,
+        /\bmengapa\s+.+\s+gagal\b/i,
+        /\bapa\s+penyebab\s+.+\s+gagal\b/i,
+        /\bpenyebab\s+.+\s+gagal\b/i,
+        /\bkenapa\s+test\s+.+\s+gagal\b/i,
+        /\bmengapa\s+test\s+.+\s+gagal\b/i,
+        /\bkenapa\s+node\s+.+\s+gagal\b/i,
+        /\bmengapa\s+node\s+.+\s+gagal\b/i,
+        /\bkenapa\s+node\s+ini\s+gagal\b/i,
+        /\bmengapa\s+node\s+ini\s+gagal\b/i,
+        /\bkenapa\s+execution\s+gagal\b/i,
+        /\bmengapa\s+execution\s+gagal\b/i,
+        /\bwhy\s+did\s+.+\s+fail\b/i,
+        /\bwhy\s+did\s+the\s+test\s+fail\b/i,
+        /\bwhy\s+did\s+this\s+node\s+fail\b/i,
+        /\bwhy\s+did\s+the\s+node\s+fail\b/i,
+        /\bwhat\s+caused\s+.+\s+to\s+fail\b/i,
+        /\bwhat\s+caused\s+the\s+test\s+to\s+fail\b/i,
+        /\bwhat\s+caused\s+the\s+node\s+to\s+fail\b/i,
+    ];
+
+    if (
+        executionAnalysisPatterns.some(
+            (pattern) =>
+                pattern.test(
+                    normalizedMessage,
+                ),
+        )
+    ) {
+        return "analyzeExecution";
     }
 
     /*
@@ -1737,20 +1787,430 @@ function validateNormalizedPlan(
     };
 }
 
+function getAIFlowContext(
+    context,
+) {
+    if (
+        context?.flow &&
+        typeof context.flow ===
+            "object"
+    ) {
+        return context.flow;
+    }
+
+    return context;
+}
+
+function buildExecutionAnalysisMessage(
+    context,
+    language = "id",
+) {
+    const execution =
+        context?.execution;
+
+    const environment =
+        context?.environment;
+
+    if (
+        !execution ||
+        typeof execution !==
+            "object"
+    ) {
+        return "";
+    }
+
+    const lines = [];
+
+    const status =
+        execution.status;
+
+    const statistics =
+        execution.statistics;
+
+    const timing =
+        execution.timing;
+
+    const isEnglish =
+        language === "en";
+
+    /*
+     * --------------------------------------------------
+     * Execution summary
+     * --------------------------------------------------
+     */
+
+    lines.push(
+        isEnglish
+            ? "### Execution"
+            : "### Eksekusi",
+    );
+
+    if (status) {
+        lines.push(
+            `Status: ${status}`,
+        );
+    }
+
+    if (statistics) {
+        const executed =
+            statistics.executedNodes ??
+            0;
+
+        const total =
+            statistics.totalNodes ??
+            0;
+
+        const passed =
+            statistics.passedNodes ??
+            0;
+
+        const failed =
+            statistics.failedNodes ??
+            0;
+
+        const skipped =
+            statistics.skippedNodes ??
+            0;
+
+        lines.push(
+            `Progress: ${statistics.progress ?? 0}%`,
+            isEnglish
+                ? `Passed: ${passed}/${total}`
+                : `Passed: ${passed}/${total}`,
+            isEnglish
+                ? `Failed: ${failed}`
+                : `Failed: ${failed}`,
+            isEnglish
+                ? `Skipped: ${skipped}`
+                : `Skipped: ${skipped}`,
+            isEnglish
+                ? `Executed: ${executed}/${total}`
+                : `Dieksekusi: ${executed}/${total}`,
+        );
+    }
+
+    /*
+     * --------------------------------------------------
+     * Environment
+     * --------------------------------------------------
+     */
+
+    if (environment) {
+        const environmentParts = [];
+
+        if (
+            environment.platform
+        ) {
+            const platform =
+                environment.platform;
+
+            const version =
+                environment.platformVersion;
+
+            environmentParts.push(
+                version
+                    ? `${platform} ${version}`
+                    : platform,
+            );
+        }
+
+        if (
+            environment.deviceName
+        ) {
+            environmentParts.push(
+                environment.deviceName,
+            );
+        }
+
+        if (
+            environment.appiumConnection
+        ) {
+            environmentParts.push(
+                `Appium: ${environment.appiumConnection}`,
+            );
+        }
+
+        if (
+            environmentParts.length > 0
+        ) {
+            lines.push(
+                "",
+                isEnglish
+                    ? "### Environment"
+                    : "### Environment",
+                environmentParts.join(
+                    " — ",
+                ),
+            );
+        }
+    }
+
+    /*
+     * --------------------------------------------------
+     * Failed nodes
+     * --------------------------------------------------
+     */
+
+    const nodeResults =
+    execution.nodeResults;
+
+const flowContext =
+    getAIFlowContext(
+        context,
+    );
+
+const flowNodes =
+    Array.isArray(
+        flowContext?.nodes,
+    )
+        ? flowContext.nodes
+        : [];
+
+const flowNodeMap =
+    new Map(
+        flowNodes.map(
+            (node) => [
+                node.id,
+                node,
+            ],
+        ),
+    );
+
+    if (
+        nodeResults &&
+        typeof nodeResults ===
+            "object"
+    ) {
+        const failedResults =
+            Object.values(
+                nodeResults,
+            ).filter(
+                (result) =>
+                    result &&
+                    result.status ===
+                        "failed",
+            );
+
+        if (
+            failedResults.length > 0
+        ) {
+            lines.push(
+                "",
+                isEnglish
+                    ? "### Failure"
+                    : "### Kegagalan",
+            );
+
+            for (
+                const result of
+                    failedResults
+            ) {
+
+                const flowNode =
+                flowNodeMap.get(
+                    result.nodeId,
+    );
+                const failureDetails = [
+    `Node: ${
+        flowNode?.title ||
+        result.nodeTitle ||
+        result.nodeId
+    }`,
+
+    `ID: ${result.nodeId}`,
+];
+
+if (flowNode?.action) {
+    failureDetails.push(
+        `Action: ${flowNode.action}`,
+    );
+}
+
+if (result.locatorStrategy) {
+    failureDetails.push(
+        `Locator strategy: ${result.locatorStrategy}`,
+    );
+}
+
+if (result.locator) {
+    failureDetails.push(
+        `Locator: ${result.locator}`,
+    );
+}
+
+if (result.error) {
+    failureDetails.push(
+        `Error: ${result.error}`,
+    );
+}
+
+if (
+    result.duration !==
+    undefined
+) {
+    failureDetails.push(
+        `Duration: ${Math.round(
+            result.duration,
+        )}ms`,
+    );
+}
+
+if (
+    result.screenshotFileName
+) {
+    failureDetails.push(
+        `Screenshot: ${result.screenshotFileName}`,
+    );
+}
+
+if (
+    result.pageSource
+) {
+    lines.push(
+        isEnglish
+            ? "Page source: available"
+            : "Page source: tersedia",
+    );
+}
+
+lines.push(
+    ...failureDetails,
+);
+
+lines.push("");
+            }
+        }
+    }
+
+    /*
+     * --------------------------------------------------
+     * Total execution duration
+     * --------------------------------------------------
+     */
+
+    if (
+        timing &&
+        typeof timing.duration ===
+            "number"
+    ) {
+        const durationSeconds =
+            timing.duration /
+            1000;
+
+        const formattedDuration =
+            durationSeconds >= 60
+                ? `${(
+                      durationSeconds /
+                      60
+                  ).toFixed(1)}m`
+                : `${durationSeconds.toFixed(
+                      1,
+                  )}s`;
+
+        lines.push(
+            isEnglish
+                ? `Total duration: ${formattedDuration}`
+                : `Total durasi: ${formattedDuration}`,
+        );
+    }
+
+     /*
+ * --------------------------------------------------
+ * Failure diagnosis
+ * --------------------------------------------------
+ */
+
+if (
+    nodeResults &&
+    typeof nodeResults ===
+        "object"
+) {
+    const failedResult =
+        Object.values(
+            nodeResults,
+        ).find(
+            (result) =>
+                result &&
+                result.status ===
+                    "failed",
+        );
+
+    if (failedResult) {
+        const failedLocator =
+            failedResult.locator;
+
+        const failedPageSource =
+            failedResult.pageSource;
+
+        if (
+            failedLocator &&
+            failedPageSource
+        ) {
+            const locatorMatch =
+                failedLocator.match(
+                    /name\s*==\s*["']([^"']+)["']/i,
+                );
+
+            const configuredValue =
+                locatorMatch?.[1]?.trim();
+
+            if (
+                configuredValue
+            ) {
+                const configuredExists =
+                    failedPageSource.includes(
+                        configuredValue,
+                    );
+
+                if (
+                    !configuredExists
+                ) {
+                    lines.push(
+                        "",
+                        isEnglish
+                            ? "### Diagnosis"
+                            : "### Diagnosis",
+                        isEnglish
+                            ? `The node failed because the configured locator uses "${configuredValue}", but that value was not found in the current page source.`
+                            : `Node gagal karena locator yang digunakan memakai "${configuredValue}", tetapi nilai tersebut tidak ditemukan pada page source saat ini.`,
+                        isEnglish
+                            ? "This indicates that the configured locator does not match the element currently present in the UI."
+                            : "Ini menunjukkan bahwa locator yang dikonfigurasi tidak cocok dengan element yang tersedia pada UI saat execution gagal.",
+                    );
+                }
+            }
+        }
+    }
+}
+
+    return lines
+        .join("\n")
+        .replace(
+            /\n{3,}/g,
+            "\n\n",
+        )
+        .trim();
+}
+
 function buildFlowAnalysisMessage(
     context,
     language = "id",
 ) {
+        const flowContext =
+        getAIFlowContext(
+            context,
+        );
+
     const nodes = Array.isArray(
-        context?.nodes,
+        flowContext?.nodes,
     )
-        ? context.nodes
+        ? flowContext.nodes
         : [];
 
     const edges = Array.isArray(
-        context?.edges,
+        flowContext?.edges,
     )
-        ? context.edges
+        ? flowContext.edges
         : [];
 
     if (nodes.length === 0) {
@@ -2506,8 +2966,13 @@ function buildSelectedNodeAnalysisMessage(
     context,
     language = "id",
 ) {
+    const flowContext =
+        getAIFlowContext(
+            context,
+        );
+
     const node =
-        context?.selectedNode;
+        flowContext?.selectedNode;
 
     if (!node) {
         return language === "en"
@@ -2517,17 +2982,17 @@ function buildSelectedNodeAnalysisMessage(
 
     const nodes =
         Array.isArray(
-            context?.nodes,
+            flowContext?.nodes,
         )
-            ? context.nodes
+            ? flowContext.nodes
             : [];
 
     const edges =
-        Array.isArray(
-            context?.edges,
-        )
-            ? context.edges
-            : [];
+    Array.isArray(
+        flowContext?.edges,
+    )
+        ? flowContext.edges
+        : [];
 
     const nodeMap =
         new Map(
@@ -4005,6 +4470,59 @@ const clarificationTargetNodeId =
         clarificationOriginalMessage ??
         message;
 
+    const intent =
+    normalizeIntent(
+        undefined,
+        null,
+        effectiveMessage,
+    );
+
+console.error(
+    "[AI NORMALIZED INTENT]",
+    intent,
+);
+
+if (
+    intent ===
+    "analyzeExecution"
+) {
+    const userLanguage =
+        /[^\x00-\x7F]/.test(
+            message,
+        ) ||
+        /\b(saya|flow|jelaskan|apa|yang|ini|tolong|buat|tambahkan)\b/i.test(
+            message,
+        )
+            ? "id"
+            : "en";
+
+    const executionMessage =
+        buildExecutionAnalysisMessage(
+            context,
+            userLanguage,
+        );
+
+    return {
+        message:
+            executionMessage ||
+            (
+                userLanguage ===
+                "en"
+                    ? "There is not enough execution evidence to analyze the failure."
+                    : "Belum ada evidence execution yang cukup untuk menganalisis kegagalan."
+            ),
+
+        intent:
+            "analyzeExecution",
+
+        flowPlan:
+            null,
+
+        modificationPlan:
+            null,
+    };
+}
+
     const systemPrompt = `
 You are the AI Assistant for FlowTest Studio.
 
@@ -4012,6 +4530,73 @@ You support Indonesian and English.
 Respond in the same language as the user.
 
 The current FlowTest Studio context is the source of truth.
+
+EXECUTION REASONING:
+
+- The context may contain:
+  - flow: the current flow structure.
+  - execution: the latest execution state and node results.
+  - environment: the current Appium/device environment.
+
+- When analyzing execution results, treat context.execution as the source of truth for runtime behavior.
+
+- Use context.execution.nodeResults to identify nodes that actually passed or failed.
+
+- If a node has status "failed", inspect its error, duration, screenshotFileName, and pageSource availability when provided.
+
+- Do not claim that a node failed based only on its flow configuration.
+
+- Distinguish between:
+  - a node configured in the flow,
+  - a node that was executed,
+  - a node that passed,
+  - a node that failed,
+  - a node that was skipped.
+
+- Use context.execution.currentNodeId to identify the node currently being executed when available.
+
+- Use context.execution.statistics to understand execution progress.
+
+- Use context.environment to consider platform, device, Appium connection, and platform version when diagnosing runtime problems.
+
+- If execution evidence is insufficient to determine the root cause, explicitly say that the evidence is insufficient instead of inventing a cause.
+
+- When explaining a failure, prefer concrete execution evidence over assumptions.
+
+INTENT ROUTING RULES:
+
+- The server determines the authoritative intent before sending this request to the model.
+- The requested intent is provided by the execution context of this request.
+- For execution/failure analysis requests:
+  - intent MUST be "analyzeExecution".
+  - flowPlan MUST be null.
+  - modificationPlan MUST be null.
+  - Do not return "analyzeSelectedNode".
+  - Do not return "modifyFlow".
+  - Do not create, update, delete, or modify any flow node.
+  - Answer using only the execution evidence from context.execution.
+- Questions such as:
+  - "Kenapa node X gagal?"
+  - "Mengapa node X gagal?"
+  - "Apa penyebab node X gagal?"
+  - "Why did node X fail?"
+  are execution analysis requests, not selected-node analysis requests.
+- A failed node may be identified by context.execution.nodeResults.
+- For analyzeExecution, the failure evidence is authoritative.
+- Never replace the failed node with another node.
+- Never use node indexes to identify the failed node.
+- Never invent a node ID.
+- Never invent an element type.
+- Never invent a locator.
+- Never invent a locator strategy.
+- Never invent a timeout.
+- Never create a modificationPlan.
+- modificationPlan MUST always be null for analyzeExecution.
+- flowPlan MUST always be null for analyzeExecution.
+- The response message must describe only facts supported by context.execution.
+- If the failed node locator is available, quote that exact locator.
+- If the root cause cannot be determined from the evidence, explicitly state that it cannot be determined.
+- The node's flow configuration may be used only as supporting context for explaining the execution failure.
 
 Supported actions:
 tap
@@ -4081,6 +4666,33 @@ Assertion operator rules:
 - If the user explicitly says "equals", use "equals".
 - Never substitute "equals" for another explicitly requested operator.Assert does not use locator.
 
+EXECUTION ANALYSIS OUTPUT:
+
+When the requested intent is "analyzeExecution":
+
+- Return exactly this structure:
+{
+  "message": string,
+  "intent": "analyzeExecution",
+  "flowPlan": null,
+  "modificationPlan": null
+}
+
+- The message must be a concise explanation of the actual execution failure.
+- Use only evidence from context.execution.
+- You may use the matching node from context.flow only to identify its title, action, locatorStrategy, and locator.
+- Never invent or change the failed node ID.
+- Never invent a node index.
+- Never invent an element type.
+- Never invent a locator.
+- Never invent a locator strategy.
+- Never invent a timeout.
+- Never suggest adding, deleting, updating, replacing, or moving a node.
+- Never return a modificationPlan.
+- Never return a flowPlan.
+- If the evidence does not establish the root cause, say that the exact root cause cannot be determined from the available execution evidence.
+- For a locator failure, explain that the configured locator could not locate the element. Do not assume the locator is wrong unless the evidence proves it.
+
 When the user asks to analyze the current flow:
 intent must be analyzeFlow.
 flowPlan must be null.
@@ -4093,7 +4705,103 @@ When the user asks to create a NEW flow:
 
 - intent MUST be "generateFlow".
 - flowPlan MUST NOT be null.
+- modificationPlan MUST be null.
 - Generate the requested flow as a flow plan.
+- flowPlan MUST contain "type", "summary", "steps", and "warnings".
+- flowPlan.type MUST be "flow_plan".
+- flowPlan.steps MUST be an array.
+- Each item in flowPlan.steps MUST represent one requested flow action.
+- flowPlan.warnings MUST be an array of strings.
+
+For generateFlow, return exactly:
+
+{
+  "message": string,
+  "intent": "generateFlow",
+  "flowPlan": {
+    "type": "flow_plan",
+    "summary": string,
+    "steps": [
+      {
+        "id": string,
+        "action": string,
+        "title": string,
+        "description": string,
+        "locatorStrategy": string | null,
+        "locator": string | null,
+        "text": string | null,
+        "duration": number | null,
+        "actual": string | null,
+        "operator": string | null,
+        "expected": string | null,
+        "variableName": string | null,
+        "timeout": number | null,
+        "pollingInterval": number | null
+      }
+    ],
+    "warnings": string[]
+  },
+  "modificationPlan": null
+}
+
+IMPORTANT FOR generateFlow:
+
+- Never return "flowPlan": null.
+- Never omit "flowPlan".
+- Never put generated steps directly at the top level.
+- Never put generated steps inside "modificationPlan".
+- flowPlan.steps MUST contain the actual requested actions.
+- Use the supported actions listed above.
+- For actions that do not require a field, use null.
+- Do not invent unrelated actions.
+- Preserve the order requested by the user.
+
+Example generateFlow response:
+
+{
+  "message": "Saya sudah menyiapkan flow login.",
+  "intent": "generateFlow",
+  "flowPlan": {
+    "type": "flow_plan",
+    "summary": "Login to the application.",
+    "steps": [
+      {
+        "id": "ai-launch-app",
+        "action": "launchApp",
+        "title": "Launch App",
+        "description": "Launch the application.",
+        "locatorStrategy": null,
+        "locator": null,
+        "text": null,
+        "duration": null,
+        "actual": null,
+        "operator": null,
+        "expected": null,
+        "variableName": null,
+        "timeout": null,
+        "pollingInterval": null
+      },
+      {
+        "id": "ai-input-username",
+        "action": "input",
+        "title": "Input Username",
+        "description": "Enter the username.",
+        "locatorStrategy": "accessibilityId",
+        "locator": "username",
+        "text": "naufal",
+        "duration": null,
+        "actual": null,
+        "operator": null,
+        "expected": null,
+        "variableName": null,
+        "timeout": null,
+        "pollingInterval": null
+      }
+    ],
+    "warnings": []
+  },
+  "modificationPlan": null
+}
 
 When the user asks to MODIFY the EXISTING flow:
 
@@ -4446,12 +5154,14 @@ For analyzeSelectedNode:
     role: "user",
 
     content:
-        JSON.stringify({
-            message:
-                effectiveMessage,
+    JSON.stringify({
+        message:
+            effectiveMessage,
 
-            context,
-        }),
+        intent,
+
+        context,
+    }),
 },
                     ],
 
@@ -4480,6 +5190,22 @@ For analyzeSelectedNode:
 
     const content =
         data?.message?.content;
+
+        console.error(
+    "[AI DEBUG REQUEST]",
+    JSON.stringify(
+        {
+            effectiveMessage,
+        },
+        null,
+        2,
+    ),
+);
+
+console.error(
+    "[AI RAW RESPONSE]",
+    content,
+);
 
     if (
         typeof content !==
@@ -4522,12 +5248,21 @@ For analyzeSelectedNode:
         );
     }
 
-   const intent =
-    normalizeIntent(
-        undefined,
+    if (
+    intent ===
+    "analyzeExecution"
+) {
+    parsed.flowPlan = null;
+    parsed.modificationPlan = null;
+}
+console.error(
+    "[AI SANITIZED RESPONSE]",
+    JSON.stringify(
+        parsed,
         null,
-        effectiveMessage,
-    );
+        2,
+    ),
+);
     const userLanguage =
     /[^\x00-\x7F]/.test(
         message,
@@ -4537,7 +5272,7 @@ For analyzeSelectedNode:
     )
         ? "id"
         : "en";
-
+    
     if (
         !VALID_INTENTS.has(
             intent,
@@ -4590,6 +5325,47 @@ if (
             "analyzeSelectedNode",
 
         flowPlan:
+            null,
+    };
+}
+
+if (
+    intent ===
+    "analyzeExecution"
+) {
+    const userLanguage =
+        /[^\x00-\x7F]/.test(
+            message,
+        ) ||
+        /\b(saya|flow|jelaskan|apa|yang|ini|tolong|buat|tambahkan)\b/i.test(
+            message,
+        )
+            ? "id"
+            : "en";
+
+    const executionMessage =
+        buildExecutionAnalysisMessage(
+            context,
+            userLanguage,
+        );
+
+    return {
+        message:
+            executionMessage ||
+            (
+                userLanguage ===
+                "en"
+                    ? "There is not enough execution evidence to analyze the failure."
+                    : "Belum ada evidence execution yang cukup untuk menganalisis kegagalan."
+            ),
+
+        intent:
+            "analyzeExecution",
+
+        flowPlan:
+            null,
+
+        modificationPlan:
             null,
     };
 }
@@ -4829,6 +5605,8 @@ if (
     };
 }
 
+let flowPlan = null;
+
 if (
     intent ===
     "generateFlow"
@@ -4839,20 +5617,20 @@ if (
             message,
         );
 
-    
-
-    
-
     flowPlan =
         validateNormalizedPlan(
             normalizedPlan,
         );
 
     if (!flowPlan) {
-        throw new Error(
-            "AI generateFlow response does not contain a valid flow plan.",
-        );
-    }
+    throw new Error(
+        `AI generateFlow response does not contain a valid flow plan. parsed.flowPlan=${JSON.stringify(
+            parsed.flowPlan,
+            null,
+            2,
+        )}`,
+    );
+}
 }
 
     const finalResponse = {

@@ -29,11 +29,7 @@ const STATE_CHANGING_ACTIONS = new Set([
 function hasStateChangingPreviousNode(
     context: FailureContext,
 ): boolean {
-    const pathNodes =
-        context.executionPathNodes ??
-        context.previousNodes;
-
-    return pathNodes.some(
+    return context.previousNodes.some(
         (node) =>
             STATE_CHANGING_ACTIONS.has(
                 node.action,
@@ -161,7 +157,6 @@ export function detectApplicationStateMismatch(
     );
 
     const pathNodes =
-        context.executionPathNodes ??
         context.previousNodes;
 
     const stateChangingNodes =

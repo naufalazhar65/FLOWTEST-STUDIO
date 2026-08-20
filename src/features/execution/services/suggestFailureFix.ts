@@ -6,6 +6,10 @@ import type {
     FailureRootCause,
 } from "./analyzeFailureRootCause";
 
+import {
+    suggestLocatorRepair,
+} from "./suggestLocatorRepair";
+
 export type FailureFixType =
     | "reviewLocator"
     | "repairLocator"
@@ -26,6 +30,12 @@ export interface FailureFixSuggestion {
     targetNodeId:
     string | null;
 
+    suggestedLocator:
+    string | null;
+
+    locatorStrategy:
+    string | null;
+
     confidence:
     | "high"
     | "medium"
@@ -43,7 +53,45 @@ export function suggestFailureFix(
     switch (
     rootCause.category
     ) {
-        case "staleLocator":
+        case "staleLocator": {
+            const locatorRepair =
+                suggestLocatorRepair(
+                    context,
+                );
+
+            if (
+                locatorRepair?.suggestedLocator
+            ) {
+                return {
+                    type:
+                        "repairLocator",
+
+                    title:
+                        "Repair locator",
+
+                    description:
+                        `Replace the current locator with "${locatorRepair.suggestedLocator}".`,
+
+                    targetNodeId:
+                        context.node.id,
+
+                    suggestedLocator:
+                        locatorRepair.suggestedLocator,
+
+                    locatorStrategy:
+                        locatorRepair.locatorStrategy,
+
+                    confidence:
+                        locatorRepair.confidence,
+
+                    reason:
+                        locatorRepair.reason,
+
+                    autoApplicable:
+                        true,
+                };
+            }
+
             return {
                 type:
                     "reviewLocator",
@@ -57,6 +105,12 @@ export function suggestFailureFix(
                 targetNodeId:
                     context.node.id,
 
+                suggestedLocator:
+                    null,
+
+                locatorStrategy:
+                    null,
+
                 confidence:
                     rootCause.confidence,
 
@@ -64,8 +118,9 @@ export function suggestFailureFix(
                     "The failure indicates that the configured locator may no longer match the current UI.",
 
                 autoApplicable:
-                    true,
+                    false,
             };
+        }
 
         case "invalidLocator":
             return {
@@ -80,6 +135,12 @@ export function suggestFailureFix(
 
                 targetNodeId:
                     context.node.id,
+
+                suggestedLocator:
+                    null,
+
+                locatorStrategy:
+                    null,
 
                 confidence:
                     "high",
@@ -105,6 +166,12 @@ export function suggestFailureFix(
                 targetNodeId:
                     context.node.id,
 
+                suggestedLocator:
+                    null,
+
+                locatorStrategy:
+                    null,
+
                 confidence:
                     rootCause.confidence,
 
@@ -128,6 +195,12 @@ export function suggestFailureFix(
 
                 targetNodeId:
                     context.node.id,
+
+                suggestedLocator:
+                    null,
+
+                locatorStrategy:
+                    null,
 
                 confidence:
                     rootCause.confidence,
@@ -153,6 +226,12 @@ export function suggestFailureFix(
                 targetNodeId:
                     context.node.id,
 
+                suggestedLocator:
+                    null,
+
+                locatorStrategy:
+                    null,
+
                 confidence:
                     rootCause.confidence,
 
@@ -175,6 +254,12 @@ export function suggestFailureFix(
                     "Reconnect or recreate the Appium/WebDriver session before retrying the failed flow.",
 
                 targetNodeId:
+                    null,
+
+                suggestedLocator:
+                    null,
+
+                locatorStrategy:
                     null,
 
                 confidence:
@@ -201,6 +286,12 @@ export function suggestFailureFix(
 
                 targetNodeId:
                     context.node.id,
+
+                suggestedLocator:
+                    null,
+
+                locatorStrategy:
+                    null,
 
                 confidence:
                     "low",

@@ -846,6 +846,20 @@ export function AIAssistant({
                 {
                     reuseExistingAppiumSession:
                         true,
+
+                    onManualHealingPlan:
+                        (
+                            modificationPlan,
+                        ) => {
+                            setDraftModificationPlan(
+                                modificationPlan,
+                            );
+
+                            setStatus(
+                                "A verified self-healing fix is ready for review.",
+                                "info",
+                            );
+                        },
                 },
             );
 

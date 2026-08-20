@@ -4,9 +4,14 @@ import type {
     AIModificationPlan,
 } from "./AIModificationPlan";
 
+import type {
+    AIExecutionContext,
+} from "./AIExecutionContext";
+
 export type AIIntent =
     | "analyzeFlow"
     | "analyzeSelectedNode"
+    | "analyzeExecution"
     | "generateFlow"
     | "modifyFlow"
     | "reviewFlow";
@@ -61,10 +66,11 @@ export interface AIFlowContext {
 export interface AIRequest {
     message: string;
 
-    context: AIFlowContext;
+    context:
+    AIExecutionContext;
 
     clarification?:
-        AIPendingClarification;
+    AIPendingClarification;
 }
 
 export interface AIClarificationCandidate {
@@ -79,27 +85,27 @@ export interface AIClarificationCandidate {
 
 export interface AIClarification {
     type:
-        | "target_node";
+    | "target_node";
 
     question: string;
 
     candidates:
-        AIClarificationCandidate[];
+    AIClarificationCandidate[];
 }
 
 export interface AIQARecommendation {
     id: string;
 
     priority:
-        | "critical"
-        | "high"
-        | "medium"
-        | "low";
+    | "critical"
+    | "high"
+    | "medium"
+    | "low";
 
     impact:
-        | "high"
-        | "medium"
-        | "low";
+    | "high"
+    | "medium"
+    | "low";
 
     score: number;
 
@@ -116,23 +122,45 @@ export interface AIQARecommendation {
     description: string;
 
     recommendation:
-        string | null;
+    string | null;
 
     suggestedFix:
-        | {
-            type: string;
+| {
+    type: string;
 
-            targetNodeId:
-                string | null;
-        }
-        | null;
+    title?: string;
+
+    description?: string;
+
+    targetNodeId:
+    string | null;
+
+    confidence?:
+    | "high"
+    | "medium"
+    | "low";
+
+    reason?: string;
+
+    autoApplicable?: boolean;
+
+    currentLocator?:
+    string | null;
+
+    suggestedLocator?:
+    string | null;
+
+    locatorStrategy?:
+    string | null;
+}
+| null;
 }
 
 export interface AIPendingClarification {
     originalMessage: string;
 
     clarification:
-        AIClarification;
+    AIClarification;
 
     selectedCandidateIndex?: number | null;
 }
@@ -145,10 +173,10 @@ export interface AIResponse {
     flowPlan?: AIFlowPlan;
 
     modificationPlan?:
-        AIModificationPlan;
+    AIModificationPlan;
 
     clarification?:
-        AIClarification;
+    AIClarification;
 
     qaRecommendations?:
     AIQARecommendation[];

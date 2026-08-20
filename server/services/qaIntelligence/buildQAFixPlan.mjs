@@ -561,6 +561,85 @@ export function buildQAFixPlan(
         };
     }
 
+        if (
+        fixType ===
+        "repairLocator"
+    ) {
+        const suggestedLocator =
+            recommendation
+                .suggestedFix
+                ?.suggestedLocator;
+
+        const suggestedLocatorStrategy =
+            recommendation
+                .suggestedFix
+                ?.locatorStrategy ??
+            targetNode.locatorStrategy ??
+            null;
+
+        if (
+            !suggestedLocator ||
+            !suggestedLocatorStrategy
+        ) {
+            return null;
+        }
+
+        return {
+            type:
+                "modification_plan",
+
+            summary:
+                "Repair the failed node locator using evidence from the active UI.",
+
+            operation: {
+                type:
+                    "updateNode",
+
+                targetNodeId,
+
+                step: {
+                    action:
+                        targetNode.action ??
+                        "tap",
+
+                    title:
+                        targetNode.title ??
+                        "Repair Locator",
+
+                    description:
+                        targetNode.subtitle ??
+                        "Replace the failed locator with a locator found from the active UI.",
+
+                    locatorStrategy:
+                        suggestedLocatorStrategy,
+
+                    locator:
+                        suggestedLocator,
+
+                    text: null,
+
+                    duration: null,
+
+                    actual: null,
+
+                    operator: null,
+
+                    expected: null,
+
+                    variableName: null,
+
+                    timeout: null,
+
+                    pollingInterval: null,
+                },
+            },
+
+            warnings: [
+                "The locator replacement is based on the active page source. Review the suggested locator before applying the modification.",
+            ],
+        };
+    }
+
     if (
         fixType ===
         "reviewLocator"

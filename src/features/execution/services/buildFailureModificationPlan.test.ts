@@ -154,6 +154,12 @@ function createAnalysis(
             confidence:
                 "high",
 
+            suggestedLocator:
+                null,
+
+            locatorStrategy:
+                null,
+
             reason:
                 "Timing issue.",
 

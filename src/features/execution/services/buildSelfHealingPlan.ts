@@ -85,7 +85,7 @@ function toExecutionLocatorStrategy(
     }
 }
 
-function deriveLocatorTarget(
+function deriveGenericLocatorTarget(
     analysis:
         ExecutionFailureAnalysis,
 ): string | null {
@@ -97,89 +97,18 @@ function deriveLocatorTarget(
     }
 
     /*
-     * Prefer an explicit semantic target when the
-     * failure context already provides one.
-     */
-    const semanticTarget =
-        "semanticTarget" in node &&
-            typeof node.semanticTarget ===
-            "string"
-            ? node.semanticTarget.trim()
-            : "";
-
-    if (semanticTarget) {
-        return semanticTarget;
-    }
-
-    /*
-     * Derive a stable human-readable target from
-     * the node metadata.
-     */
-    const source =
-        [
-            node.title,
-            node.subtitle,
-            node.locator,
-        ]
-            .filter(
-                (
-                    value,
-                ): value is string =>
-                    typeof value ===
-                    "string" &&
-                    value.trim()
-                        .length > 0,
-            )
-            .join(" ")
-            .trim();
-
-    const normalized =
-        source.toLowerCase();
-
-    if (
-        /\busername\b/
-            .test(
-                normalized,
-            )
-    ) {
-        return "username";
-    }
-
-    if (
-        /\bpassword\b/
-            .test(
-                normalized,
-            )
-    ) {
-        return "password";
-    }
-
-    if (
-        /\blogin\b/
-            .test(
-                normalized,
-            )
-    ) {
-        return "login";
-    }
-
-    if (
-        /\bdashboard\b/
-            .test(
-                normalized,
-            )
-    ) {
-        return "dashboard";
-    }
-
-    /*
-     * Last fallback: use the title itself.
+     * Generic fallback only.
      *
-     * Do not use the broken locator as the
-     * semantic target.
+     * No domain-specific targets such as Login,
+     * Username, Password, or Dashboard are encoded here.
+     *
+     * The preferred self-healing path uses the locator
+     * replacement discovered directly from page-source
+     * evidence.
      */
     return (
         node.title?.trim() ||
+        node.subtitle?.trim() ||
         null
     );
 }
@@ -230,12 +159,138 @@ export async function buildSelfHealingPlan(
             };
         }
 
-        const semanticTarget =
-            deriveLocatorTarget(
+        /*
+         * --------------------------------------------------
+         * PRIMARY PATH
+         *
+         * Use the replacement locator already discovered
+         * from the active page source.
+         *
+         * This path is completely generic:
+         * no node names, semantic keywords, or Login-specific
+         * rules are required.
+         * --------------------------------------------------
+         */
+        const suggestedLocator =
+            fix.suggestedLocator?.trim();
+
+        const suggestedLocatorStrategy =
+            fix.locatorStrategy?.trim();
+
+        if (
+            suggestedLocator &&
+            suggestedLocatorStrategy
+        ) {
+            if (
+                suggestedLocator ===
+                targetNode.locator &&
+                suggestedLocatorStrategy ===
+                targetNode.locatorStrategy
+            ) {
+                return {
+                    canAutoApply:
+                        false,
+
+                    strategy:
+                        "manual",
+
+                    confidence:
+                        "low",
+
+                    reason:
+                        "The suggested locator is identical to the failed locator.",
+
+                    modificationPlan:
+                        null,
+
+                    targetNodeId:
+                        targetNode.id,
+                };
+            }
+
+            const modificationPlan:
+                AIModificationPlan = {
+                type:
+                    "modification_plan",
+
+                summary:
+                    `Repair locator for "${targetNode.title}".`,
+
+                operation: {
+                    type:
+                        "updateNode",
+
+                    targetNodeId:
+                        targetNode.id,
+
+                    step: {
+                        action:
+                            targetNode.action as NodeAction,
+
+                        title:
+                            targetNode.title,
+
+                        description:
+                            targetNode.subtitle,
+
+                        locatorStrategy:
+                            suggestedLocatorStrategy as LocatorStrategy,
+
+                        locator:
+                            suggestedLocator,
+
+                        ...(typeof targetNode.text ===
+                            "string"
+                            ? {
+                                text:
+                                    targetNode.text,
+                            }
+                            : {}),
+                    },
+                },
+
+                warnings: [
+                    "The replacement locator was derived directly from the active page source captured during the failed execution.",
+                ],
+            };
+
+            return {
+                canAutoApply:
+                    true,
+
+                strategy:
+                    "modification",
+
+                confidence:
+                    fix.confidence,
+
+                reason:
+                    "A replacement locator was found directly from the active page source.",
+
+                modificationPlan,
+
+                targetNodeId:
+                    targetNode.id,
+            };
+        }
+
+        /*
+         * --------------------------------------------------
+         * FALLBACK PATH
+         *
+         * Keep the existing AI locator resolver as a
+         * fallback for cases where direct page-source repair
+         * did not produce a replacement.
+         *
+         * The fallback target is generic node metadata only.
+         * --------------------------------------------------
+         */
+        const genericTarget =
+            deriveGenericLocatorTarget(
                 analysis,
             );
 
-        if (!semanticTarget) {
+        if (!genericTarget) {
             return {
                 canAutoApply:
                     false,
@@ -247,7 +302,7 @@ export async function buildSelfHealingPlan(
                     fix.confidence,
 
                 reason:
-                    "A semantic target could not be determined for locator recovery.",
+                    "A generic locator target could not be determined for fallback locator recovery.",
 
                 modificationPlan:
                     null,
@@ -259,7 +314,7 @@ export async function buildSelfHealingPlan(
 
         const resolution =
             await resolveAILocatorFromApp(
-                semanticTarget,
+                genericTarget,
             );
 
         if (
@@ -279,7 +334,7 @@ export async function buildSelfHealingPlan(
 
                 reason:
                     resolution.error ??
-                    `No verified replacement locator was found for "${semanticTarget}".`,
+                    `No verified replacement locator was found for "${genericTarget}".`,
 
                 modificationPlan:
                     null,
@@ -292,11 +347,6 @@ export async function buildSelfHealingPlan(
         const replacement =
             resolution.selected;
 
-        /*
-         * Never apply the repair when the
-         * replacement is identical to the
-         * broken locator.
-         */
         if (
             replacement.strategy ===
             targetNode.locatorStrategy &&
@@ -356,6 +406,14 @@ export async function buildSelfHealingPlan(
 
                     locator:
                         replacement.value,
+
+                    ...(typeof targetNode.text ===
+                        "string"
+                        ? {
+                            text:
+                                targetNode.text,
+                        }
+                        : {}),
                 },
             },
 
@@ -375,7 +433,7 @@ export async function buildSelfHealingPlan(
                 fix.confidence,
 
             reason:
-                `A verified replacement locator was found for "${semanticTarget}".`,
+                "A verified replacement locator was found by the generic fallback resolver.",
 
             modificationPlan,
 
@@ -399,16 +457,16 @@ export async function buildSelfHealingPlan(
         if (!targetNode) {
             return {
                 canAutoApply:
-                    false,
+                    true,
 
                 strategy:
-                    "manual",
+                    "runtimeRecovery",
 
                 confidence:
                     fix.confidence,
 
                 reason:
-                    "The failed node context is unavailable for application state recovery.",
+                    "The application may be in the wrong state. Restore the application state before retrying the failed node.",
 
                 modificationPlan:
                     null,
@@ -429,7 +487,7 @@ export async function buildSelfHealingPlan(
                 fix.confidence,
 
             reason:
-                "A deterministic runtime recovery strategy is available for the failed application state.",
+                "The application may be in the wrong state. Restore the application state before retrying the failed node.",
 
             modificationPlan:
                 null,

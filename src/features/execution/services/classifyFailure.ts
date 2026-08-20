@@ -13,31 +13,31 @@ export type FailureCategory =
 
 export interface FailureClassification {
     category:
-        FailureCategory;
+    FailureCategory;
 
     confidence:
-        | "high"
-        | "medium"
-        | "low";
+    | "high"
+    | "medium"
+    | "low";
 
     evidence: string[];
 }
 
 interface FailureRule {
     category:
-        FailureCategory;
+    FailureCategory;
 
     confidence:
-        | "high"
-        | "medium"
-        | "low";
+    | "high"
+    | "medium"
+    | "low";
 
     patterns: RegExp[];
 
     actionPatterns?: RegExp[];
 
     evidence:
-        string;
+    string;
 }
 
 const FAILURE_RULES: FailureRule[] = [
@@ -55,6 +55,8 @@ const FAILURE_RULES: FailureRule[] = [
             /could\s+not\s+find\s+element/i,
             /element\s+was\s+not\s+found/i,
             /could\s+not\s+be\s+located\s+on\s+the\s+page/i,
+
+            /Class\s+name\s+["'][^"']+["']\s+was\s+not\s+found\s+in\s+the\s+active\s+page\s+source/i,
         ],
 
         evidence:

@@ -36,6 +36,22 @@ import type {
     AITestCase,
 } from "../types/AITestCase";
 
+import {
+    buildAIExecutionContext,
+} from "../services/buildAIExecutionContext";
+
+import {
+    useFlowStore,
+} from "../../flow/store/useFlowStore";
+
+import {
+    analyzeExecutionFailure,
+} from "../../execution/services/analyzeExecutionFailure";
+
+import {
+    applyAIModificationPlan,
+} from "../services/applyAIModificationPlan";
+
 interface AIStore {
     messages: AIMessage[];
 
@@ -70,6 +86,7 @@ interface AIStore {
         plan:
             AIFlowPlan | null,
     ) => void;
+
 
     setDraftModificationPlan: (
         plan:
@@ -192,6 +209,8 @@ export const useAIStore =
                     draftPlan:
                         plan,
                 }),
+
+
 
             setDraftTestCases: (
                 testCases,
@@ -409,7 +428,8 @@ export const useAIStore =
 
                     try {
                         const context =
-                            buildFlowContext();
+                            buildAIExecutionContext();
+
 
                         const pendingClarification =
                             get()
@@ -442,6 +462,107 @@ export const useAIStore =
                         const qaRecommendations =
                             response.qaRecommendations ??
                             [];
+                        let finalQARecommendations =
+                            qaRecommendations;
+
+                        if (
+                            response.intent ===
+                            "analyzeExecution"
+                        ) {
+                            const flow =
+                                useFlowStore.getState();
+
+                            const executionResults =
+                                Object.values(
+                                    context.execution.nodeResults,
+                                );
+
+                            const failureAnalysis =
+                                analyzeExecutionFailure(
+                                    executionResults,
+                                    flow.nodes,
+                                    flow.edges,
+                                );
+
+                            if (
+                                failureAnalysis
+                            ) {
+                                const {
+                                    context:
+                                    failureContext,
+                                    rootCause,
+                                    suggestedFix,
+                                } =
+                                    failureAnalysis;
+
+                                if (
+                                    !failureContext
+                                ) {
+                                    return;
+                                }
+
+                                finalQARecommendations = [
+                                    ...qaRecommendations,
+
+                                    {
+                                        id:
+                                            `execution-failure-${failureContext.node.id}`,
+
+                                        priority:
+                                            rootCause.confidence ===
+                                                "high"
+                                                ? "high"
+                                                : "medium",
+
+                                        impact:
+                                            "high",
+
+                                        score:
+                                            rootCause.confidence ===
+                                                "high"
+                                                ? 100
+                                                : 75,
+
+                                        category:
+                                            rootCause.category,
+
+                                        finding:
+                                            rootCause.title,
+
+                                        nodeId:
+                                            failureContext.node.id,
+
+                                        action:
+                                            failureContext.node.action,
+
+                                        title:
+                                            rootCause.title,
+
+                                        description:
+                                            rootCause.explanation,
+
+                                        recommendation:
+                                            suggestedFix.description,
+
+                                        suggestedFix: suggestedFix
+                                            ? {
+                                                type:
+                                                    suggestedFix.type,
+
+                                                targetNodeId:
+                                                    suggestedFix.targetNodeId,
+
+                                                suggestedLocator:
+                                                    suggestedFix.suggestedLocator,
+
+                                                locatorStrategy:
+                                                    suggestedFix.locatorStrategy,
+                                            }
+                                            : null,
+                                    },
+                                ];
+                            }
+                        }
 
                         if (
                             response.flowPlan
@@ -510,8 +631,7 @@ export const useAIStore =
                                 undefined,
 
                             qaRecommendations:
-                                response.qaRecommendations ??
-                                undefined,
+                                finalQARecommendations,
 
                             createdAt:
                                 Date.now(),
@@ -530,7 +650,8 @@ export const useAIStore =
 
                                 draftModificationPlan,
 
-                                qaRecommendations,
+                                qaRecommendations:
+                                    finalQARecommendations,
 
                                 pendingClarification:
                                     nextPendingClarification,
@@ -641,9 +762,23 @@ export const useAIStore =
                                 context,
                             );
 
+                        const applyResult =
+                            applyAIModificationPlan(
+                                modificationPlan,
+                            );
+
+                        if (
+                            !applyResult.success
+                        ) {
+                            throw new Error(
+                                applyResult.error ??
+                                "Failed to apply QA modification plan.",
+                            );
+                        }
+
                         set({
                             draftModificationPlan:
-                                modificationPlan,
+                                null,
 
                             draftPlan:
                                 null,

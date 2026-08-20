@@ -126,7 +126,7 @@ describe(
                 expect(
                     result.autoApplicable,
                 ).toBe(
-                    true,
+                    false,
                 );
             },
         );

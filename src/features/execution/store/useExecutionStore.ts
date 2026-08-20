@@ -297,7 +297,7 @@ export const useExecutionStore =
                     progress: 0,
 
                     startedAt:
-                        performance.now(),
+                        Date.now(),
 
                     finishedAt:
                         null,
@@ -355,7 +355,7 @@ export const useExecutionStore =
 
             finishExecution() {
                 const finished =
-                    performance.now();
+                    Date.now();
 
                 const started =
                     get().startedAt ??

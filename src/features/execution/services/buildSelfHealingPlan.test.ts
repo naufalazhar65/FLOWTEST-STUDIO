@@ -3,6 +3,7 @@ import {
     expect,
     it,
     vi,
+    beforeEach,
 } from "vitest";
 
 import {
@@ -44,20 +45,11 @@ function createAnalysis(
 
         locator?:
         string | null;
+
+        suggestedLocator?:
+        string | null;
     },
 ): ExecutionFailureAnalysis {
-    const fixType =
-        options?.fixType ??
-        "addWait";
-
-    const autoApplicable =
-        options?.autoApplicable ??
-        (
-            fixType ===
-            "addWait" ||
-            fixType ===
-            "repairLocator"
-        );
 
     return {
         context: {
@@ -160,45 +152,35 @@ function createAnalysis(
 
         suggestedFix: {
             type:
-                fixType,
+                options?.fixType ??
+                "reviewLocator",
 
             title:
-                fixType ===
-                    "addWait"
-                    ? "Add synchronization"
-                    : fixType ===
-                        "reviewLocator"
-                        ? "Review locator"
-                        : fixType ===
-                            "repairLocator"
-                            ? "Repair invalid locator"
-                            : "Manual investigation required",
+                "...",
 
             description:
-                fixType ===
-                    "addWait"
-                    ? "Add wait."
-                    : fixType ===
-                        "reviewLocator"
-                        ? "Review locator."
-                        : fixType ===
-                            "repairLocator"
-                            ? "Repair locator."
-                            : "Manual investigation required.",
+                "...",
 
             targetNodeId:
-                fixType ===
-                    "none"
-                    ? null
-                    : "node-1",
+                "node-1",
+
+            suggestedLocator:
+                options?.suggestedLocator ??
+                null,
+
+            locatorStrategy:
+                options?.locatorStrategy ??
+                null,
 
             confidence:
                 "high",
 
             reason:
-                "Test reason.",
+                "...",
 
-            autoApplicable,
+            autoApplicable:
+                options?.autoApplicable ??
+                false,
         },
     };
 }
@@ -206,6 +188,10 @@ function createAnalysis(
 describe(
     "buildSelfHealingPlan",
     () => {
+        beforeEach(() => {
+            vi.clearAllMocks();
+        });
+
         it(
             "creates an auto-applicable modification plan when a deterministic repair exists",
             async () => {
@@ -452,6 +438,74 @@ describe(
         );
 
         it(
+            "creates an auto-applicable locator repair plan directly from failure evidence",
+            async () => {
+                const result =
+                    await buildSelfHealingPlan(
+                        createAnalysis({
+                            fixType:
+                                "repairLocator",
+
+                            autoApplicable:
+                                false,
+
+                            locatorStrategy:
+                                "accessibilityId",
+
+                            locator:
+                                "Menu Iconsgherhthrht",
+
+                            suggestedLocator:
+                                "Menu Icons",
+                        }),
+                    );
+
+                expect(
+                    resolveAILocatorFromApp,
+                ).not.toHaveBeenCalled();
+
+                expect(
+                    result.canAutoApply,
+                ).toBe(true);
+
+                expect(
+                    result.strategy,
+                ).toBe(
+                    "modification",
+                );
+
+                expect(
+                    result.targetNodeId,
+                ).toBe(
+                    "node-1",
+                );
+
+                expect(
+                    result.modificationPlan,
+                ).toMatchObject({
+                    type:
+                        "modification_plan",
+
+                    operation: {
+                        type:
+                            "updateNode",
+
+                        targetNodeId:
+                            "node-1",
+
+                        step: {
+                            locatorStrategy:
+                                "accessibilityId",
+
+                            locator:
+                                "Menu Icons",
+                        },
+                    },
+                });
+            },
+        );
+
+        it(
             "creates an auto-applicable locator repair plan",
             async () => {
                 vi.mocked(
@@ -529,7 +583,7 @@ describe(
                 expect(
                     resolveAILocatorFromApp,
                 ).toHaveBeenCalledWith(
-                    "login",
+                    "Tap Login",
                 );
 
                 expect(

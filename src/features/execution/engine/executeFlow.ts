@@ -828,6 +828,8 @@ export async function executeFlow(
         // Execution Failed
         // ---------------------------------------
 
+        execution.finishExecution();
+
         execution.setStatus(
             "failed",
         );

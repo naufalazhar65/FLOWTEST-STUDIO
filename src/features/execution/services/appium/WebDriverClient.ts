@@ -43,46 +43,93 @@ export class WebDriverClient {
             `${this.baseUrl}${path}`,
             {
                 method,
+
                 headers: {
                     "Content-Type":
                         "application/json",
                 },
+
                 body:
                     body === undefined
                         ? undefined
-                        : JSON.stringify(body),
+                        : JSON.stringify(
+                            body,
+                        ),
             },
         );
 
-        const text = await response.text();
+        const text =
+            await response.text();
 
         const payload =
             text.length === 0
                 ? undefined
                 : JSON.parse(text);
 
-        if (!response.ok) {
-            if (!response.ok) {
-                if (
-                    payload &&
-                    typeof payload === "object" &&
-                    "value" in payload
-                ) {
-                    const value =
-                        (payload as {
+        if (
+            !response.ok
+        ) {
+            if (
+                payload &&
+                typeof payload ===
+                "object" &&
+                "value" in payload
+            ) {
+                const value =
+                    (
+                        payload as {
                             value?: {
+                                error?: string;
+
                                 message?: string;
                             };
-                        }).value;
-
-                    throw new Error(
-                        value?.message ??
-                        response.statusText,
-                    );
-                }
+                        }
+                    ).value;
 
                 throw new Error(
+                    value?.message ??
+                    value?.error ??
                     response.statusText,
+                );
+            }
+
+            throw new Error(
+                response.statusText,
+            );
+        }
+
+        /*
+         * Some WebDriver/Appium implementations may
+         * return a protocol-level error payload even
+         * when the HTTP response itself is successful.
+         */
+        if (
+            payload &&
+            typeof payload ===
+            "object" &&
+            "value" in payload
+        ) {
+            const value =
+                (
+                    payload as {
+                        value?: {
+                            error?: string;
+
+                            message?: string;
+                        };
+                    }
+                ).value;
+
+            if (
+                value &&
+                typeof value ===
+                "object" &&
+                typeof value.error ===
+                "string"
+            ) {
+                throw new Error(
+                    value.message ??
+                    value.error,
                 );
             }
         }
