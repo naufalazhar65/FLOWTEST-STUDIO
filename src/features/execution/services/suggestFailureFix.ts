@@ -54,10 +54,41 @@ export function suggestFailureFix(
     rootCause.category
     ) {
         case "staleLocator": {
+            console.log(
+                "[SELF-HEALING] LOCATOR REPAIR INPUT",
+                {
+                    action:
+                        context.node.action,
+
+                    locatorStrategy:
+                        context.node.locatorStrategy,
+
+                    locator:
+                        context.node.locator,
+
+                    hasPageSource:
+                        Boolean(
+                            context.execution
+                                .pageSource,
+                        ),
+
+                    pageSourceLength:
+                        context.execution
+                            .pageSource
+                            ?.length ??
+                        0,
+                },
+            );
+
             const locatorRepair =
                 suggestLocatorRepair(
                     context,
                 );
+
+            console.log(
+                "[SELF-HEALING] LOCATOR REPAIR RESULT",
+                locatorRepair,
+            );
 
             if (
                 locatorRepair?.suggestedLocator
@@ -152,7 +183,108 @@ export function suggestFailureFix(
                     true,
             };
 
-        case "elementNotReady":
+        case "elementNotReady": {
+            /*
+             * A wait node already represents synchronization.
+             *
+             * If the wait itself times out, adding another
+             * wait before it is not useful. Treat the failure
+             * as a locator-repair candidate instead.
+             */
+            if (
+                context.node.action ===
+                "wait"
+            ) {
+                console.log(
+                    "[SELF-HEALING] WAIT LOCATOR REPAIR",
+                    {
+                        locatorStrategy:
+                            context.node.locatorStrategy,
+
+                        locator:
+                            context.node.locator,
+
+                        hasPageSource:
+                            Boolean(
+                                context.execution
+                                    .pageSource,
+                            ),
+                    },
+                );
+
+                const locatorRepair =
+                    suggestLocatorRepair(
+                        context,
+                    );
+
+                console.log(
+                    "[SELF-HEALING] WAIT LOCATOR REPAIR RESULT",
+                    locatorRepair,
+                );
+
+                if (
+                    locatorRepair?.suggestedLocator
+                ) {
+                    return {
+                        type:
+                            "repairLocator",
+
+                        title:
+                            "Repair wait locator",
+
+                        description:
+                            `Replace the wait locator with "${locatorRepair.suggestedLocator}".`,
+
+                        targetNodeId:
+                            context.node.id,
+
+                        suggestedLocator:
+                            locatorRepair.suggestedLocator,
+
+                        locatorStrategy:
+                            locatorRepair.locatorStrategy,
+
+                        confidence:
+                            locatorRepair.confidence,
+
+                        reason:
+                            locatorRepair.reason,
+
+                        autoApplicable:
+                            true,
+                    };
+                }
+
+                return {
+                    type:
+                        "reviewLocator",
+
+                    title:
+                        "Review wait locator",
+
+                    description:
+                        "The wait timed out. Review its locator against the current application UI.",
+
+                    targetNodeId:
+                        context.node.id,
+
+                    suggestedLocator:
+                        null,
+
+                    locatorStrategy:
+                        null,
+
+                    confidence:
+                        rootCause.confidence,
+
+                    reason:
+                        "The wait node timed out and no verified replacement locator was found.",
+
+                    autoApplicable:
+                        false,
+                };
+            }
+
             return {
                 type:
                     "addWait",
@@ -181,6 +313,7 @@ export function suggestFailureFix(
                 autoApplicable:
                     true,
             };
+        }
 
         case "assertionMismatch":
             return {

@@ -210,6 +210,52 @@ export function classifyFailure(
         context.node.action ??
         "";
 
+    /*
+* WAIT locator failures must be classified
+* as element-not-found/stale-locator when
+* the driver indicates that the target could
+* not be located.
+*
+* A generic "timeout" rule must not override
+* a locator failure for wait nodes.
+*/
+    if (
+        /^wait$/i.test(
+            action,
+        ) &&
+        (
+            /could\s+not\s+be\s+located/i.test(
+                error,
+            ) ||
+            /could\s+not\s+find\s+element/i.test(
+                error,
+            ) ||
+            /unable\s+to\s+find\s+element/i.test(
+                error,
+            ) ||
+            /no\s+such\s+element/i.test(
+                error,
+            ) ||
+            /element\s+not\s+found/i.test(
+                error,
+            )
+        )
+    ) {
+        return {
+            category:
+                "elementNotFound",
+
+            confidence:
+                "high",
+
+            evidence: [
+                "The wait node failed because its target element could not be located.",
+                `Matched error: "${error}"`,
+                `Failed action: "${action}".`,
+            ],
+        };
+    }
+
     if (!error) {
         return {
             category:

@@ -641,30 +641,36 @@ function inferSemanticTarget(
         .join(" ")
         .toLowerCase();
 
-    if (
-        /\blogin\s+screen\b/.test(
-            text,
-        ) ||
-        /\bscreen\b.*\blogin\b/.test(
-            text,
-        ) ||
-        /\blogin\b.*\bscreen\b/.test(
-            text,
-        )
-    ) {
-        return "login-screen";
-    }
+if (
+    /\blogin\s+button\b/.test(
+        text,
+    ) ||
+    /\btap\s+login\b/.test(
+        text,
+    ) ||
+    /\bwait\b.*\blogin\b.*\bbutton\b/.test(
+        text,
+    ) ||
+    /\btunggu\b.*\blogin\b.*\bbutton\b/.test(
+        text,
+    )
+) {
+    return "login-button";
+}
 
-    if (
-        /\blogin\s+button\b/.test(
-            text,
-        ) ||
-        /\btap\s+login\b/.test(
-            text,
-        )
-    ) {
-        return "login-button";
-    }
+if (
+    /\blogin\s+screen\b/.test(
+        text,
+    ) ||
+    /\bscreen\b.*\blogin\b/.test(
+        text,
+    ) ||
+    /\blogin\b.*\bscreen\b/.test(
+        text,
+    )
+) {
+    return "login-screen";
+}
 
     if (
         /\busername\b/.test(
@@ -989,6 +995,97 @@ function normalizeNativeStep(
 
             expected:
                 null,
+
+            appPackage:
+                null,
+
+            appActivity:
+                null,
+
+            noReset:
+                null,
+        });
+    }
+
+        /*
+     * WAIT
+     *
+     * Wait until an element is available.
+     */
+    if (
+        action === "wait"
+    ) {
+        const locator =
+            typeof step.locator ===
+            "string"
+                ? step.locator
+                : typeof step.value ===
+                    "string"
+                    ? step.value
+                    : null;
+
+        const locatorStrategy =
+            VALID_LOCATOR_STRATEGIES.has(
+                step.locatorStrategy,
+            )
+                ? step.locatorStrategy
+                : "accessibilityId";
+
+        const timeout =
+            typeof step.timeout ===
+                "number" &&
+            step.timeout > 0
+                ? step.timeout
+                : 10000;
+
+        const pollingInterval =
+            typeof step.pollingInterval ===
+                "number" &&
+            step.pollingInterval > 0
+                ? step.pollingInterval
+                : 500;
+
+        return createStep({
+            id,
+
+            action:
+                "wait",
+
+            title:
+                step.title ??
+                "Wait Until Element",
+
+            description:
+                step.description ??
+                "Wait until the target element is available.",
+
+            semanticTarget,
+
+            locatorStrategy,
+
+            locator,
+
+            text:
+                null,
+
+            variableName:
+                null,
+
+            duration:
+                null,
+
+            actual:
+                null,
+
+            operator:
+                null,
+
+            expected:
+                null,
+
+            timeout,
+
+            pollingInterval,
 
             appPackage:
                 null,
@@ -5216,6 +5313,25 @@ LOGIN FLOW RULES:
 - Preserve the requested order:
   launchApp → Input Username → Input Password → Login.
 
+WAIT GENERATION RULES:
+
+- When the user explicitly asks to "tunggu sampai",
+  "wait until", "wait for", or equivalent wording,
+  generate a "wait" step.
+
+- A request such as "tunggu sampai tombol Login terlihat"
+  MUST generate:
+  action = "wait"
+  locatorStrategy = a valid locator strategy
+  locator = the target element locator
+  timeout = a positive timeout value
+  pollingInterval = a positive polling interval
+
+- Do not replace an explicitly requested wait with a tap,
+  delay, assert, or omit the wait step.
+
+- Preserve the requested order of actions.
+
 IMPORTANT FOR generateFlow:
 
 - Never return "flowPlan": null.
@@ -6323,11 +6439,115 @@ if (
     intent ===
     "generateFlow"
 ) {
-    const normalizedPlan =
+    let normalizedPlan =
         normalizeModelFlowPlan(
             parsed.flowPlan,
             message,
         );
+
+    /*
+     * Deterministic wait fallback.
+     *
+     * If the user explicitly requested a wait
+     * but the model omitted it, add the wait
+     * deterministically instead of relying on
+     * the model to follow the instruction.
+     */
+    const requestedWait =
+        /\b(?:tunggu sampai|wait until|wait for)\b/i.test(
+            message,
+        );
+
+    const hasWait =
+        Array.isArray(
+            normalizedPlan?.steps,
+        ) &&
+        normalizedPlan.steps.some(
+            (step) =>
+                step?.action ===
+                "wait",
+        );
+
+            if (
+        requestedWait &&
+        normalizedPlan &&
+        !hasWait
+    ) {
+        const waitStep = {
+            id:
+                "ai-wait-login",
+
+            action:
+                "wait",
+
+            title:
+                "Wait Until Login",
+
+            description:
+                "Wait until the Login button is visible.",
+
+            semanticTarget:
+                "login-button",
+
+            locatorStrategy:
+                "accessibilityId",
+
+            locator:
+                "Login",
+
+            text:
+                null,
+
+            duration:
+                null,
+
+            actual:
+                null,
+
+            operator:
+                null,
+
+            expected:
+                null,
+
+            variableName:
+                null,
+
+            timeout:
+                10000,
+
+            pollingInterval:
+                500,
+        };
+
+        const loginStepIndex =
+            normalizedPlan.steps.findIndex(
+                (step) =>
+                    step?.action ===
+                        "tap" &&
+                    (
+                        step?.semanticTarget ===
+                            "login-button" ||
+                        step?.locator ===
+                            "Login"
+                    ),
+            );
+
+        if (
+            loginStepIndex >=
+            0
+        ) {
+            normalizedPlan.steps.splice(
+                loginStepIndex,
+                0,
+                waitStep,
+            );
+        } else {
+            normalizedPlan.steps.push(
+                waitStep,
+            );
+        }
+    }
 
     flowPlan =
         validateNormalizedPlan(
@@ -6335,14 +6555,14 @@ if (
         );
 
     if (!flowPlan) {
-    throw new Error(
-        `AI generateFlow response does not contain a valid flow plan. parsed.flowPlan=${JSON.stringify(
-            parsed.flowPlan,
-            null,
-            2,
-        )}`,
-    );
-}
+        throw new Error(
+            `AI generateFlow response does not contain a valid flow plan. parsed.flowPlan=${JSON.stringify(
+                parsed.flowPlan,
+                null,
+                2,
+            )}`,
+        );
+    }
 }
 
     const finalResponse = {
@@ -6356,6 +6576,11 @@ if (
     intent,
 
     flowPlan,
+
+    modificationPlan:
+        intent === "generateFlow"
+            ? null
+            : parsed.modificationPlan,
 };
 
 function buildAssistantMessage(

@@ -172,6 +172,26 @@ export class ExecutionController {
                     context.edges,
                 );
 
+                console.log(
+    "[SELF-HEALING] FAILURE ANALYSIS",
+    {
+        node:
+            failureAnalysis?.context?.node,
+
+        execution:
+            failureAnalysis?.context?.execution,
+
+        classification:
+            failureAnalysis?.classification,
+
+        rootCause:
+            failureAnalysis?.rootCause,
+
+        suggestedFix:
+            failureAnalysis?.suggestedFix,
+    },
+);
+
             /*
              * If there is not enough evidence to
              * analyze the failure, preserve the

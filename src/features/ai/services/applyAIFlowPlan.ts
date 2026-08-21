@@ -448,6 +448,72 @@ function applyStep(
             return node.id;
         }
 
+        case "wait": {
+            if (
+                !planStep.locator?.trim()
+            ) {
+                throw new Error(
+                    `Wait step "${planStep.title}" is missing a locator.`,
+                );
+            }
+
+            if (
+                planStep.timeout ===
+                undefined ||
+                planStep.timeout ===
+                null ||
+                planStep.timeout <= 0
+            ) {
+                throw new Error(
+                    `Wait step "${planStep.title}" requires a positive timeout.`,
+                );
+            }
+
+            const pollingInterval =
+                planStep.pollingInterval ??
+                500;
+
+            store.addNodeWithLocator(
+                "wait",
+                toLocatorStrategy(
+                    planStep.locatorStrategy,
+                ),
+                planStep.locator,
+            );
+
+            const node =
+                getLastNode();
+
+            if (!node) {
+                throw new Error(
+                    `Failed to create wait node for "${planStep.title}".`,
+                );
+            }
+
+            store.updateNodeData(
+                node.id,
+                {
+                    title:
+                        planStep.title,
+
+                    subtitle:
+                        planStep.description,
+
+                    semanticTarget:
+                        getSemanticTarget(
+                            planStep,
+                        ),
+
+                    timeout:
+                        planStep.timeout,
+
+                    pollingInterval,
+                },
+            );
+
+            return node.id;
+        }
+
         case "back":
         case "home":
         case "closeApp":
@@ -455,7 +521,6 @@ function applyStep(
         case "hideKeyboard":
         case "screenshot":
         case "setVariable":
-        case "wait":
         case "scroll":
         case "swipe":
         case "longPress":
