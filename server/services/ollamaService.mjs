@@ -4075,15 +4075,6 @@ function normalizeModificationPlan(
  * --------------------------------------------------
  */
 
-const targetNodeId =
-    resolveModificationTarget({
-        operation:
-            rawOperation,
-
-        context,
-
-        message,
-    });
 
     /*
  * --------------------------------------------------
@@ -4156,15 +4147,16 @@ if (
                 : [];
 
         if (
-            nodes.length > 0 &&
-            !nodes.some(
-                (node) =>
-                    node?.id ===
-                    targetNodeId,
-            )
-        ) {
-            return null;
-        }
+    nodes.length > 0 &&
+    !normalizedTargetNodeId.startsWith("$") &&
+    !nodes.some(
+        (node) =>
+            node?.id ===
+            normalizedTargetNodeId,
+    )
+) {
+    return null;
+}
 
         /*
          * deleteNode does not have a step.
@@ -4174,11 +4166,18 @@ if (
             "deleteNode"
         ) {
             return {
-                type:
-                    "deleteNode",
+    type:
+        "deleteNode",
 
-                targetNodeId,
-            };
+    targetNodeId:
+        normalizedTargetNodeId,
+
+    ...(resultId
+        ? {
+              resultId,
+          }
+        : {}),
+};
         }
 
         /*
@@ -4367,6 +4366,33 @@ if (
                     : null;
         }
 
+        const targetNodeId =
+    resolveModificationTarget({
+        operation:
+            rawOperation,
+
+        context,
+
+        message,
+    });
+
+const rawTargetNodeId =
+    typeof rawOperation.targetNodeId ===
+        "string"
+        ? rawOperation.targetNodeId.trim()
+        : "";
+
+const normalizedTargetNodeId =
+    rawTargetNodeId.startsWith("$")
+        ? rawTargetNodeId
+        : targetNodeId;
+
+const resultId =
+    typeof rawOperation.resultId ===
+        "string"
+        ? rawOperation.resultId.trim()
+        : "";
+
         /*
          * --------------------------------------------------
          * Canonical normalized operation
@@ -4377,7 +4403,14 @@ if (
     type:
         normalizedOperationType,
 
-    targetNodeId,
+    targetNodeId:
+        normalizedTargetNodeId,
+
+    ...(resultId
+        ? {
+              resultId,
+          }
+        : {}),
 
     step: {
                 action,

@@ -54,41 +54,10 @@ export function suggestFailureFix(
     rootCause.category
     ) {
         case "staleLocator": {
-            console.log(
-                "[SELF-HEALING] LOCATOR REPAIR INPUT",
-                {
-                    action:
-                        context.node.action,
-
-                    locatorStrategy:
-                        context.node.locatorStrategy,
-
-                    locator:
-                        context.node.locator,
-
-                    hasPageSource:
-                        Boolean(
-                            context.execution
-                                .pageSource,
-                        ),
-
-                    pageSourceLength:
-                        context.execution
-                            .pageSource
-                            ?.length ??
-                        0,
-                },
-            );
-
             const locatorRepair =
                 suggestLocatorRepair(
                     context,
                 );
-
-            console.log(
-                "[SELF-HEALING] LOCATOR REPAIR RESULT",
-                locatorRepair,
-            );
 
             if (
                 locatorRepair?.suggestedLocator
@@ -195,32 +164,10 @@ export function suggestFailureFix(
                 context.node.action ===
                 "wait"
             ) {
-                console.log(
-                    "[SELF-HEALING] WAIT LOCATOR REPAIR",
-                    {
-                        locatorStrategy:
-                            context.node.locatorStrategy,
-
-                        locator:
-                            context.node.locator,
-
-                        hasPageSource:
-                            Boolean(
-                                context.execution
-                                    .pageSource,
-                            ),
-                    },
-                );
-
                 const locatorRepair =
                     suggestLocatorRepair(
                         context,
                     );
-
-                console.log(
-                    "[SELF-HEALING] WAIT LOCATOR REPAIR RESULT",
-                    locatorRepair,
-                );
 
                 if (
                     locatorRepair?.suggestedLocator

@@ -538,5 +538,95 @@ describe(
                 );
             },
         );
+
+        it(
+            "does not leave partial changes when a later operation fails",
+            () => {
+                const before =
+                    useFlowStore.getState();
+
+                const beforeNodeIds =
+                    before.nodes.map(
+                        (node) =>
+                            node.id,
+                    );
+
+                const result =
+                    applyAIModificationPlan(
+                        {
+                            type:
+                                "modification_plan",
+
+                            summary:
+                                "First operation succeeds, second operation fails.",
+
+                            operations: [
+                                {
+                                    type:
+                                        "addNodeAfter",
+
+                                    targetNodeId:
+                                        "1",
+
+                                    resultId:
+                                        "firstResult",
+
+                                    step: {
+                                        action:
+                                            "getText",
+
+                                        locatorStrategy:
+                                            "id",
+
+                                        locator:
+                                            "login",
+
+                                        variableName:
+                                            "actualText",
+                                    },
+                                },
+
+                                {
+                                    type:
+                                        "addNodeAfter",
+
+                                    targetNodeId:
+                                        "$missingResult",
+
+                                    step: {
+                                        action:
+                                            "assert",
+
+                                        actual:
+                                            "${actualText}",
+
+                                        operator:
+                                            "isNotEmpty",
+
+                                        expected:
+                                            "true",
+                                    },
+                                },
+                            ],
+                        },
+                    );
+
+                expect(
+                    result.success,
+                ).toBe(false);
+
+                const after =
+                    useFlowStore.getState();
+
+                expect(
+                    after.nodes.map(
+                        (node) =>
+                            node.id,
+                    ),
+                ).toEqual(
+                    beforeNodeIds,
+                );
+            },
+        );
     },
 );

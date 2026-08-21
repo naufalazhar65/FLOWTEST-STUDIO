@@ -14,7 +14,7 @@ describe("downloadFile", () => {
         const clickSpy = vi.spyOn(
             anchor,
             "click",
-        );
+        ).mockImplementation(() => { });
 
         vi.spyOn(
             document,

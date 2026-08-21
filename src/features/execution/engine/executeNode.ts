@@ -5,6 +5,7 @@ import type { RunnerResult } from "../types/RunnerResult";
 import { getRunner } from "../services/runnerRegistry";
 import { executionLogger } from "../services/executionLogger";
 import { appiumClient } from "../services/appium/AppiumClient";
+import { appiumSession } from "../services/appium/AppiumSession";
 import { useExecutionStore } from "../store/useExecutionStore";
 
 export async function executeNode(
@@ -129,24 +130,26 @@ export async function executeNode(
             | string
             | undefined;
 
-        try {
-            screenshot =
-                await appiumClient.takeScreenshot();
-        } catch (screenshotError) {
-            console.warn(
-                "Failed to capture failure screenshot.",
-                screenshotError,
-            );
-        }
+        if (appiumSession.hasSession()) {
+            try {
+                screenshot =
+                    await appiumClient.takeScreenshot();
+            } catch (screenshotError) {
+                console.warn(
+                    "Failed to capture failure screenshot.",
+                    screenshotError,
+                );
+            }
 
-        try {
-            pageSource =
-                await appiumClient.getPageSource();
-        } catch (pageSourceError) {
-            console.warn(
-                "Failed to capture failure page source.",
-                pageSourceError,
-            );
+            try {
+                pageSource =
+                    await appiumClient.getPageSource();
+            } catch (pageSourceError) {
+                console.warn(
+                    "Failed to capture failure page source.",
+                    pageSourceError,
+                );
+            }
         }
 
         execution.setNodeStatus(

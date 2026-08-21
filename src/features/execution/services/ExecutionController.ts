@@ -172,26 +172,6 @@ export class ExecutionController {
                     context.edges,
                 );
 
-                console.log(
-    "[SELF-HEALING] FAILURE ANALYSIS",
-    {
-        node:
-            failureAnalysis?.context?.node,
-
-        execution:
-            failureAnalysis?.context?.execution,
-
-        classification:
-            failureAnalysis?.classification,
-
-        rootCause:
-            failureAnalysis?.rootCause,
-
-        suggestedFix:
-            failureAnalysis?.suggestedFix,
-    },
-);
-
             /*
              * If there is not enough evidence to
              * analyze the failure, preserve the
@@ -234,27 +214,12 @@ export class ExecutionController {
              * safety guard.
              */
 
-            console.log(
-                "[SELF-HEALING] Starting",
-                {
-                    strategy:
-                        selfHealingPlan.strategy,
-
-                    canAutoApply:
-                        selfHealingPlan.canAutoApply,
-                },
-            );
-
-
             const healingResult =
                 await executeSelfHealing(
                     selfHealingPlan,
                     {
                         executeRecovery:
                             async () => {
-                                console.log(
-                                    "[SELF-HEALING] executeRecovery called",
-                                );
                                 if (
                                     selfHealingPlan.strategy !==
                                     "runtimeRecovery"
@@ -344,17 +309,6 @@ export class ExecutionController {
                                                 "launchApp",
                                         );
 
-                                    console.log(
-                                        "[SELF-HEALING] Recovery path started",
-                                        recoveryPathWithoutLaunch.map(
-                                            (node) => ({
-                                                id: node.id,
-                                                action: node.data.action,
-                                                title: node.data.title,
-                                            }),
-                                        ),
-                                    );
-
                                     await executeRecoveryPath(
                                         recoveryPathWithoutLaunch,
                                         {
@@ -362,10 +316,6 @@ export class ExecutionController {
                                             edges:
                                                 latestFlow.edges,
                                         },
-                                    );
-
-                                    console.log(
-                                        "[SELF-HEALING] Recovery path completed",
                                     );
 
                                     return {
@@ -405,14 +355,6 @@ export class ExecutionController {
 
                         rerun:
                             async () => {
-                                console.log(
-                                    "[SELF-HEALING] Rerun started",
-                                    {
-                                        strategy:
-                                            selfHealingPlan.strategy,
-                                    },
-                                );
-
                                 useExecutionStore
                                     .getState()
                                     .markNextExecutionAsRerun();
@@ -482,24 +424,6 @@ export class ExecutionController {
                                     }
 
                                     try {
-                                        console.log(
-                                            "[SELF-HEALING] Rerunning failed node",
-                                            {
-                                                nodeId:
-                                                    failedNode.id,
-
-                                                action:
-                                                    failedNode.data.action,
-
-                                                title:
-                                                    failedNode.data.title,
-
-                                                locator:
-                                                    "locator" in failedNode.data
-                                                        ? failedNode.data.locator
-                                                        : undefined,
-                                            },
-                                        );
                                         await executeNode(
                                             failedNode,
                                             {
@@ -567,11 +491,6 @@ export class ExecutionController {
                             },
                     },
                 );
-
-            console.log(
-                "[SELF-HEALING] Result",
-                healingResult,
-            );
 
             /*
   * The repair and rerun succeeded.

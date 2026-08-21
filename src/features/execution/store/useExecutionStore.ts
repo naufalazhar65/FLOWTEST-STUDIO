@@ -231,27 +231,6 @@ export const useExecutionStore =
                         result.nodeId
                         ] ?? [];
 
-                    console.error(
-                        "[EXECUTION HISTORY] APPEND",
-                        {
-                            nodeId:
-                                result.nodeId,
-
-                            status:
-                                result.status,
-
-                            locator:
-                                result.locator,
-
-                            error:
-                                result.error ??
-                                null,
-
-                            previousCount:
-                                previousHistory.length,
-                        },
-                    );
-
                     return {
                         nodeResults: {
                             ...state.nodeResults,
@@ -274,22 +253,11 @@ export const useExecutionStore =
             },
 
             markNextExecutionAsRerun() {
-                console.error(
-                    "[EXECUTION HISTORY] MARK RERUN BEFORE",
-                    get()
-                        .preserveNodeExecutionHistory,
-                );
-
                 set({
                     preserveNodeExecutionHistory:
                         true,
                 });
 
-                console.error(
-                    "[EXECUTION HISTORY] MARK RERUN AFTER",
-                    get()
-                        .preserveNodeExecutionHistory,
-                );
             },
 
             // =====================================
@@ -402,16 +370,6 @@ export const useExecutionStore =
             ) {
                 const state =
                     get();
-
-                console.error(
-                    "[EXECUTION HISTORY] PREPARE",
-                    {
-                        preserveHistory,
-
-                        history:
-                            state.nodeExecutionHistory,
-                    },
-                );
 
                 set({
                     status: "idle",

@@ -617,4 +617,214 @@ describe("resolveModificationTarget", () => {
       "notFound",
     );
   });
+
+  it(
+  "prefers semantic target over a conflicting locator",
+  () => {
+    const nodes = [
+      {
+        ...createNode({
+          id: "login-screen",
+          title: "Login",
+          action: "tap",
+          locator: "Login",
+        }),
+
+        details: {
+          semanticTarget:
+            "login-screen",
+        },
+      },
+
+      {
+        ...createNode({
+          id: "login-button",
+          title: "Login",
+          action: "tap",
+          locator: "Login",
+        }),
+
+        details: {
+          semanticTarget:
+            "login-button",
+        },
+      },
+    ];
+
+    const context =
+      createContext({
+        nodes,
+        edges: [],
+      });
+
+    const result =
+      resolveModificationTarget({
+        operation:
+          operation(
+            "updateNode",
+          ),
+        context,
+        message:
+          "Ubah Login Screen menjadi wait",
+      });
+
+    expect(result).toBe(
+      "login-screen",
+    );
+  },
+);
+
+it(
+  "does not resolve to the first next node when the requested target is another node",
+  () => {
+    const nodes = [
+      createNode({
+        id: "selected",
+        title: "Get Text",
+        action: "getText",
+      }),
+
+      createNode({
+        id: "first-next",
+        title: "Delay",
+        action: "delay",
+      }),
+
+      createNode({
+        id: "requested-next",
+        title: "Login",
+        action: "tap",
+      }),
+    ];
+
+    const edges = [
+      {
+        id: "edge-1",
+        source: "selected",
+        target: "first-next",
+        type: "flow",
+      },
+      {
+        id: "edge-2",
+        source: "first-next",
+        target: "requested-next",
+        type: "flow",
+      },
+    ];
+
+    const context = createContext({
+      nodes,
+      edges,
+      selectedNodeId:
+        "selected",
+    });
+
+    const result =
+      resolveModificationTarget({
+        operation:
+          operation(
+            "addNodeBefore",
+          ),
+
+        context,
+
+        message:
+          "Tambahkan wait sebelum Login setelah node yang dipilih",
+      });
+
+    expect(result).toBe(
+      "requested-next",
+    );
+  },
+);
+
+it(
+  "accepts an explicit targetNodeId when it matches an ambiguous reference candidate",
+  () => {
+    const nodes = [
+      createNode({
+        id: "login-1",
+        title: "Login",
+        action: "tap",
+      }),
+
+      createNode({
+        id: "login-2",
+        title: "Login",
+        action: "tap",
+      }),
+    ];
+
+    const context =
+      createContext({
+        nodes,
+        edges: [],
+      });
+
+    const result =
+      resolveModificationTarget({
+        operation:
+          operation(
+            "addNodeBefore",
+            "login-2",
+          ),
+
+        context,
+
+        message:
+          "Tambahkan wait sebelum Login",
+      });
+
+    expect(result).toBe(
+      "login-2",
+    );
+  },
+);
+
+it(
+  "does not trust an explicit targetNodeId outside the ambiguous reference candidates",
+  () => {
+    const nodes = [
+      createNode({
+        id: "login-1",
+        title: "Login",
+        action: "tap",
+      }),
+
+      createNode({
+        id: "login-2",
+        title: "Login",
+        action: "tap",
+      }),
+
+      createNode({
+        id: "logout",
+        title: "Logout",
+        action: "tap",
+      }),
+    ];
+
+    const context =
+      createContext({
+        nodes,
+        edges: [],
+      });
+
+    const result =
+      resolveModificationTarget({
+        operation:
+          operation(
+            "addNodeBefore",
+            "logout",
+          ),
+
+        context,
+
+        message:
+          "Tambahkan wait sebelum Login",
+      });
+
+    expect(result).toBeNull();
+  },
+);
 });

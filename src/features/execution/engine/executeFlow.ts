@@ -75,11 +75,6 @@ export async function executeFlow(
         options?.preserveExecutionHistory ??
         false;
 
-    console.error(
-        "[EXECUTION HISTORY] EXECUTE FLOW HISTORY MODE",
-        preserveExecutionHistory,
-    );
-
     execution.prepareForExecution(
         preserveExecutionHistory,
     );

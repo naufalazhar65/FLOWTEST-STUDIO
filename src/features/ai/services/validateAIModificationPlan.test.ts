@@ -714,14 +714,16 @@ describe(
                             summary:
                                 "Invalid delete result.",
 
-                            operation:
-                                {
-                                    type:
-                                        "deleteNode",
+                            operation: {
+                                type:
+                                    "deleteNode",
 
-                                    targetNodeId:
-                                        "return",
-                                } as never,
+                                targetNodeId:
+                                    "return",
+
+                                resultId:
+                                    "deletedNode",
+                            } as never,
                         },
 
                         new Set([
@@ -731,6 +733,15 @@ describe(
 
                 expect(
                     result.valid,
+                ).toBe(false);
+
+                expect(
+                    result.errors.some(
+                        (error) =>
+                            error.includes(
+                                "can only define resultId",
+                            ),
+                    ),
                 ).toBe(true);
             },
         );
@@ -762,6 +773,52 @@ describe(
                 ).toContain(
                     "Modification plan operation is missing.",
                 );
+            },
+        );
+
+        it(
+            "allows action mismatch because target node action is not available to the validator",
+
+            () => {
+                const result =
+                    validateAIModificationPlan(
+                        {
+                            type:
+                                "modification_plan",
+
+                            summary:
+                                "Invalid action mismatch.",
+
+                            operation: {
+                                type:
+                                    "updateNode",
+
+                                targetNodeId:
+                                    "node-login",
+
+                                step: {
+                                    action:
+                                        "input",
+
+                                    locatorStrategy:
+                                        "accessibilityId",
+
+                                    locator:
+                                        "Login",
+
+                                    text:
+                                        "naufal",
+                                },
+                            },
+                        },
+                        new Set([
+                            "node-login",
+                        ]),
+                    );
+
+                expect(
+                    result.valid,
+                ).toBe(true);
             },
         );
     },

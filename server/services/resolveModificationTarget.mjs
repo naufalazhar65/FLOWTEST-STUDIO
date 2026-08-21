@@ -1671,6 +1671,62 @@ export function resolveModificationTarget({
             .filter(Boolean);
     }
 
+    function getSemanticTarget(
+    node,
+) {
+    const value =
+        node?.details
+            ?.semanticTarget;
+
+    return typeof value ===
+        "string"
+        ? normalizeReference(
+            value,
+        )
+            .replace(
+                /[-_]+/g,
+                " ",
+            )
+            .replace(
+                /\s+/g,
+                " ",
+            )
+            .trim()
+        : "";
+}
+
+function findNodesBySemanticTarget(
+    reference,
+) {
+    const normalizedReference =
+        normalizeReference(
+            reference,
+        )
+            .replace(
+                /[-_]+/g,
+                " ",
+            )
+            .replace(
+                /\s+/g,
+                " ",
+            )
+            .trim();
+
+    if (
+        !normalizedReference
+    ) {
+        return [];
+    }
+
+    return nodes.filter(
+        (node) =>
+            getSemanticTarget(
+                node,
+            ) ===
+            normalizedReference,
+    );
+}
+
     function findNodesByReference(
         reference,
     ) {
@@ -2340,12 +2396,21 @@ function resolveExplicitGraphRelation() {
                 explicitNodeReference,
             )
             : null;
+    
+    const semanticReferencedNodes =
+    referenceCore
+        ? findNodesBySemanticTarget(
+              referenceCore,
+          )
+        : [];
 
     const referencedNodes =
-        referenceCore
+    semanticReferencedNodes.length > 0
+        ? semanticReferencedNodes
+        : referenceCore
             ? findNodesByReference(
-                referenceCore,
-            )
+                  referenceCore,
+              )
             : [];
 
     const explicitGraphRelation =
