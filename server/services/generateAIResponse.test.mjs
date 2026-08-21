@@ -424,5 +424,155 @@ it(
         );
     },
 );
+
+it(
+    "overrides only the first modification target with the selected node",
+    async () => {
+        vi.stubGlobal(
+            "fetch",
+            vi.fn(
+                async () => ({
+                    ok: true,
+
+                    json:
+                        async () => ({
+                            message: {
+                                content:
+                                    JSON.stringify({
+                                        message:
+                                            "Ubah node yang dipilih lalu tambahkan wait sebelum Confirm",
+
+                                        intent:
+                                            "modifyFlow",
+
+                                        flowPlan:
+                                            null,
+
+                                        modificationPlan:
+                                            {
+                                                type:
+                                                    "modification_plan",
+
+                                                operations: [
+                                                    {
+                                                        type:
+                                                            "updateNode",
+
+                                                        targetNodeId:
+                                                            "wrong-target",
+
+                                                        step: {
+                                                            action:
+                                                                "tap",
+
+                                                            locatorStrategy:
+                                                                "accessibilityId",
+
+                                                            locator:
+                                                                "Continue",
+                                                        },
+                                                    },
+
+                                                    {
+                                                        type:
+                                                            "addNodeBefore",
+
+                                                        targetNodeId:
+                                                            "explicit-2",
+
+                                                        step: {
+                                                            action:
+                                                                "wait",
+
+                                                            locatorStrategy:
+                                                                "accessibilityId",
+
+                                                            locator:
+                                                                "Confirm",
+
+                                                            timeout:
+                                                                1000,
+
+                                                            pollingInterval:
+                                                                500,
+                                                        },
+                                                    },
+                                                ],
+                                            },
+                                    }),
+                            },
+                        }),
+                }),
+            ),
+        );
+
+        const result =
+            await generateAIResponse({
+                message:
+                    "Ubah node yang dipilih lalu tambahkan wait sebelum Confirm",
+
+                context: {
+                    selectedNodeId:
+                        "selected-1",
+
+                    nodes: [
+                        {
+                            id:
+                                "selected-1",
+
+                            title:
+                                "Selected Node",
+
+                            action:
+                                "tap",
+                        },
+
+                        {
+                            id:
+                                "explicit-2",
+
+                            title:
+                                "Confirm",
+
+                            action:
+                                "tap",
+                        },
+                    ],
+
+                    edges: [],
+                },
+            });
+
+        expect(
+            result.intent,
+        ).toBe(
+            "modifyFlow",
+        );
+
+        expect(
+            result.modificationPlan,
+        ).not.toBeNull();
+
+        expect(
+            result.modificationPlan.operations,
+        ).toHaveLength(
+            2,
+        );
+
+        expect(
+            result.modificationPlan.operations[0]
+                .targetNodeId,
+        ).toBe(
+            "selected-1",
+        );
+
+        expect(
+            result.modificationPlan.operations[1]
+                .targetNodeId,
+        ).toBe(
+            "explicit-2",
+        );
+    },
+);
     },
 );

@@ -4037,7 +4037,7 @@ function normalizeModificationPlan(
      * --------------------------------------------------
      */
 
- function normalizeOneOperation(
+function normalizeOneOperation(
     rawOperation,
     operationIndex = 0,
 ) {
@@ -4063,27 +4063,51 @@ function normalizeModificationPlan(
      * --------------------------------------------------
      * Resolve target node.
      *
-     * When the user explicitly refers to
-     * "the selected node", the first modification
-     * must use the selected node from FlowTest Studio
-     * as the source of truth.
+     * The first operation resolves its target from
+     * the user's natural-language request.
      *
-     * Subsequent operations keep their explicit
-     * targetNodeId because they may refer to another
-     * existing node, including symbolic references
-     * such as "$previousResult".
+     * Subsequent operations preserve their explicit
+     * targetNodeId because they may target another
+     * existing node or a symbolic result reference.
      * --------------------------------------------------
      */
 
-    const targetNodeId =
-        resolveModificationTarget({
-            operation:
-                rawOperation,
+    const rawTargetNodeId =
+    typeof rawOperation.targetNodeId ===
+        "string"
+        ? rawOperation.targetNodeId.trim()
+        : "";
 
-            context,
+const nodes =
+    Array.isArray(
+        context?.nodes,
+    )
+        ? context.nodes
+        : [];
 
-            message,
-        });
+const hasExplicitExistingTarget =
+    rawTargetNodeId &&
+    nodes.some(
+        (node) =>
+            node?.id ===
+            rawTargetNodeId,
+    );
+
+const targetNodeId =
+    rawTargetNodeId.startsWith("$")
+        ? rawTargetNodeId
+        : operationIndex > 0
+            ? rawTargetNodeId
+            : hasExplicitExistingTarget
+                ? rawTargetNodeId
+                : resolveModificationTarget({
+                      operation:
+                          rawOperation,
+
+                      context,
+
+                      message,
+                  });
 
     /*
      * Preserve symbolic target references.
@@ -4092,12 +4116,6 @@ function normalizeModificationPlan(
      * an existing node ID yet. It must be resolved
      * later by the AI modification applier.
      */
-
-    const rawTargetNodeId =
-        typeof rawOperation.targetNodeId ===
-            "string"
-            ? rawOperation.targetNodeId.trim()
-            : "";
 
     const normalizedTargetNodeId =
         rawTargetNodeId.startsWith("$")
@@ -4169,37 +4187,7 @@ function normalizeModificationPlan(
         normalizedOperationType =
             "addNodeAfter";
     }
-
-    /*
-     * --------------------------------------------------
-     * Make sure the target exists in the
-     * current FlowTest Studio context.
-     *
-     * Symbolic references are intentionally skipped
-     * because they refer to a previous operation
-     * result and are resolved by the applier.
-     * --------------------------------------------------
-     */
-
-    const nodes =
-        Array.isArray(
-            context?.nodes,
-        )
-            ? context.nodes
-            : [];
-
-    if (
-        nodes.length > 0 &&
-        !normalizedTargetNodeId.startsWith("$") &&
-        !nodes.some(
-            (node) =>
-                node?.id ===
-                normalizedTargetNodeId,
-        )
-    ) {
-        return null;
-    }
-
+   
     /*
      * --------------------------------------------------
      * deleteNode does not have a step.
@@ -6565,6 +6553,77 @@ if (
                         clarificationTargetNodeId,
                 };
             }
+        }
+    }
+
+        /*
+     * --------------------------------------------------
+     * Apply deterministic selected-node target
+     * --------------------------------------------------
+     *
+     * When the user explicitly refers to
+     * "the selected node", the selected node from
+     * FlowTest Studio is authoritative for the
+     * first modification operation.
+     *
+     * Subsequent operations preserve their own
+     * explicit targetNodeId.
+     * --------------------------------------------------
+     */
+
+    const explicitlyUsesSelectedNode =
+        /\bnode yang dipilih\b|\bselected node\b|\bnode terpilih\b/i.test(
+            effectiveMessage,
+        );
+
+    const selectedNodeId =
+        typeof context?.selectedNodeId ===
+            "string" &&
+        context.selectedNodeId.trim()
+            ? context.selectedNodeId.trim()
+            : null;
+
+    if (
+        explicitlyUsesSelectedNode &&
+        selectedNodeId &&
+        rawModificationPlan &&
+        typeof rawModificationPlan ===
+            "object"
+    ) {
+        if (
+            Array.isArray(
+                rawModificationPlan.operations,
+            )
+        ) {
+            rawModificationPlan.operations =
+                rawModificationPlan.operations.map(
+                    (
+                        operation,
+                        index,
+                    ) =>
+                        index === 0
+                            ? {
+                                  ...operation,
+
+                                  targetNodeId:
+                                      selectedNodeId,
+                              }
+                            : operation,
+                );
+        } else if (
+            rawModificationPlan.operation &&
+            typeof rawModificationPlan.operation ===
+                "object"
+        ) {
+            rawModificationPlan.operation = {
+                ...rawModificationPlan.operation,
+
+                targetNodeId:
+                    selectedNodeId,
+            };
+        } else {
+            rawModificationPlan.targetNodeId =
+                selectedNodeId;
         }
     }
 
