@@ -1413,5 +1413,314 @@ it(
         );
     },
 );
+
+it(
+    "removes model-generated wait when the user did not request a wait",
+    async () => {
+        vi.stubGlobal(
+            "fetch",
+            vi.fn(
+                async () => ({
+                    ok: true,
+
+                    json:
+                        async () => ({
+                            message: {
+                                content:
+                                    JSON.stringify({
+                                        message:
+                                            "Saya sudah menyiapkan flow login.",
+
+                                        intent:
+                                            "generateFlow",
+
+                                        flowPlan: {
+                                            type:
+                                                "flow_plan",
+
+                                            summary:
+                                                "Login to the application.",
+
+                                            steps: [
+                                                {
+                                                    id:
+                                                        "ai-launch-app",
+
+                                                    action:
+                                                        "launchApp",
+                                                },
+
+                                                {
+                                                    id:
+                                                        "ai-input-username",
+
+                                                    action:
+                                                        "input",
+
+                                                    locatorStrategy:
+                                                        "accessibilityId",
+
+                                                    locator:
+                                                        "username",
+
+                                                    text:
+                                                        "upal",
+                                                },
+
+                                                {
+                                                    id:
+                                                        "ai-input-password",
+
+                                                    action:
+                                                        "input",
+
+                                                    locatorStrategy:
+                                                        "accessibilityId",
+
+                                                    locator:
+                                                        "password",
+
+                                                    text:
+                                                        "354354",
+                                                },
+
+                                                {
+                                                    id:
+                                                        "ai-wait-login",
+
+                                                    action:
+                                                        "wait",
+
+                                                    locatorStrategy:
+                                                        "accessibilityId",
+
+                                                    locator:
+                                                        "Login",
+
+                                                    timeout:
+                                                        1000,
+
+                                                    pollingInterval:
+                                                        500,
+                                                },
+
+                                                {
+                                                    id:
+                                                        "ai-tap-login",
+
+                                                    action:
+                                                        "tap",
+
+                                                    locatorStrategy:
+                                                        "accessibilityId",
+
+                                                    locator:
+                                                        "Login",
+                                                },
+                                            ],
+                                        },
+
+                                        modificationPlan:
+                                            null,
+                                    }),
+                            },
+                        }),
+                }),
+            ),
+        );
+
+        const result =
+            await generateAIResponse({
+                message:
+                    "Buat flow login dengan username upal dan password 354354",
+
+                context: {
+                    nodes: [],
+                    edges: [],
+                },
+            });
+
+        expect(
+            result.intent,
+        ).toBe(
+            "generateFlow",
+        );
+
+        expect(
+            result.flowPlan.steps.some(
+                (step) =>
+                    step.action ===
+                    "wait",
+            ),
+        ).toBe(
+            false,
+        );
+    },
+);
+
+it(
+    "adds a deterministic wait when the user explicitly requests a wait",
+    async () => {
+        vi.stubGlobal(
+            "fetch",
+            vi.fn(
+                async () => ({
+                    ok: true,
+
+                    json:
+                        async () => ({
+                            message: {
+                                content:
+                                    JSON.stringify({
+                                        message:
+                                            "Saya sudah menyiapkan flow login.",
+
+                                        intent:
+                                            "generateFlow",
+
+                                        flowPlan: {
+                                            type:
+                                                "flow_plan",
+
+                                            summary:
+                                                "Login to the application.",
+
+                                            steps: [
+                                                {
+                                                    id:
+                                                        "ai-launch-app",
+
+                                                    action:
+                                                        "launchApp",
+                                                },
+
+                                                {
+                                                    id:
+                                                        "ai-input-username",
+
+                                                    action:
+                                                        "input",
+
+                                                    locatorStrategy:
+                                                        "accessibilityId",
+
+                                                    locator:
+                                                        "username",
+
+                                                    text:
+                                                        "upal",
+                                                },
+
+                                                {
+                                                    id:
+                                                        "ai-input-password",
+
+                                                    action:
+                                                        "input",
+
+                                                    locatorStrategy:
+                                                        "accessibilityId",
+
+                                                    locator:
+                                                        "password",
+
+                                                    text:
+                                                        "354354",
+                                                },
+
+                                                {
+                                                    id:
+                                                        "ai-tap-login",
+
+                                                    action:
+                                                        "tap",
+
+                                                    locatorStrategy:
+                                                        "accessibilityId",
+
+                                                    locator:
+                                                        "Login",
+                                                },
+                                            ],
+
+                                            warnings: [],
+                                        },
+
+                                        modificationPlan:
+                                            null,
+                                    }),
+                            },
+                        }),
+                }),
+            ),
+        );
+
+        const result =
+            await generateAIResponse({
+                message:
+                    "Buat flow login dengan username upal dan password 354354 lalu tunggu sampai tombol Login terlihat",
+
+                context: {
+                    nodes: [],
+                    edges: [],
+                },
+            });
+
+        expect(
+            result.intent,
+        ).toBe(
+            "generateFlow",
+        );
+
+        const waitSteps =
+            result.flowPlan.steps.filter(
+                (step) =>
+                    step.action ===
+                    "wait",
+            );
+
+        expect(
+            waitSteps,
+        ).toHaveLength(
+            1,
+        );
+
+        expect(
+            waitSteps[0].id,
+        ).toBe(
+            "ai-wait-login",
+        );
+
+        expect(
+            waitSteps[0].semanticTarget,
+        ).toBe(
+            "login-button",
+        );
+
+        expect(
+            waitSteps[0].locatorStrategy,
+        ).toBe(
+            "accessibilityId",
+        );
+
+        expect(
+            waitSteps[0].locator,
+        ).toBe(
+            "Login",
+        );
+
+        expect(
+            waitSteps[0].timeout,
+        ).toBe(
+            10000,
+        );
+
+        expect(
+            waitSteps[0].pollingInterval,
+        ).toBe(
+            500,
+        );
+    },
+);
     },
 );
