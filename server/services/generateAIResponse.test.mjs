@@ -735,5 +735,189 @@ it(
         );
     },
 );
+
+it(
+    "preserves independent updateNode targets across multiple operations",
+    async () => {
+        vi.stubGlobal(
+            "fetch",
+            vi.fn(
+                async () => ({
+                    ok: true,
+
+                    json:
+                        async () => ({
+                            message: {
+                                content:
+                                    JSON.stringify({
+                                        message:
+                                            "Saya sudah menyiapkan perubahan.",
+
+                                        intent:
+                                            "modifyFlow",
+
+                                        flowPlan:
+                                            null,
+
+                                        modificationPlan:
+                                            {
+                                                type:
+                                                    "modification_plan",
+
+                                                operations: [
+                                                    {
+                                                        type:
+                                                            "updateNode",
+
+                                                        targetNodeId:
+                                                            "login-1",
+
+                                                        step: {
+                                                            action:
+                                                                "assert",
+
+                                                            title:
+                                                                "Verify Login",
+
+                                                            description:
+                                                                "Verify login result.",
+
+                                                            actual:
+                                                                "Login",
+
+                                                            operator:
+                                                                "equals",
+
+                                                            expected:
+                                                                "Login",
+                                                        },
+                                                    },
+
+                                                    {
+                                                        type:
+                                                            "updateNode",
+
+                                                        targetNodeId:
+                                                            "confirm-1",
+
+                                                        step: {
+                                                            action:
+                                                                "tap",
+
+                                                            title:
+                                                                "Tap Confirm",
+
+                                                            description:
+                                                                "Tap the Confirm button.",
+
+                                                            locatorStrategy:
+                                                                "accessibilityId",
+
+                                                            locator:
+                                                                "Confirm",
+                                                        },
+                                                    },
+                                                ],
+                                            },
+                                    }),
+                            },
+                        }),
+                }),
+            ),
+        );
+
+        const result =
+            await generateAIResponse({
+                message:
+                    "Ubah Login menjadi assertion lalu ubah Confirm menjadi tap",
+
+                context: {
+                    nodes: [
+                        {
+                            id:
+                                "login-1",
+
+                            title:
+                                "Login",
+
+                            action:
+                                "tap",
+                        },
+
+                        {
+                            id:
+                                "confirm-1",
+
+                            title:
+                                "Confirm",
+
+                            action:
+                                "tap",
+                        },
+                    ],
+
+                    edges: [],
+                },
+            });
+
+        expect(
+            result.intent,
+        ).toBe(
+            "modifyFlow",
+        );
+
+        expect(
+            result.modificationPlan,
+        ).not.toBeNull();
+
+        expect(
+            result.modificationPlan.operations,
+        ).toHaveLength(
+            2,
+        );
+
+        expect(
+            result.modificationPlan.operations[0]
+                .type,
+        ).toBe(
+            "updateNode",
+        );
+
+        expect(
+            result.modificationPlan.operations[0]
+                .targetNodeId,
+        ).toBe(
+            "login-1",
+        );
+
+        expect(
+            result.modificationPlan.operations[0]
+                .step.action,
+        ).toBe(
+            "assert",
+        );
+
+        expect(
+            result.modificationPlan.operations[1]
+                .type,
+        ).toBe(
+            "updateNode",
+        );
+
+        expect(
+            result.modificationPlan.operations[1]
+                .targetNodeId,
+        ).toBe(
+            "confirm-1",
+        );
+
+        expect(
+            result.modificationPlan.operations[1]
+                .step.action,
+        ).toBe(
+            "tap",
+        );
+    },
+);
     },
 );
