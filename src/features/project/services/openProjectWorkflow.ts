@@ -27,17 +27,32 @@ export async function openProjectWorkflow() {
             result.file,
         );
 
+    const projectName =
+        result.file.name.replace(
+            /\.flow$/i,
+            "",
+        );
+
+    const loadedProject = {
+        ...project,
+
+        name:
+            projectName,
+
+        updatedAt:
+            new Date().toISOString(),
+    };
+
     useFlowStore
         .getState()
-        .loadProject(project);
+        .loadProject(
+            loadedProject,
+        );
 
     useProjectStore
         .getState()
         .setProjectName(
-            result.file.name.replace(
-                /\.json$/i,
-                ".flow",
-            ),
+            result.file.name,
         );
 
     useProjectStore
@@ -50,14 +65,16 @@ export async function openProjectWorkflow() {
         .getState()
         .markSaved();
 
-    // Simpan project yang sedang aktif
-    setActiveProject(project);
+    setActiveProject(
+        loadedProject,
+    );
 
-    // Simpan ke Recent Projects
     await putRecentProject({
-        id: project.id,
+        id:
+            loadedProject.id,
 
-        name: project.name,
+        name:
+            loadedProject.name,
 
         fileName:
             result.file.name,
@@ -65,12 +82,12 @@ export async function openProjectWorkflow() {
         lastOpened:
             new Date().toISOString(),
 
-        handle: result.handle,
+        handle:
+            result.handle,
     });
 
     notifyRecentProjectsUpdated();
 
-    // Masuk ke Workspace
     useWorkspaceStore
         .getState()
         .openWorkspace();

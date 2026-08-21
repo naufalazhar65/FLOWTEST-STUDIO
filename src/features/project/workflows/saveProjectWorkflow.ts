@@ -117,22 +117,11 @@ export async function saveProjectAsWorkflow() {
     const flowStore =
         useFlowStore.getState();
 
-    const activeProject =
-        getActiveProject();
-
     const project =
         flowStore.saveProject(
             getProjectName(
                 projectStore.name,
             ),
-            activeProject
-                ? {
-                    id: activeProject.id,
-
-                    createdAt:
-                        activeProject.createdAt,
-                }
-                : undefined,
         );
 
     const handle =
@@ -144,10 +133,45 @@ export async function saveProjectAsWorkflow() {
         return false;
     }
 
+    /*
+     * The actual filename is determined by the
+     * user's choice in the Save As dialog.
+     *
+     * Do not rely on project.name here because
+     * it still contains the previous project name.
+     */
     const fileName =
-        getFileName(
-            project.name,
+        handle.name;
+
+    const projectName =
+        getProjectName(
+            fileName,
         );
+
+    /*
+     * Rebuild the project metadata using the
+     * actual filename selected by the user.
+     *
+     * Nodes and edges remain unchanged.
+     */
+    const savedProject = {
+        ...project,
+
+        name:
+            projectName,
+
+        updatedAt:
+            new Date().toISOString(),
+    };
+
+    /*
+     * Rewrite the file with the corrected
+     * project metadata.
+     */
+    await saveProject(
+        handle,
+        savedProject,
+    );
 
     projectStore.setFileHandle(
         handle,
@@ -158,13 +182,15 @@ export async function saveProjectAsWorkflow() {
     );
 
     setActiveProject(
-        project,
+        savedProject,
     );
 
     await putRecentProject({
-        id: project.id,
+        id:
+            savedProject.id,
 
-        name: project.name,
+        name:
+            savedProject.name,
 
         fileName,
 

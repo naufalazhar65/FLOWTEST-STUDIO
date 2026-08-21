@@ -16,6 +16,10 @@ import {
     getActiveProject,
 } from "../storage/activeProject";
 
+import {
+    getRecentProject,
+} from "../storage/db/projects";
+
 export function useRestoreProject() {
     useEffect(() => {
         let cancelled = false;
@@ -33,27 +37,45 @@ export function useRestoreProject() {
             }
 
             try {
+                /*
+                 * Restore the project flow.
+                 */
                 useFlowStore
                     .getState()
                     .loadProject(
                         project,
                     );
 
-                useProjectStore
-                    .getState()
-                    .setProjectId(
-                        project.id,
-                    );
-
+                /*
+                 * Restore the project name.
+                 */
                 useProjectStore
                     .getState()
                     .setProjectName(
                         `${project.name}.flow`,
                     );
 
+                /*
+                 * Restore the original file handle
+                 * from Recent Projects.
+                 *
+                 * This allows the regular Save action
+                 * to write directly back to the same
+                 * file instead of opening Save As.
+                 */
+                const recentProject =
+                    await getRecentProject(
+                        project.id,
+                    );
+
+                if (cancelled) {
+                    return;
+                }
+
                 useProjectStore
                     .getState()
                     .setFileHandle(
+                        recentProject?.handle ??
                         null,
                     );
 

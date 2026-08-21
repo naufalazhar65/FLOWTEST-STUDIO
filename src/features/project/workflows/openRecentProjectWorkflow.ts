@@ -45,18 +45,38 @@ export async function openRecentProjectWorkflow(
             await handle.getFile();
 
         const project =
-            await importProject(file);
+            await importProject(
+                file,
+            );
+
+        const projectName =
+            file.name.replace(
+                /\.flow$/i,
+                "",
+            );
+
+        const loadedProject = {
+            ...project,
+
+            name:
+                projectName,
+
+            updatedAt:
+                new Date().toISOString(),
+        };
 
         // Load project
         useFlowStore
             .getState()
-            .loadProject(project);
+            .loadProject(
+                loadedProject,
+            );
 
         // Update project metadata
         useProjectStore
             .getState()
             .setProjectName(
-                recentProject.fileName,
+                file.name,
             );
 
         useProjectStore
@@ -69,16 +89,28 @@ export async function openRecentProjectWorkflow(
             .getState()
             .markSaved();
 
-        // IMPORTANT:
-        // Mark this project as the active project
-        setActiveProject(project);
+        // Mark the loaded project as active
+        setActiveProject(
+            loadedProject,
+        );
 
         // Update Recent Projects
         await putRecentProject({
             ...recentProject,
 
+            id:
+                loadedProject.id,
+
+            name:
+                loadedProject.name,
+
+            fileName:
+                file.name,
+
             lastOpened:
                 new Date().toISOString(),
+
+            handle,
         });
 
         notifyRecentProjectsUpdated();
