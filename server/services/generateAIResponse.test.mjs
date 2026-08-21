@@ -574,5 +574,166 @@ it(
         );
     },
 );
+
+it(
+    "preserves explicit targets across multiple before and after operations",
+    async () => {
+        vi.stubGlobal(
+            "fetch",
+            vi.fn(
+                async () => ({
+                    ok: true,
+
+                    json:
+                        async () => ({
+                            message: {
+                                content:
+                                    JSON.stringify({
+                                        message:
+                                            "Saya sudah menyiapkan perubahan.",
+
+                                        intent:
+                                            "modifyFlow",
+
+                                        flowPlan:
+                                            null,
+
+                                        modificationPlan:
+                                            {
+                                                type:
+                                                    "modification_plan",
+
+                                                operations: [
+                                                    {
+                                                        type:
+                                                            "addNodeBefore",
+
+                                                        targetNodeId:
+                                                            "login-1",
+
+                                                        step: {
+                                                            action:
+                                                                "wait",
+
+                                                            locatorStrategy:
+                                                                "accessibilityId",
+
+                                                            locator:
+                                                                "Login",
+
+                                                            timeout:
+                                                                1000,
+
+                                                            pollingInterval:
+                                                                500,
+                                                        },
+                                                    },
+
+                                                    {
+                                                        type:
+                                                            "addNodeAfter",
+
+                                                        targetNodeId:
+                                                            "confirm-1",
+
+                                                        step: {
+                                                            action:
+                                                                "tap",
+
+                                                            locatorStrategy:
+                                                                "accessibilityId",
+
+                                                            locator:
+                                                                "Confirm",
+                                                        },
+                                                    },
+                                                ],
+                                            },
+                                    }),
+                            },
+                        }),
+                }),
+            ),
+        );
+
+        const result =
+            await generateAIResponse({
+                message:
+                    "Tambahkan wait sebelum Login lalu tap Confirm setelah Confirm",
+
+                context: {
+                    nodes: [
+                        {
+                            id:
+                                "login-1",
+
+                            title:
+                                "Login",
+
+                            action:
+                                "tap",
+                        },
+
+                        {
+                            id:
+                                "confirm-1",
+
+                            title:
+                                "Confirm",
+
+                            action:
+                                "tap",
+                        },
+                    ],
+
+                    edges: [],
+                },
+            });
+
+        expect(
+            result.intent,
+        ).toBe(
+            "modifyFlow",
+        );
+
+        expect(
+            result.modificationPlan,
+        ).not.toBeNull();
+
+        expect(
+            result.modificationPlan.operations,
+        ).toHaveLength(
+            2,
+        );
+
+        expect(
+            result.modificationPlan.operations[0]
+                .type,
+        ).toBe(
+            "addNodeBefore",
+        );
+
+        expect(
+            result.modificationPlan.operations[0]
+                .targetNodeId,
+        ).toBe(
+            "login-1",
+        );
+
+        expect(
+            result.modificationPlan.operations[1]
+                .type,
+        ).toBe(
+            "addNodeAfter",
+        );
+
+        expect(
+            result.modificationPlan.operations[1]
+                .targetNodeId,
+        ).toBe(
+            "confirm-1",
+        );
+    },
+);
     },
 );
