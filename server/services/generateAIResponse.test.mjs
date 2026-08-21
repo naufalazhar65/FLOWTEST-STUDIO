@@ -1165,5 +1165,253 @@ it(
         );
     },
 );
+
+it(
+    "generates a login flow with username and password from the user request",
+    async () => {
+        vi.stubGlobal(
+            "fetch",
+            vi.fn(
+                async () => ({
+                    ok: true,
+
+                    json:
+                        async () => ({
+                            message: {
+                                content:
+                                    JSON.stringify({
+                                        message:
+                                            "Saya sudah menyiapkan flow login.",
+
+                                        intent:
+                                            "generateFlow",
+
+                                        flowPlan: {
+                                            type:
+                                                "flow_plan",
+
+                                            summary:
+                                                "Login to the application.",
+
+                                            steps: [
+                                                {
+                                                    id:
+                                                        "ai-launch-app",
+
+                                                    action:
+                                                        "launchApp",
+
+                                                    title:
+                                                        "Launch App",
+
+                                                    description:
+                                                        "Launch the application.",
+                                                },
+
+                                                {
+                                                    id:
+                                                        "ai-input-username",
+
+                                                    action:
+                                                        "input",
+
+                                                    title:
+                                                        "Input Username",
+
+                                                    description:
+                                                        "Enter the username.",
+
+                                                    semanticTarget:
+                                                        "username-field",
+
+                                                    locatorStrategy:
+                                                        "accessibilityId",
+
+                                                    locator:
+                                                        "username",
+
+                                                    text:
+                                                        "upal",
+                                                },
+
+                                                {
+                                                    id:
+                                                        "ai-input-password",
+
+                                                    action:
+                                                        "input",
+
+                                                    title:
+                                                        "Input Password",
+
+                                                    description:
+                                                        "Enter the password.",
+
+                                                    semanticTarget:
+                                                        "password-field",
+
+                                                    locatorStrategy:
+                                                        "accessibilityId",
+
+                                                    locator:
+                                                        "password",
+
+                                                    text:
+                                                        "354354",
+                                                },
+
+                                                {
+                                                    id:
+                                                        "ai-tap-login",
+
+                                                    action:
+                                                        "tap",
+
+                                                    title:
+                                                        "Tap Login",
+
+                                                    description:
+                                                        "Tap the Login button.",
+
+                                                    semanticTarget:
+                                                        "login-button",
+
+                                                    locatorStrategy:
+                                                        "accessibilityId",
+
+                                                    locator:
+                                                        "Login",
+                                                },
+                                            ],
+
+                                            warnings: [],
+                                        },
+
+                                        modificationPlan:
+                                            null,
+                                    }),
+                            },
+                        }),
+                }),
+            ),
+        );
+
+        const result =
+            await generateAIResponse({
+                message:
+                    "Buat flow login dengan username upal dan password 354354",
+
+                context: {
+                    nodes: [],
+
+                    edges: [],
+                },
+            });
+
+        expect(
+            result.intent,
+        ).toBe(
+            "generateFlow",
+        );
+
+        expect(
+            result.modificationPlan,
+        ).toBeNull();
+
+        expect(
+            result.flowPlan,
+        ).not.toBeNull();
+
+        expect(
+            result.flowPlan.steps,
+        ).toHaveLength(
+            4,
+        );
+
+        expect(
+            result.flowPlan.steps[0]
+                .action,
+        ).toBe(
+            "launchApp",
+        );
+
+        expect(
+            result.flowPlan.steps[1]
+                .action,
+        ).toBe(
+            "input",
+        );
+
+        expect(
+            result.flowPlan.steps[1]
+                .semanticTarget,
+        ).toBe(
+            "username-field",
+        );
+
+        expect(
+            result.flowPlan.steps[1]
+                .locator,
+        ).toBe(
+            "username",
+        );
+
+        expect(
+            result.flowPlan.steps[1]
+                .text,
+        ).toBe(
+            "upal",
+        );
+
+        expect(
+            result.flowPlan.steps[2]
+                .action,
+        ).toBe(
+            "input",
+        );
+
+        expect(
+            result.flowPlan.steps[2]
+                .semanticTarget,
+        ).toBe(
+            "password-field",
+        );
+
+        expect(
+            result.flowPlan.steps[2]
+                .locator,
+        ).toBe(
+            "password",
+        );
+
+        expect(
+            result.flowPlan.steps[2]
+                .text,
+        ).toBe(
+            "354354",
+        );
+
+        expect(
+            result.flowPlan.steps[3]
+                .action,
+        ).toBe(
+            "tap",
+        );
+
+        expect(
+            result.flowPlan.steps[3]
+                .semanticTarget,
+        ).toBe(
+            "login-button",
+        );
+
+        expect(
+            result.flowPlan.steps[3]
+                .locator,
+        ).toBe(
+            "Login",
+        );
+    },
+);
     },
 );
