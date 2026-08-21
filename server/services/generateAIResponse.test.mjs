@@ -919,5 +919,167 @@ it(
         );
     },
 );
+
+it(
+    "preserves deleteNode independently across multiple operations",
+    async () => {
+        vi.stubGlobal(
+            "fetch",
+            vi.fn(
+                async () => ({
+                    ok: true,
+
+                    json:
+                        async () => ({
+                            message: {
+                                content:
+                                    JSON.stringify({
+                                        message:
+                                            "Saya sudah menyiapkan perubahan.",
+
+                                        intent:
+                                            "modifyFlow",
+
+                                        flowPlan:
+                                            null,
+
+                                        modificationPlan:
+                                            {
+                                                type:
+                                                    "modification_plan",
+
+                                                operations: [
+                                                    {
+                                                        type:
+                                                            "deleteNode",
+
+                                                        targetNodeId:
+                                                            "login-1",
+                                                    },
+
+                                                    {
+                                                        type:
+                                                            "addNodeAfter",
+
+                                                        targetNodeId:
+                                                            "confirm-1",
+
+                                                        step: {
+                                                            action:
+                                                                "tap",
+
+                                                            title:
+                                                                "Tap Continue",
+
+                                                            description:
+                                                                "Tap the Continue button.",
+
+                                                            locatorStrategy:
+                                                                "accessibilityId",
+
+                                                            locator:
+                                                                "Continue",
+                                                        },
+                                                    },
+                                                ],
+                                            },
+                                    }),
+                            },
+                        }),
+                }),
+            ),
+        );
+
+        const result =
+            await generateAIResponse({
+                message:
+                    "Hapus Login lalu tambahkan Continue setelah Confirm",
+
+                context: {
+                    nodes: [
+                        {
+                            id:
+                                "login-1",
+
+                            title:
+                                "Login",
+
+                            action:
+                                "tap",
+                        },
+
+                        {
+                            id:
+                                "confirm-1",
+
+                            title:
+                                "Confirm",
+
+                            action:
+                                "tap",
+                        },
+                    ],
+
+                    edges: [],
+                },
+            });
+
+        expect(
+            result.intent,
+        ).toBe(
+            "modifyFlow",
+        );
+
+        expect(
+            result.modificationPlan,
+        ).not.toBeNull();
+
+        expect(
+            result.modificationPlan.operations,
+        ).toHaveLength(
+            2,
+        );
+
+        const deleteOperation =
+            result.modificationPlan.operations[0];
+
+        expect(
+            deleteOperation.type,
+        ).toBe(
+            "deleteNode",
+        );
+
+        expect(
+            deleteOperation.targetNodeId,
+        ).toBe(
+            "login-1",
+        );
+
+        expect(
+            deleteOperation.step,
+        ).toBeUndefined();
+
+        const addOperation =
+            result.modificationPlan.operations[1];
+
+        expect(
+            addOperation.type,
+        ).toBe(
+            "addNodeAfter",
+        );
+
+        expect(
+            addOperation.targetNodeId,
+        ).toBe(
+            "confirm-1",
+        );
+
+        expect(
+            addOperation.step.action,
+        ).toBe(
+            "tap",
+        );
+    },
+);
     },
 );
