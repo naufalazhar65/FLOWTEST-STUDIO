@@ -1081,5 +1081,89 @@ it(
         );
     },
 );
+
+it(
+    "rejects an invalid modification plan",
+    async () => {
+        vi.stubGlobal(
+            "fetch",
+            vi.fn(
+                async () => ({
+                    ok: true,
+
+                    json:
+                        async () => ({
+                            message: {
+                                content:
+                                    JSON.stringify({
+                                        message:
+                                            "Saya sudah menyiapkan perubahan.",
+
+                                        intent:
+                                            "modifyFlow",
+
+                                        flowPlan:
+                                            null,
+
+                                        modificationPlan:
+                                            {
+                                                type:
+                                                    "modification_plan",
+
+                                                operation:
+                                                    {
+                                                        type:
+                                                            "addNodeAfter",
+
+                                                        targetNodeId:
+                                                            "missing-node",
+
+                                                        step:
+                                                            {
+                                                                action:
+                                                                    "tap",
+
+                                                                locatorStrategy:
+                                                                    "accessibilityId",
+
+                                                                locator:
+                                                                    "Continue",
+                                                            },
+                                                    },
+                                            },
+                                    }),
+                            },
+                        }),
+                }),
+            ),
+        );
+
+        await expect(
+            generateAIResponse({
+                message:
+                    "Tambahkan Continue setelah Missing Node",
+
+                context: {
+                    nodes: [
+                        {
+                            id:
+                                "login-1",
+
+                            title:
+                                "Login",
+
+                            action:
+                                "tap",
+                        },
+                    ],
+
+                    edges: [],
+                },
+            }),
+        ).rejects.toThrow(
+            "AI modifyFlow response does not contain a valid modification plan.",
+        );
+    },
+);
     },
 );

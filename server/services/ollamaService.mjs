@@ -4101,13 +4101,19 @@ const targetNodeId =
             : hasExplicitExistingTarget
                 ? rawTargetNodeId
                 : resolveModificationTarget({
-                      operation:
-                          rawOperation,
+                    operation:
+                        rawOperation,
 
-                      context,
+                    context,
 
-                      message,
-                  });
+                    message,
+                });
+
+                if (
+                    !targetNodeId
+                ) {
+                    return null;
+                }
 
     /*
      * Preserve symbolic target references.
