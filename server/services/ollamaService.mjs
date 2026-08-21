@@ -4037,442 +4037,462 @@ function normalizeModificationPlan(
      * --------------------------------------------------
      */
 
-    function normalizeOneOperation(
+ function normalizeOneOperation(
     rawOperation,
     operationIndex = 0,
 ) {
-        if (
-            !rawOperation ||
-            typeof rawOperation !==
-                "object"
-        ) {
-            return null;
-        }
+    if (
+        !rawOperation ||
+        typeof rawOperation !==
+            "object"
+    ) {
+        return null;
+    }
 
-        const operationType =
-            normalizeModificationOperationType(
-                rawOperation.type ??
-                rawOperation.action,
-            );
+    const operationType =
+        normalizeModificationOperationType(
+            rawOperation.type ??
+            rawOperation.action,
+        );
 
-        if (!operationType) {
-            return null;
-        }
-
-       /*
- * --------------------------------------------------
- * Resolve target node.
- *
- * When the user explicitly refers to
- * "the selected node", the first modification
- * must use the selected node from FlowTest Studio
- * as the source of truth.
- *
- * Subsequent operations keep their explicit
- * targetNodeId because they may refer to another
- * existing node, for example an assertion after
- * the selected node.
- * --------------------------------------------------
- */
-
+    if (!operationType) {
+        return null;
+    }
 
     /*
- * --------------------------------------------------
- * Normalize operation direction from the user's
- * natural-language request.
- *
- * The user's explicit "before"/"after" wording
- * has priority over an incorrect operation type
- * returned by the model.
- * --------------------------------------------------
- */
+     * --------------------------------------------------
+     * Resolve target node.
+     *
+     * When the user explicitly refers to
+     * "the selected node", the first modification
+     * must use the selected node from FlowTest Studio
+     * as the source of truth.
+     *
+     * Subsequent operations keep their explicit
+     * targetNodeId because they may refer to another
+     * existing node, including symbolic references
+     * such as "$previousResult".
+     * --------------------------------------------------
+     */
 
-const normalizedRequest =
-    typeof message ===
-        "string"
-        ? message
-            .toLowerCase()
-            .trim()
-        : "";
+    const targetNodeId =
+        resolveModificationTarget({
+            operation:
+                rawOperation,
 
-const explicitlyBefore =
-    /\b(sebelum|before)\b/i.test(
-        normalizedRequest,
-    );
+            context,
 
-const explicitlyAfter =
-    /\b(setelah|after)\b/i.test(
-        normalizedRequest,
-    );
+            message,
+        });
 
-let normalizedOperationType =
-    operationType;
+    /*
+     * Preserve symbolic target references.
+     *
+     * A target such as "$previousResult" is not
+     * an existing node ID yet. It must be resolved
+     * later by the AI modification applier.
+     */
 
-if (
-    (
-        operationType ===
-            "addNodeBefore" ||
-        operationType ===
-            "addNodeAfter"
-    ) &&
-    explicitlyBefore &&
-    !explicitlyAfter
-) {
-    normalizedOperationType =
-        "addNodeBefore";
-}
-
-if (
-    (
-        operationType ===
-            "addNodeBefore" ||
-        operationType ===
-            "addNodeAfter"
-    ) &&
-    explicitlyAfter &&
-    !explicitlyBefore
-) {
-    normalizedOperationType =
-        "addNodeAfter";
-}
-        /*
-         * Make sure the target exists in the
-         * current FlowTest Studio context.
-         */
-        const nodes =
-            Array.isArray(
-                context?.nodes,
-            )
-                ? context.nodes
-                : [];
-
-        if (
-    nodes.length > 0 &&
-    !normalizedTargetNodeId.startsWith("$") &&
-    !nodes.some(
-        (node) =>
-            node?.id ===
-            normalizedTargetNodeId,
-    )
-) {
-    return null;
-}
-
-        /*
-         * deleteNode does not have a step.
-         */
-        if (
-            operationType ===
-            "deleteNode"
-        ) {
-            return {
-    type:
-        "deleteNode",
-
-    targetNodeId:
-        normalizedTargetNodeId,
-
-    ...(resultId
-        ? {
-              resultId,
-          }
-        : {}),
-};
-        }
-
-        /*
-         * Resolve the step.
-         *
-         * Supported formats:
-         *
-         * operation.step
-         * rawOperation.step
-         */
-        const rawStep =
-            rawOperation.step;
-
-        if (
-            !rawStep ||
-            typeof rawStep !==
-                "object"
-        ) {
-            return null;
-        }
-
-        const action =
-            typeof rawStep.action ===
+    const rawTargetNodeId =
+        typeof rawOperation.targetNodeId ===
             "string"
-                ? rawStep.action
-                : "";
+            ? rawOperation.targetNodeId.trim()
+            : "";
 
-        if (
-            !VALID_ACTIONS.has(
-                action,
-            )
-        ) {
-            return null;
-        }
+    const normalizedTargetNodeId =
+        rawTargetNodeId.startsWith("$")
+            ? rawTargetNodeId
+            : targetNodeId;
 
-        /*
-         * --------------------------------------------------
-         * Locator strategy
-         * --------------------------------------------------
-         */
+    const resultId =
+        typeof rawOperation.resultId ===
+            "string"
+            ? rawOperation.resultId.trim()
+            : "";
 
-        const locatorStrategy =
-            typeof rawStep.locatorStrategy ===
-                "string" &&
-            VALID_LOCATOR_STRATEGIES.has(
-                rawStep.locatorStrategy,
-            )
-                ? rawStep.locatorStrategy
-                : action === "tap" ||
-                    action === "input"
-                    ? "accessibilityId"
-                    : null;
+    /*
+     * --------------------------------------------------
+     * Normalize operation direction from the user's
+     * natural-language request.
+     *
+     * The user's explicit "before"/"after" wording
+     * has priority over an incorrect operation type
+     * returned by the model.
+     * --------------------------------------------------
+     */
 
-        /*
-         * --------------------------------------------------
-         * Action-specific fields
-         * --------------------------------------------------
-         */
+    const normalizedRequest =
+        typeof message ===
+            "string"
+            ? message
+                .toLowerCase()
+                .trim()
+            : "";
 
-        let text = null;
+    const explicitlyBefore =
+        /\b(sebelum|before)\b/i.test(
+            normalizedRequest,
+        );
 
-        let duration = null;
+    const explicitlyAfter =
+        /\b(setelah|after)\b/i.test(
+            normalizedRequest,
+        );
 
-        let actual = null;
+    let normalizedOperationType =
+        operationType;
 
-        let operator = null;
+    if (
+        (
+            operationType ===
+                "addNodeBefore" ||
+            operationType ===
+                "addNodeAfter"
+        ) &&
+        explicitlyBefore &&
+        !explicitlyAfter
+    ) {
+        normalizedOperationType =
+            "addNodeBefore";
+    }
 
-        let expected = null;
+    if (
+        (
+            operationType ===
+                "addNodeBefore" ||
+            operationType ===
+                "addNodeAfter"
+        ) &&
+        explicitlyAfter &&
+        !explicitlyBefore
+    ) {
+        normalizedOperationType =
+            "addNodeAfter";
+    }
 
-        let variableName = null;
+    /*
+     * --------------------------------------------------
+     * Make sure the target exists in the
+     * current FlowTest Studio context.
+     *
+     * Symbolic references are intentionally skipped
+     * because they refer to a previous operation
+     * result and are resolved by the applier.
+     * --------------------------------------------------
+     */
 
-        let timeout = null;
+    const nodes =
+        Array.isArray(
+            context?.nodes,
+        )
+            ? context.nodes
+            : [];
 
-        let pollingInterval = null;
+    if (
+        nodes.length > 0 &&
+        !normalizedTargetNodeId.startsWith("$") &&
+        !nodes.some(
+            (node) =>
+                node?.id ===
+                normalizedTargetNodeId,
+        )
+    ) {
+        return null;
+    }
 
-        /*
-         * input
-         */
+    /*
+     * --------------------------------------------------
+     * deleteNode does not have a step.
+     * --------------------------------------------------
+     */
 
-        if (
-            action === "input"
-        ) {
-            text =
-                typeof rawStep.text ===
-                    "string"
-                    ? rawStep.text
-                    : typeof rawStep.value ===
-                        "string"
-                        ? rawStep.value
-                        : null;
-        }
-
-        /*
-         * delay / gesture duration
-         */
-
-        if (
-            action === "delay" ||
-            action === "longPress" ||
-            action === "drag" ||
-            action === "pinch" ||
-            action === "zoom"
-        ) {
-            duration =
-                typeof rawStep.duration ===
-                    "number"
-                    ? rawStep.duration
-                    : null;
-        }
-
-        /*
-         * assert / if
-         */
-
-        if (
-            action === "assert" ||
-            action === "if"
-        ) {
-            actual =
-                typeof rawStep.actual ===
-                    "string"
-                    ? rawStep.actual
-                    : null;
-
-            operator =
-                normalizeAssertOperator(
-                    rawStep.operator,
-                );
-
-            expected =
-                typeof rawStep.expected ===
-                    "string"
-                    ? rawStep.expected
-                    : null;
-        }
-
-        /*
-         * Actions that produce a value.
-         */
-
-        if (
-            [
-                "getText",
-                "elementExists",
-                "getAttribute",
-                "getDisplayed",
-                "getEnabled",
-                "getSelected",
-                "getLocation",
-                "getSize",
-                "getRect",
-                "getCurrentActivity",
-                "getCurrentPackage",
-                "getOrientation",
-                "getPlatformVersion",
-                "getDeviceName",
-                "getDeviceTime",
-            ].includes(
-                action,
-            )
-        ) {
-            variableName =
-                typeof rawStep.variableName ===
-                    "string"
-                    ? rawStep.variableName
-                    : null;
-        }
-
-        /*
-         * wait
-         */
-
-        if (
-            action === "wait"
-        ) {
-            timeout =
-                typeof rawStep.timeout ===
-                    "number"
-                    ? rawStep.timeout
-                    : null;
-
-            pollingInterval =
-                typeof rawStep.pollingInterval ===
-                    "number"
-                    ? rawStep.pollingInterval
-                    : null;
-        }
-
-        const targetNodeId =
-    resolveModificationTarget({
-        operation:
-            rawOperation,
-
-        context,
-
-        message,
-    });
-
-const rawTargetNodeId =
-    typeof rawOperation.targetNodeId ===
-        "string"
-        ? rawOperation.targetNodeId.trim()
-        : "";
-
-const normalizedTargetNodeId =
-    rawTargetNodeId.startsWith("$")
-        ? rawTargetNodeId
-        : targetNodeId;
-
-const resultId =
-    typeof rawOperation.resultId ===
-        "string"
-        ? rawOperation.resultId.trim()
-        : "";
-
-        /*
-         * --------------------------------------------------
-         * Canonical normalized operation
-         * --------------------------------------------------
-         */
-
+    if (
+        operationType ===
+        "deleteNode"
+    ) {
         return {
-    type:
-        normalizedOperationType,
+            type:
+                "deleteNode",
 
-    targetNodeId:
-        normalizedTargetNodeId,
+            targetNodeId:
+                normalizedTargetNodeId,
 
-    ...(resultId
-        ? {
-              resultId,
-          }
-        : {}),
-
-    step: {
-                action,
-
-                title:
-                    typeof rawStep.title ===
-                    "string"
-                        ? rawStep.title
-                        : action,
-
-                description:
-                    typeof rawStep.description ===
-                    "string"
-                        ? rawStep.description
-                        : typeof rawStep.subtitle ===
-                            "string"
-                            ? rawStep.subtitle
-                            : `Execute ${action}.`,
-
-                locatorStrategy,
-
-                locator:
-                    typeof rawStep.locator ===
-                    "string"
-                        ? rawStep.locator
-                        : null,
-
-                text,
-
-                duration,
-
-                actual,
-
-                operator,
-
-                expected,
-
-                variableName,
-
-                timeout:
-    action === "wait"
-        ? (
-            typeof timeout ===
-                "number"
-                ? timeout
-                : 10000
-        )
-        : null,
-
-pollingInterval:
-    action === "wait"
-        ? (
-            typeof pollingInterval ===
-                "number" &&
-            pollingInterval > 0
-                ? pollingInterval
-                : 500
-        )
-        : null,
-            },
+            ...(resultId
+                ? {
+                      resultId,
+                  }
+                : {}),
         };
     }
+
+    /*
+     * --------------------------------------------------
+     * Resolve the step.
+     *
+     * Supported format:
+     *
+     * operation.step
+     * --------------------------------------------------
+     */
+
+    const rawStep =
+        rawOperation.step;
+
+    if (
+        !rawStep ||
+        typeof rawStep !==
+            "object"
+    ) {
+        return null;
+    }
+
+    const action =
+        typeof rawStep.action ===
+        "string"
+            ? rawStep.action
+            : "";
+
+    if (
+        !VALID_ACTIONS.has(
+            action,
+        )
+    ) {
+        return null;
+    }
+
+    /*
+     * --------------------------------------------------
+     * Locator strategy
+     * --------------------------------------------------
+     */
+
+    const locatorStrategy =
+        typeof rawStep.locatorStrategy ===
+            "string" &&
+        VALID_LOCATOR_STRATEGIES.has(
+            rawStep.locatorStrategy,
+        )
+            ? rawStep.locatorStrategy
+            : action === "tap" ||
+                action === "input"
+                ? "accessibilityId"
+                : null;
+
+    /*
+     * --------------------------------------------------
+     * Action-specific fields
+     * --------------------------------------------------
+     */
+
+    let text = null;
+
+    let duration = null;
+
+    let actual = null;
+
+    let operator = null;
+
+    let expected = null;
+
+    let variableName = null;
+
+    let timeout = null;
+
+    let pollingInterval = null;
+
+    /*
+     * input
+     */
+
+    if (
+        action === "input"
+    ) {
+        text =
+            typeof rawStep.text ===
+                "string"
+                ? rawStep.text
+                : typeof rawStep.value ===
+                    "string"
+                    ? rawStep.value
+                    : null;
+    }
+
+    /*
+     * delay / gesture duration
+     */
+
+    if (
+        action === "delay" ||
+        action === "longPress" ||
+        action === "drag" ||
+        action === "pinch" ||
+        action === "zoom"
+    ) {
+        duration =
+            typeof rawStep.duration ===
+                "number"
+                ? rawStep.duration
+                : null;
+    }
+
+    /*
+     * assert / if
+     */
+
+    if (
+        action === "assert" ||
+        action === "if"
+    ) {
+        actual =
+            typeof rawStep.actual ===
+                "string"
+                ? rawStep.actual
+                : null;
+
+        operator =
+            normalizeAssertOperator(
+                rawStep.operator,
+            );
+
+        expected =
+            typeof rawStep.expected ===
+                "string"
+                ? rawStep.expected
+                : null;
+    }
+
+    /*
+     * Actions that produce a value.
+     */
+
+    if (
+        [
+            "getText",
+            "elementExists",
+            "getAttribute",
+            "getDisplayed",
+            "getEnabled",
+            "getSelected",
+            "getLocation",
+            "getSize",
+            "getRect",
+            "getCurrentActivity",
+            "getCurrentPackage",
+            "getOrientation",
+            "getPlatformVersion",
+            "getDeviceName",
+            "getDeviceTime",
+        ].includes(
+            action,
+        )
+    ) {
+        variableName =
+            typeof rawStep.variableName ===
+                "string"
+                ? rawStep.variableName
+                : null;
+    }
+
+    /*
+     * wait
+     */
+
+    if (
+        action === "wait"
+    ) {
+        timeout =
+            typeof rawStep.timeout ===
+                "number"
+                ? rawStep.timeout
+                : null;
+
+        pollingInterval =
+            typeof rawStep.pollingInterval ===
+                "number"
+                ? rawStep.pollingInterval
+                : null;
+    }
+
+    /*
+     * --------------------------------------------------
+     * Canonical normalized operation
+     * --------------------------------------------------
+     */
+
+    return {
+        type:
+            normalizedOperationType,
+
+        targetNodeId:
+            normalizedTargetNodeId,
+
+        ...(resultId
+            ? {
+                  resultId,
+              }
+            : {}),
+
+        step: {
+            action,
+
+            title:
+                typeof rawStep.title ===
+                "string"
+                    ? rawStep.title
+                    : action,
+
+            description:
+                typeof rawStep.description ===
+                "string"
+                    ? rawStep.description
+                    : typeof rawStep.subtitle ===
+                        "string"
+                        ? rawStep.subtitle
+                        : `Execute ${action}.`,
+
+            locatorStrategy,
+
+            locator:
+                typeof rawStep.locator ===
+                "string"
+                    ? rawStep.locator
+                    : null,
+
+            text,
+
+            duration,
+
+            actual,
+
+            operator,
+
+            expected,
+
+            variableName,
+
+            timeout:
+                action === "wait"
+                    ? (
+                        typeof timeout ===
+                            "number"
+                            ? timeout
+                            : 10000
+                    )
+                    : null,
+
+            pollingInterval:
+                action === "wait"
+                    ? (
+                        typeof pollingInterval ===
+                            "number" &&
+                        pollingInterval > 0
+                            ? pollingInterval
+                            : 500
+                    )
+                    : null,
+        },
+    };
+}
 
     /*
      * --------------------------------------------------
