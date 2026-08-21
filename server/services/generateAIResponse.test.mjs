@@ -1916,5 +1916,413 @@ it(
         );
     },
 );
+
+it(
+    "parses username and password without leaking the password phrase into username",
+    async () => {
+        vi.stubGlobal(
+            "fetch",
+            vi.fn(
+                async () => ({
+                    ok: true,
+
+                    json:
+                        async () => ({
+                            message: {
+                                content:
+                                    JSON.stringify({
+                                        message:
+                                            "Saya sudah menyiapkan flow login.",
+
+                                        intent:
+                                            "generateFlow",
+
+                                        flowPlan: {
+                                            type:
+                                                "flow_plan",
+
+                                            summary:
+                                                "Login to the application.",
+
+                                            steps: [
+                                                {
+                                                    id:
+                                                        "ai-launch-app",
+
+                                                    action:
+                                                        "launchApp",
+                                                },
+
+                                                {
+                                                    id:
+                                                        "ai-input-username",
+
+                                                    action:
+                                                        "input",
+
+                                                    locatorStrategy:
+                                                        "accessibilityId",
+
+                                                    locator:
+                                                        "username",
+
+                                                    text:
+                                                        "upal",
+                                                },
+
+                                                {
+                                                    id:
+                                                        "ai-input-password",
+
+                                                    action:
+                                                        "input",
+
+                                                    locatorStrategy:
+                                                        "accessibilityId",
+
+                                                    locator:
+                                                        "password",
+
+                                                    text:
+                                                        "354354",
+                                                },
+
+                                                {
+                                                    id:
+                                                        "ai-tap-login",
+
+                                                    action:
+                                                        "tap",
+
+                                                    locatorStrategy:
+                                                        "accessibilityId",
+
+                                                    locator:
+                                                        "Login",
+                                                },
+                                            ],
+                                        },
+
+                                        modificationPlan:
+                                            null,
+                                    }),
+                            },
+                        }),
+                }),
+            ),
+        );
+
+        const result =
+            await generateAIResponse({
+                message:
+                    "Buat flow login dengan username upal dan password 354354",
+
+                context: {
+                    nodes: [],
+                    edges: [],
+                },
+            });
+
+        const usernameStep =
+            result.flowPlan.steps.find(
+                (step) =>
+                    step.locator ===
+                    "username",
+            );
+
+        const passwordStep =
+            result.flowPlan.steps.find(
+                (step) =>
+                    step.locator ===
+                    "password",
+            );
+
+        expect(
+            usernameStep?.text,
+        ).toBe(
+            "upal",
+        );
+
+        expect(
+            usernameStep?.text,
+        ).not.toContain(
+            "password",
+        );
+
+        expect(
+            passwordStep?.text,
+        ).toBe(
+            "354354",
+        );
+    },
+);
+
+it(
+    "parses credentials from labeled username and password values",
+    async () => {
+        vi.stubGlobal(
+            "fetch",
+            vi.fn(
+                async () => ({
+                    ok: true,
+
+                    json:
+                        async () => ({
+                            message: {
+                                content:
+                                    JSON.stringify({
+                                        message:
+                                            "Saya sudah menyiapkan flow login.",
+
+                                        intent:
+                                            "generateFlow",
+
+                                        flowPlan: {
+                                            type:
+                                                "flow_plan",
+
+                                            summary:
+                                                "Login to the application.",
+
+                                            steps: [
+                                                {
+                                                    id:
+                                                        "ai-launch-app",
+
+                                                    action:
+                                                        "launchApp",
+                                                },
+
+                                                {
+                                                    id:
+                                                        "ai-input-username",
+
+                                                    action:
+                                                        "input",
+
+                                                    locatorStrategy:
+                                                        "accessibilityId",
+
+                                                    locator:
+                                                        "username",
+
+                                                    text:
+                                                        "upal",
+                                                },
+
+                                                {
+                                                    id:
+                                                        "ai-input-password",
+
+                                                    action:
+                                                        "input",
+
+                                                    locatorStrategy:
+                                                        "accessibilityId",
+
+                                                    locator:
+                                                        "password",
+
+                                                    text:
+                                                        "354354",
+                                                },
+
+                                                {
+                                                    id:
+                                                        "ai-tap-login",
+
+                                                    action:
+                                                        "tap",
+
+                                                    locatorStrategy:
+                                                        "accessibilityId",
+
+                                                    locator:
+                                                        "Login",
+                                                },
+                                            ],
+                                        },
+
+                                        modificationPlan:
+                                            null,
+                                    }),
+                            },
+                        }),
+                }),
+            ),
+        );
+
+        const result =
+            await generateAIResponse({
+                message:
+                    "Buat flow login dengan username: upal, password: 354354",
+
+                context: {
+                    nodes: [],
+                    edges: [],
+                },
+            });
+
+        const usernameStep =
+            result.flowPlan.steps.find(
+                (step) =>
+                    step.locator ===
+                    "username",
+            );
+
+        const passwordStep =
+            result.flowPlan.steps.find(
+                (step) =>
+                    step.locator ===
+                    "password",
+            );
+
+        expect(
+            usernameStep?.text,
+        ).toBe(
+            "upal",
+        );
+
+        expect(
+            passwordStep?.text,
+        ).toBe(
+            "354354",
+        );
+    },
+);
+
+it(
+    "parses credentials when password is provided before username",
+    async () => {
+        vi.stubGlobal(
+            "fetch",
+            vi.fn(
+                async () => ({
+                    ok: true,
+
+                    json:
+                        async () => ({
+                            message: {
+                                content:
+                                    JSON.stringify({
+                                        message:
+                                            "Saya sudah menyiapkan flow login.",
+
+                                        intent:
+                                            "generateFlow",
+
+                                        flowPlan: {
+                                            type:
+                                                "flow_plan",
+
+                                            summary:
+                                                "Login to the application.",
+
+                                            steps: [
+                                                {
+                                                    id:
+                                                        "ai-launch-app",
+
+                                                    action:
+                                                        "launchApp",
+                                                },
+
+                                                {
+                                                    id:
+                                                        "ai-input-username",
+
+                                                    action:
+                                                        "input",
+
+                                                    locatorStrategy:
+                                                        "accessibilityId",
+
+                                                    locator:
+                                                        "username",
+
+                                                    text:
+                                                        "upal",
+                                                },
+
+                                                {
+                                                    id:
+                                                        "ai-input-password",
+
+                                                    action:
+                                                        "input",
+
+                                                    locatorStrategy:
+                                                        "accessibilityId",
+
+                                                    locator:
+                                                        "password",
+
+                                                    text:
+                                                        "354354",
+                                                },
+
+                                                {
+                                                    id:
+                                                        "ai-tap-login",
+
+                                                    action:
+                                                        "tap",
+
+                                                    locatorStrategy:
+                                                        "accessibilityId",
+
+                                                    locator:
+                                                        "Login",
+                                                },
+                                            ],
+                                        },
+
+                                        modificationPlan:
+                                            null,
+                                    }),
+                            },
+                        }),
+                }),
+            ),
+        );
+
+        const result =
+            await generateAIResponse({
+                message:
+                    "Buat flow login dengan password: 354354, username: upal",
+
+                context: {
+                    nodes: [],
+                    edges: [],
+                },
+            });
+
+        const usernameStep =
+            result.flowPlan.steps.find(
+                (step) =>
+                    step.locator ===
+                    "username",
+            );
+
+        const passwordStep =
+            result.flowPlan.steps.find(
+                (step) =>
+                    step.locator ===
+                    "password",
+            );
+
+        expect(
+            usernameStep?.text,
+        ).toBe(
+            "upal",
+        );
+
+        expect(
+            passwordStep?.text,
+        ).toBe(
+            "354354",
+        );
+    },
+);
     },
 );
