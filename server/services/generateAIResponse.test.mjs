@@ -1813,5 +1813,108 @@ it(
         );
     },
 );
+
+it(
+    "rejects an empty generated flow plan",
+    async () => {
+        vi.stubGlobal(
+            "fetch",
+            vi.fn(
+                async () => ({
+                    ok: true,
+
+                    json:
+                        async () => ({
+                            message: {
+                                content:
+                                    JSON.stringify({
+                                        message:
+                                            "Saya sudah menyiapkan flow.",
+
+                                        intent:
+                                            "generateFlow",
+
+                                        flowPlan: {
+                                            type:
+                                                "flow_plan",
+
+                                            summary:
+                                                "Empty flow.",
+
+                                            steps: [],
+                                        },
+
+                                        modificationPlan:
+                                            null,
+                                    }),
+                            },
+                        }),
+                }),
+            ),
+        );
+
+        await expect(
+            generateAIResponse({
+                message:
+                    "Buat flow kosong",
+
+                context: {
+                    nodes: [],
+                    edges: [],
+                },
+            }),
+        ).rejects.toThrow(
+            "AI generateFlow response does not contain a valid flow plan.",
+        );
+    },
+);
+
+it(
+    "rejects a missing generated flow plan",
+    async () => {
+        vi.stubGlobal(
+            "fetch",
+            vi.fn(
+                async () => ({
+                    ok: true,
+
+                    json:
+                        async () => ({
+                            message: {
+                                content:
+                                    JSON.stringify({
+                                        message:
+                                            "Saya tidak dapat membuat flow.",
+
+                                        intent:
+                                            "generateFlow",
+
+                                        flowPlan:
+                                            null,
+
+                                        modificationPlan:
+                                            null,
+                                    }),
+                            },
+                        }),
+                }),
+            ),
+        );
+
+        await expect(
+            generateAIResponse({
+                message:
+                    "Buat flow login",
+
+                context: {
+                    nodes: [],
+                    edges: [],
+                },
+            }),
+        ).rejects.toThrow(
+            "AI generateFlow response does not contain a valid flow plan.",
+        );
+    },
+);
     },
 );
