@@ -81,7 +81,7 @@ function getSemanticTarget(
         return undefined;
     }
 
-    let target =
+    const target =
         title
             .replace(
                 /^(enter|input|type|tap|click|press|verify|check|assert|select|choose)\s+/i,
@@ -93,34 +93,8 @@ function getSemanticTarget(
             )
             .trim();
 
-    /*
-     * Known AI-generated semantic mappings.
-     */
-    if (
-        /\busername\b/i.test(
-            target,
-        )
-    ) {
-        return "username";
-    }
-
-    if (
-        /\bpassword\b/i.test(
-            target,
-        )
-    ) {
-        return "password";
-    }
-
-    if (
-        /\blogin\b/i.test(
-            target,
-        )
-    ) {
-        return "login";
-    }
-
-    return target || undefined;
+    return target ||
+        undefined;
 }
 
 function applyStep(
@@ -132,6 +106,58 @@ function applyStep(
     switch (
     planStep.action
     ) {
+        case "launchApp": {
+            store.addNode(
+                "launchApp",
+            );
+
+            const node =
+                getLastNode();
+
+            if (!node) {
+                throw new Error(
+                    `Failed to create launchApp node for "${planStep.title}".`,
+                );
+            }
+
+            console.error(
+                "[AI APPLY STEP]",
+                {
+                    action:
+                        planStep.action,
+
+                    title:
+                        planStep.title,
+
+                    planSemanticTarget:
+                        planStep.semanticTarget,
+
+                    resolvedSemanticTarget:
+                        getSemanticTarget(
+                            planStep,
+                        ),
+                },
+            );
+
+            store.updateNodeData(
+                node.id,
+                {
+                    title:
+                        planStep.title,
+
+                    subtitle:
+                        planStep.description,
+
+                    semanticTarget:
+                        getSemanticTarget(
+                            planStep,
+                        ),
+                },
+            );
+
+            return node.id;
+        }
+
         case "tap": {
             if (
                 !planStep.locator?.trim()
@@ -157,6 +183,28 @@ function applyStep(
                     `Failed to create tap node for "${planStep.title}".`,
                 );
             }
+
+            console.error(
+                "[AI APPLY STEP]",
+                {
+                    action:
+                        planStep.action,
+
+                    title:
+                        planStep.title,
+
+                    locator:
+                        planStep.locator,
+
+                    planSemanticTarget:
+                        planStep.semanticTarget,
+
+                    resolvedSemanticTarget:
+                        getSemanticTarget(
+                            planStep,
+                        ),
+                },
+            );
 
             store.updateNodeData(
                 node.id,
@@ -347,7 +395,6 @@ function applyStep(
         case "pressReturn":
         case "hideKeyboard":
         case "screenshot":
-        case "launchApp":
         case "setVariable":
         case "wait":
         case "scroll":

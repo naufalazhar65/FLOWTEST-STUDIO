@@ -88,6 +88,12 @@ export interface AIExecutionContext {
             NodeExecutionResult
         >;
 
+        nodeExecutionHistory:
+        Record<
+            string,
+            NodeExecutionResult[]
+        >;
+
         statistics:
         AIExecutionStatistics;
 

@@ -61,9 +61,19 @@ interface ExecutionStore {
         NodeExecutionResult
     >;
 
+    nodeExecutionHistory: Record<
+        string,
+        NodeExecutionResult[]
+    >;
+
+    preserveNodeExecutionHistory:
+    boolean;
+
     setNodeResult(
         result: NodeExecutionResult,
     ): void;
+
+    markNextExecutionAsRerun(): void;
 
     // =====================================
     // Statistics
@@ -123,6 +133,10 @@ interface ExecutionStore {
         passed: boolean,
     ): void;
 
+    prepareForExecution(
+        preserveHistory: boolean,
+    ): void;
+
     finishExecution(): void;
 
     finalizeRecoveredExecution(): void;
@@ -176,25 +190,107 @@ export const useExecutionStore =
 
             nodeResults: {},
 
+            nodeExecutionHistory: {},
+
+            preserveNodeExecutionHistory:
+                false,
+
             // =====================================
             // Statistics
             // =====================================
 
-            totalNodes: 0,
+            totalNodes:
+                0,
 
-            executedNodes: 0,
+            executedNodes:
+                0,
 
-            passedNodes: 0,
+            passedNodes:
+                0,
 
-            failedNodes: 0,
+            failedNodes:
+                0,
 
-            progress: 0,
+            progress:
+                0,
 
-            startedAt: null,
+            startedAt:
+                null,
 
-            finishedAt: null,
+            finishedAt:
+                null,
 
-            duration: 0,
+            duration:
+                0,
+
+            setNodeResult(result) {
+                set((state) => {
+                    const previousHistory =
+                        state
+                            .nodeExecutionHistory[
+                        result.nodeId
+                        ] ?? [];
+
+                    console.error(
+                        "[EXECUTION HISTORY] APPEND",
+                        {
+                            nodeId:
+                                result.nodeId,
+
+                            status:
+                                result.status,
+
+                            locator:
+                                result.locator,
+
+                            error:
+                                result.error ??
+                                null,
+
+                            previousCount:
+                                previousHistory.length,
+                        },
+                    );
+
+                    return {
+                        nodeResults: {
+                            ...state.nodeResults,
+
+                            [result.nodeId]:
+                                result,
+                        },
+
+                        nodeExecutionHistory: {
+                            ...state.nodeExecutionHistory,
+
+                            [result.nodeId]: [
+                                ...previousHistory,
+
+                                result,
+                            ],
+                        },
+                    };
+                });
+            },
+
+            markNextExecutionAsRerun() {
+                console.error(
+                    "[EXECUTION HISTORY] MARK RERUN BEFORE",
+                    get()
+                        .preserveNodeExecutionHistory,
+                );
+
+                set({
+                    preserveNodeExecutionHistory:
+                        true,
+                });
+
+                console.error(
+                    "[EXECUTION HISTORY] MARK RERUN AFTER",
+                    get()
+                        .preserveNodeExecutionHistory,
+                );
+            },
 
             // =====================================
             // Basic Actions
@@ -258,21 +354,6 @@ export const useExecutionStore =
             },
 
             // =====================================
-            // Node Execution History
-            // =====================================
-
-            setNodeResult(result) {
-                set((state) => ({
-                    nodeResults: {
-                        ...state.nodeResults,
-
-                        [result.nodeId]:
-                            result,
-                    },
-                }));
-            },
-
-            // =====================================
             // Execution
             // =====================================
 
@@ -302,7 +383,8 @@ export const useExecutionStore =
                     finishedAt:
                         null,
 
-                    duration: 0,
+                    duration:
+                        0,
 
                     currentNodeId:
                         null,
@@ -312,6 +394,74 @@ export const useExecutionStore =
                     edgeStatus: {},
 
                     nodeResults: {},
+                });
+            },
+
+            prepareForExecution(
+                preserveHistory,
+            ) {
+                const state =
+                    get();
+
+                console.error(
+                    "[EXECUTION HISTORY] PREPARE",
+                    {
+                        preserveHistory,
+
+                        history:
+                            state.nodeExecutionHistory,
+                    },
+                );
+
+                set({
+                    status: "idle",
+
+                    isPaused:
+                        false,
+
+                    isStopped:
+                        false,
+
+                    currentNodeId:
+                        null,
+
+                    nodeStatus: {},
+
+                    edgeStatus: {},
+
+                    nodeResults: {},
+
+                    nodeExecutionHistory:
+                        preserveHistory
+                            ? state.nodeExecutionHistory
+                            : {},
+
+                    totalNodes:
+                        0,
+
+                    executedNodes:
+                        0,
+
+                    passedNodes:
+                        0,
+
+                    failedNodes:
+                        0,
+
+                    progress:
+                        0,
+
+                    startedAt:
+                        null,
+
+                    finishedAt:
+                        null,
+
+                    duration:
+                        0,
+
+                    preserveNodeExecutionHistory:
+                        false,
                 });
             },
 
@@ -436,10 +586,12 @@ export const useExecutionStore =
                             Object.keys(
                                 state.edgeStatus,
                             ).map(
-                                (edgeId) => [
+                                (
                                     edgeId,
-                                    "passed",
-                                ],
+                                ) => [
+                                        edgeId,
+                                        "passed",
+                                    ],
                             ),
                         ),
                 });
@@ -447,25 +599,31 @@ export const useExecutionStore =
 
             pauseExecution() {
                 set({
-                    isPaused: true,
+                    isPaused:
+                        true,
 
-                    status: "paused",
+                    status:
+                        "paused",
                 });
             },
 
             resumeExecution() {
                 set({
-                    isPaused: false,
+                    isPaused:
+                        false,
 
-                    status: "running",
+                    status:
+                        "running",
                 });
             },
 
             stopExecution() {
                 set({
-                    isStopped: true,
+                    isStopped:
+                        true,
 
-                    status: "stopped",
+                    status:
+                        "stopped",
                 });
             },
 
@@ -478,11 +636,14 @@ export const useExecutionStore =
                     appiumConnection:
                         "checking",
 
-                    status: "idle",
+                    status:
+                        "idle",
 
-                    isPaused: false,
+                    isPaused:
+                        false,
 
-                    isStopped: false,
+                    isStopped:
+                        false,
 
                     currentNodeId:
                         null,
@@ -492,6 +653,12 @@ export const useExecutionStore =
                     edgeStatus: {},
 
                     nodeResults: {},
+
+                    nodeExecutionHistory:
+                        {},
+
+                    preserveNodeExecutionHistory:
+                        false,
 
                     totalNodes: 0,
 
@@ -503,9 +670,11 @@ export const useExecutionStore =
 
                     progress: 0,
 
-                    startedAt: null,
+                    startedAt:
+                        null,
 
-                    finishedAt: null,
+                    finishedAt:
+                        null,
 
                     duration: 0,
 
@@ -513,8 +682,11 @@ export const useExecutionStore =
                     // information, but clear
                     // the active session.
                     environment: {
-                        ...get().environment,
-                        sessionId: null,
+                        ...get()
+                            .environment,
+
+                        sessionId:
+                            null,
                     },
                 });
             },

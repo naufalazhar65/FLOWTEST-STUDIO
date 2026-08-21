@@ -1,12 +1,4 @@
 import {
-    resolveModificationTarget,
-} from "./resolveModificationTarget.mjs";
-
-import {
-    findAmbiguousModificationTargets,
-} from "./resolveModificationTarget.mjs";
-
-import {
     analyzeFlowQuality,
 } from "./qaIntelligence/analyzeFlowQuality.mjs";
 
@@ -17,6 +9,12 @@ import {
 import {
     buildQAReviewMessage,
 } from "./qaIntelligence/buildQAReviewMessage.mjs";
+
+import {
+    resolveModificationTarget,
+    findAmbiguousModificationTargets,
+    resolveNodeTarget,
+} from "./resolveModificationTarget.mjs";
 
 const baseUrl =
     process.env.OLLAMA_BASE_URL ??
@@ -180,6 +178,7 @@ function createStep({
     action,
     title,
     description,
+    semanticTarget = null,
     locatorStrategy = null,
     locator = null,
     text = null,
@@ -210,6 +209,7 @@ function createStep({
         action,
         title,
         description,
+        semanticTarget,
         locatorStrategy,
         locator,
         text,
@@ -378,86 +378,72 @@ function normalizeIntent(
         return "modifyFlow";
     }
 
-        /*
-     * --------------------------------------------------
-     * Execution / failure analysis.
-     * --------------------------------------------------
-     *
-     * Questions about why a node or test execution
-     * failed must be routed to execution analysis.
-     *
-     * This is different from selected-node analysis:
-     *
-     * "Apa yang dilakukan node ini?"
-     *     -> analyzeSelectedNode
-     *
-     * "Kenapa node ini gagal?"
-     *     -> analyzeExecution
-     */
-    const executionAnalysisPatterns = [
-        /\bkenapa\s+.+\s+gagal\b/i,
-        /\bmengapa\s+.+\s+gagal\b/i,
-        /\bapa\s+penyebab\s+.+\s+gagal\b/i,
-        /\bpenyebab\s+.+\s+gagal\b/i,
-        /\bkenapa\s+test\s+.+\s+gagal\b/i,
-        /\bmengapa\s+test\s+.+\s+gagal\b/i,
-        /\bkenapa\s+node\s+.+\s+gagal\b/i,
-        /\bmengapa\s+node\s+.+\s+gagal\b/i,
-        /\bkenapa\s+node\s+ini\s+gagal\b/i,
-        /\bmengapa\s+node\s+ini\s+gagal\b/i,
-        /\bkenapa\s+execution\s+gagal\b/i,
-        /\bmengapa\s+execution\s+gagal\b/i,
-        /\bwhy\s+did\s+.+\s+fail\b/i,
-        /\bwhy\s+did\s+the\s+test\s+fail\b/i,
-        /\bwhy\s+did\s+this\s+node\s+fail\b/i,
-        /\bwhy\s+did\s+the\s+node\s+fail\b/i,
-        /\bwhat\s+caused\s+.+\s+to\s+fail\b/i,
-        /\bwhat\s+caused\s+the\s+test\s+to\s+fail\b/i,
-        /\bwhat\s+caused\s+the\s+node\s+to\s+fail\b/i,
-    ];
-
-    if (
-        executionAnalysisPatterns.some(
-            (pattern) =>
-                pattern.test(
-                    normalizedMessage,
-                ),
-        )
-    ) {
-        return "analyzeExecution";
-    }
-
     /*
-     * Selected-node analysis.
-     *
-     * Only match when the user is actually
-     * asking to explain the selected node.
-     */
-    const selectedNodePatterns = [
-        /\bjelaskan\s+node\b/i,
-        /\bjelaskan\s+node\s+ini\b/i,
-        /\bterangkan\s+node\b/i,
-        /\bterangkan\s+node\s+ini\b/i,
-        /\bnode\s+ini\s+apa\b/i,
-        /\bapa\s+node\s+ini\b/i,
-        /\bjelaskan\s+node\s+yang\s+dipilih\b/i,
+ * --------------------------------------------------
+ * Execution / failure analysis.
+ * --------------------------------------------------
+ *
+ * Execution-wide questions are reserved for
+ * explicit test/execution failures.
+ *
+ * Node-specific failure questions are handled
+ * separately as analyzeSelectedNode.
+ * --------------------------------------------------
+ */
 
-        /\bexplain\s+this\s+node\b/i,
-        /\bexplain\s+the\s+selected\s+node\b/i,
-        /\bwhat\s+is\s+this\s+node\b/i,
-        /\bwhat\s+does\s+this\s+node\s+do\b/i,
-    ];
+const executionAnalysisPatterns = [
+    /\bkenapa\s+execution\s+gagal\b/i,
 
-    if (
-        selectedNodePatterns.some(
-            (pattern) =>
-                pattern.test(
-                    normalizedMessage,
-                ),
-        )
-    ) {
-        return "analyzeSelectedNode";
-    }
+    /\bmengapa\s+execution\s+gagal\b/i,
+
+    /\bkenapa\s+test\s+gagal\b/i,
+
+    /\bmengapa\s+test\s+gagal\b/i,
+
+    /\bwhy\s+did\s+the\s+test\s+fail\b/i,
+
+    /\bwhy\s+did\s+the\s+execution\s+fail\b/i,
+];
+
+if (
+    executionAnalysisPatterns.some(
+        (pattern) =>
+            pattern.test(
+                normalizedMessage,
+            ),
+    )
+) {
+    return "analyzeExecution";
+}
+
+/*
+ * --------------------------------------------------
+ * Node-specific failure analysis.
+ * --------------------------------------------------
+ */
+
+const nodeFailureAnalysisPatterns = [
+    /\bkenapa\s+(?:node\s+)?(.+?)\s+gagal\b/i,
+
+    /\bmengapa\s+(?:node\s+)?(.+?)\s+gagal\b/i,
+
+    /\bapa\s+penyebab\s+(?:node\s+)?(.+?)\s+gagal\b/i,
+
+    /\bwhy\s+did\s+(?:the\s+)?(?:node\s+)?(.+?)\s+fail\b/i,
+
+    /\bwhat\s+caused\s+(?:the\s+)?(?:node\s+)?(.+?)\s+to\s+fail\b/i,
+];
+
+if (
+    nodeFailureAnalysisPatterns.some(
+        (pattern) =>
+            pattern.test(
+                normalizedMessage,
+            ),
+    )
+) {
+    return "analyzeSelectedNode";
+}
 
     
 
@@ -595,6 +581,111 @@ if (
     return "generateFlow";
 }
 
+function inferSemanticTarget(
+    step,
+) {
+    const nonTargetActions = new Set([
+        "launchApp",
+        "delay",
+        "back",
+        "home",
+        "screenshot",
+    ]);
+
+    if (
+        nonTargetActions.has(
+            step.action,
+        )
+    ) {
+        return null;
+    }
+
+    if (
+        typeof step.semanticTarget ===
+            "string" &&
+        step.semanticTarget.trim()
+    ) {
+        return step.semanticTarget.trim();
+    }
+
+    const text = [
+        step.title,
+        step.description,
+    ]
+        .filter(
+            (
+                value,
+            ) =>
+                typeof value ===
+                    "string" &&
+                value.trim(),
+        )
+        .join(" ")
+        .toLowerCase();
+
+    if (
+        /\blogin\s+screen\b/.test(
+            text,
+        ) ||
+        /\bscreen\b.*\blogin\b/.test(
+            text,
+        ) ||
+        /\blogin\b.*\bscreen\b/.test(
+            text,
+        )
+    ) {
+        return "login-screen";
+    }
+
+    if (
+        /\blogin\s+button\b/.test(
+            text,
+        ) ||
+        /\btap\s+login\b/.test(
+            text,
+        )
+    ) {
+        return "login-button";
+    }
+
+    if (
+        /\busername\b/.test(
+            text,
+        )
+    ) {
+        return "username-field";
+    }
+
+    if (
+        /\bpassword\b/.test(
+            text,
+        )
+    ) {
+        return "password-field";
+    }
+
+    if (
+        /\blogout\b/.test(
+            text,
+        ) ||
+        /\blog\s*out\b/.test(
+            text,
+        )
+    ) {
+        return "log-out-button";
+    }
+
+    if (
+        /\bmenu\s+icons?\b/.test(
+            text,
+        )
+    ) {
+        return "menu-icon";
+    }
+
+    return null;
+}
+
 function normalizeNativeStep(
     step,
     index,
@@ -632,6 +723,11 @@ function normalizeNativeStep(
         "string"
             ? step.id
             : `ai-step-${index + 1}`;
+
+        const semanticTarget =
+    inferSemanticTarget(
+        step,
+    );
 
     /*
      * ASSERT
@@ -688,6 +784,8 @@ function normalizeNativeStep(
                 expected
                     ? `Verify that ${expected} is present.`
                     : "Verify the expected result.",
+            
+            semanticTarget,
 
             locatorStrategy:
                 null,
@@ -767,6 +865,8 @@ function normalizeNativeStep(
                     ? `Tap the ${locator} element.`
                     : "Tap the target element.",
 
+            semanticTarget,
+
             locatorStrategy,
 
             locator,
@@ -836,24 +936,26 @@ function normalizeNativeStep(
                 : "accessibilityId";
 
         return createStep({
-            id,
+    id,
 
-            action: "input",
+    action: "input",
 
-            title:
-                step.title ??
-                "Input Text",
+    title:
+        step.title ??
+        "Input Text",
 
-            description:
-                step.description ??
-                "Enter the requested value.",
+    description:
+        step.description ??
+        "Enter the requested value.",
 
-            locatorStrategy,
+    semanticTarget,
 
-            locator,
+    locatorStrategy,
 
-            value:
-                inputValue,
+    locator,
+
+    text:
+        inputText,
 
             variableName:
                 null,
@@ -918,6 +1020,8 @@ function normalizeNativeStep(
                 step.duration > 0
                     ? step.duration
                     : 1000,
+            
+            semanticTarget,
 
             actual:
                 null,
@@ -974,6 +1078,8 @@ function normalizeNativeStep(
                 ? step.description
                 : `Execute ${action}.`,
 
+        semanticTarget,
+        
         locatorStrategy,
 
         locator:
@@ -3036,6 +3142,46 @@ function buildSelectedNodeAnalysisMessage(
             )
             .filter(Boolean);
 
+        const execution =
+    context?.execution;
+
+const nodeExecutionHistory =
+    execution?.nodeExecutionHistory?.[
+        node.id
+    ] ?? [];
+
+    console.error(
+    "[AI SELECTED NODE] EXECUTION HISTORY",
+    JSON.stringify(
+        nodeExecutionHistory,
+        null,
+        2,
+    ),
+);
+
+const firstFailedResult =
+    nodeExecutionHistory.find(
+        (
+            result,
+        ) =>
+            result.status ===
+            "failed",
+    ) ?? null;
+
+const nodeResult =
+    firstFailedResult ??
+    execution?.nodeResults?.[
+        node.id
+    ] ??
+    null;
+
+const nodeExecutionStatus =
+    firstFailedResult
+        ? "failed"
+        : execution?.nodeStatus?.[
+              node.id
+          ] ?? null;
+
     const details =
         node.details &&
         typeof node.details ===
@@ -3053,6 +3199,75 @@ function buildSelectedNodeAnalysisMessage(
             : [];
 
     const lines = [];
+
+        /*
+     * --------------------------------------------------
+     * Execution evidence for the analyzed node.
+     * --------------------------------------------------
+     */
+    lines.push(
+        "",
+        "## Execution",
+        `Status: ${
+            nodeExecutionStatus ??
+            nodeResult?.status ??
+            "not-executed"
+        }`,
+    );
+
+    if (
+        nodeResult
+    ) {
+        if (
+            nodeResult.startedAt !==
+            undefined &&
+            nodeResult.finishedAt !==
+            undefined
+        ) {
+            lines.push(
+                `Duration: ${
+                    nodeResult.finishedAt -
+                    nodeResult.startedAt
+                }ms`,
+            );
+        }
+
+        if (
+            nodeResult.error
+        ) {
+            lines.push(
+                `Error: ${nodeResult.error}`,
+            );
+        }
+
+        if (
+            nodeResult.locatorStrategy
+        ) {
+            lines.push(
+                `Executed locator strategy: ${nodeResult.locatorStrategy}`,
+            );
+        }
+
+        if (
+            nodeResult.locator
+        ) {
+            lines.push(
+                `Executed locator: ${nodeResult.locator}`,
+            );
+        }
+
+        if (
+            nodeResult.pageSource
+        ) {
+            lines.push(
+                "Page source: available",
+            );
+        } else {
+            lines.push(
+                "Page source: unavailable",
+            );
+        }
+    }
 
     if (language === "en") {
         lines.push(
@@ -4697,6 +4912,68 @@ When the user asks to analyze the current flow:
 intent must be analyzeFlow.
 flowPlan must be null.
 
+SELECTED NODE FAILURE ANALYSIS:
+
+- When analyzing a selected node, always inspect
+  context.execution.nodeExecutionHistory first.
+
+- If the selected node has one or more execution
+  history entries with status "failed", the earliest
+  failed attempt is the authoritative evidence for
+  explaining why the node failed.
+
+- Never let a later "passed" self-healing rerun replace,
+  hide, or invalidate an earlier failed attempt.
+
+- If a failed attempt exists, never state that the
+  selected node "did not fail" or that "all nodes passed".
+
+- Use the exact error, locatorStrategy, and locator from
+  the failed attempt when available.
+
+- A later successful rerun may be described as a
+  "successful rerun" or "recovery result".
+
+- A successful rerun only proves that the later execution
+  succeeded. It does not prove that the later locator or
+  locator strategy is universally correct.
+
+- Never describe a locator as "incorrect", "wrong", or
+  "invalid" unless the execution evidence explicitly
+  proves that claim.
+
+- For "Element could not be located" failures, state only
+  that the element could not be located using the executed
+  locator. Do not infer a cause beyond the available evidence.
+
+- When comparing attempts, use "failed attempt" and
+  "successful rerun", not "wrong locator" and "correct locator".
+
+- Never create a modificationPlan for analyzeSelectedNode
+  or analyzeExecution.
+
+- When context.execution.nodeResults contains the latest
+  "passed" result but nodeExecutionHistory contains an
+  earlier "failed" attempt, diagnose the failure using the
+  failed attempt.
+
+- For analyzeSelectedNode, the response is diagnostic only.
+
+- Never create, suggest, or return a modificationPlan.
+
+- Never recommend changing the locator, locatorStrategy,
+  timeout, or node configuration.
+
+- Do not use phrases such as "update the locator",
+  "change the locator", "use another strategy",
+  or "for successful execution".
+
+- Report what happened during the failed attempt using
+  the execution evidence.
+
+- If a later self-healing rerun succeeded, mention it only
+  as a successful rerun and do not turn it into a recommendation.
+
 When the user asks about the selected node:
 intent must be analyzeSelectedNode.
 flowPlan must be null.
@@ -4713,6 +4990,70 @@ When the user asks to create a NEW flow:
 - Each item in flowPlan.steps MUST represent one requested flow action.
 - flowPlan.warnings MUST be an array of strings.
 
+SEMANTIC TARGET RULES:
+
+- Every UI interaction or UI verification step MUST include
+  a meaningful semanticTarget.
+- Non-UI actions such as launchApp, delay, back, home, and
+  screenshot MUST use semanticTarget = null.
+- semanticTarget MUST describe the semantic target, not the locator.
+- semanticTarget MUST distinguish screens from elements.
+- Use kebab-case.
+- Examples:
+  - login screen -> "login-screen"
+  - Login button -> "login-button"
+  - username field -> "username-field"
+  - password field -> "password-field"
+- For a step that navigates to another screen, semanticTarget describes
+  the destination screen.
+- For a step that interacts with an element on the current screen,
+  semanticTarget describes that element.
+- Never infer semanticTarget solely by copying locator text.
+- semanticTarget may be null only for non-target actions such as
+  launchApp, delay, back, home, or screenshot.
+
+ASSERTION RULES:
+
+- Do NOT generate an "assert" step unless the user explicitly
+  requests a verification or assertion.
+- An assert step is valid only when all three values are provided:
+  actual, operator, and expected.
+- Never generate an assert step with missing actual, operator,
+  or expected values.
+- Descriptions such as "verify that the login screen is displayed"
+  are not sufficient to create an assert step unless the user
+  explicitly requested that verification.
+
+SEMANTIC TARGET IS REQUIRED FOR TARGETED STEPS.
+
+For every step whose action interacts with or verifies
+a UI element or screen, semanticTarget MUST be a non-null string.
+
+Do not omit semanticTarget.
+
+Examples from this flow:
+
+- Get Displayed for the login screen:
+  semanticTarget = "login-screen"
+
+- Tap LogOut-menu-item that opens the login screen:
+  semanticTarget = "login-screen"
+
+- Get Text Username:
+  semanticTarget = "username-prompt"
+
+- Input Username:
+  semanticTarget = "username-field"
+
+- Input Password:
+  semanticTarget = "password-field"
+
+- Tap Login:
+  semanticTarget = "login-button"
+
+Only non-UI actions such as launchApp, delay, back, home,
+or screenshot may use semanticTarget = null.
+
 For generateFlow, return exactly:
 
 {
@@ -4727,6 +5068,7 @@ For generateFlow, return exactly:
         "action": string,
         "title": string,
         "description": string,
+        "semanticTarget": string | null
         "locatorStrategy": string | null,
         "locator": string | null,
         "text": string | null,
@@ -4770,6 +5112,7 @@ Example generateFlow response:
         "action": "launchApp",
         "title": "Launch App",
         "description": "Launch the application.",
+        "semanticTarget": null,
         "locatorStrategy": null,
         "locator": null,
         "text": null,
@@ -4786,9 +5129,44 @@ Example generateFlow response:
         "action": "input",
         "title": "Input Username",
         "description": "Enter the username.",
+        "semanticTarget": "username-field",
         "locatorStrategy": "accessibilityId",
         "locator": "username",
         "text": "naufal",
+        "duration": null,
+        "actual": null,
+        "operator": null,
+        "expected": null,
+        "variableName": null,
+        "timeout": null,
+        "pollingInterval": null
+      },
+      {
+        "id": "ai-tap-logout",
+        "action": "tap",
+        "title": "Tap Logout",
+        "description": "Tap the logout menu item to return to the login screen.",
+        "semanticTarget": "login-screen",
+        "locatorStrategy": "xpath",
+        "locator": "//XCUIElementTypeButton[@name=\"LogOut-menu-item\"]",
+        "text": null,
+        "duration": null,
+        "actual": null,
+        "operator": null,
+        "expected": null,
+        "variableName": null,
+        "timeout": null,
+        "pollingInterval": null
+      },
+      {
+        "id": "ai-tap-login",
+        "action": "tap",
+        "title": "Tap Login",
+        "description": "Tap the Login button.",
+        "semanticTarget": "login-button",
+       "locatorStrategy": "accessibilityId",
+        "locator": "Login",
+        "text": null,
         "duration": null,
         "actual": null,
         "operator": null,
@@ -5121,9 +5499,32 @@ For analyzeFlow:
 - modificationPlan MUST be null.
 
 For analyzeSelectedNode:
+
 - intent MUST be "analyzeSelectedNode".
 - flowPlan MUST be null.
 - modificationPlan MUST be null.
+- This intent is diagnostic only.
+- Do not propose, recommend, or describe any modification.
+- Do not recommend changing locatorStrategy, locator, timeout,
+  or any node property.
+- Do not suggest an assertion or a replacement node.
+
+- Use context.execution.nodeExecutionHistory as the primary
+  evidence for the selected node.
+- If a failed attempt exists, explain that failed attempt.
+- Use the exact failed locatorStrategy, locator, and error.
+- A later passed self-healing rerun is only a recovery result.
+- Do not call the later locator "correct", "wrong", "incorrect",
+  or "invalid" unless explicitly proven by evidence.
+
+Return exactly:
+
+{
+  "message": string,
+  "intent": "analyzeSelectedNode",
+  "flowPlan": null,
+  "modificationPlan": null
+}
 `;
 
     const response =
@@ -5248,12 +5649,23 @@ console.error(
         );
     }
 
+    /*
+ * The server-normalized intent is authoritative.
+ * Never allow the model to override routing.
+ */
+parsed.intent =
+    intent;
+
     if (
     intent ===
-    "analyzeExecution"
+        "analyzeExecution" ||
+    intent ===
+        "analyzeSelectedNode"
 ) {
     parsed.flowPlan = null;
-    parsed.modificationPlan = null;
+
+    parsed.modificationPlan =
+        null;
 }
 console.error(
     "[AI SANITIZED RESPONSE]",
@@ -5311,11 +5723,178 @@ if (
     intent ===
     "analyzeSelectedNode"
 ) {
+    const hasExplicitSelectedNodeReference =
+        /\bnode yang dipilih\b|\bselected node\b|\bnode terpilih\b/i.test(
+            message,
+        );
+
+    let analysisContext =
+        context;
+
+    if (
+        !hasExplicitSelectedNodeReference
+    ) {
+
+       console.error(
+    "[AI SELECTED NODE] FLOW NODES",
+    context?.flow?.nodes?.map(
+        (
+            node,
+            index,
+        ) => ({
+            index,
+            id:
+                node.id,
+            title:
+                node.title,
+            action:
+                node.action,
+            subtitle:
+                node.subtitle,
+            locator:
+                node.locator,
+            semanticTarget:
+                node.details?.semanticTarget,
+        }),
+    ),
+);
+
+console.error(
+    "[AI SELECTED NODE] MESSAGE",
+    message,
+);
+        const targetResolution =
+            resolveNodeTarget({
+                context:
+                    context?.flow,
+                message,
+            });
+
+            console.error(
+    "[AI SELECTED NODE] TARGET RESOLUTION",
+    targetResolution,
+);
+
+        if (
+            targetResolution.status ===
+            "ambiguous"
+        ) {
+            const candidateLines =
+                targetResolution
+                    .candidates
+                    .map(
+                        (
+                            candidate,
+                            index,
+                        ) =>
+                            `${index + 1}. ${
+                                candidate.title ??
+                                candidate.action ??
+                                "Node"
+                            }`,
+                    )
+                    .join(
+                        "\n",
+                    );
+
+            return {
+                message:
+                    `Saya menemukan ${targetResolution.candidates.length} node yang cocok dengan permintaan Anda.\n\n${candidateLines}\n\nSilakan tentukan node yang dimaksud, misalnya "yang pertama" atau "yang kedua".`,
+
+                intent:
+                    "analyzeSelectedNode",
+
+                flowPlan:
+                    null,
+
+                modificationPlan:
+                    null,
+
+                clarification: {
+                    type:
+                        "target_node",
+
+                    question:
+                        "Node mana yang Anda maksud?",
+
+                    candidates:
+                        targetResolution.candidates,
+                },
+            };
+        }
+
+        if (
+            targetResolution.status ===
+            "notFound"
+        ) {
+            return {
+                message:
+                    userLanguage === "en"
+                        ? "I could not find the requested node in the current flow."
+                        : "Saya tidak menemukan node yang dimaksud di flow saat ini.",
+
+                intent:
+                    "analyzeSelectedNode",
+
+                flowPlan:
+                    null,
+
+                modificationPlan:
+                    null,
+            };
+        }
+
+        const targetNode =
+            context?.flow?.nodes?.find(
+                (
+                    node,
+                ) =>
+                    node.id ===
+                    targetResolution.targetNodeId,
+            );
+
+        if (
+            targetNode
+        ) {
+            analysisContext = {
+                ...context,
+
+                flow: {
+                    ...context.flow,
+
+                    selectedNodeId:
+                        targetNode.id,
+
+                    selectedNode:
+                        targetNode,
+                },
+            };
+        }
+    }
+
+    console.error(
+    "[AI SELECTED NODE] BEFORE BUILD MESSAGE",
+    {
+        selectedNode:
+            analysisContext?.flow
+                ?.selectedNode,
+
+        selectedNodeId:
+            analysisContext?.flow
+                ?.selectedNodeId,
+    },
+);
+
     const analysisMessage =
         buildSelectedNodeAnalysisMessage(
-            context,
+            analysisContext,
             userLanguage,
         );
+
+        console.error(
+    "[AI SELECTED NODE FINAL]",
+    analysisMessage,
+);
 
     return {
         message:
@@ -5324,7 +5903,10 @@ if (
         intent:
             "analyzeSelectedNode",
 
-        flowPlan:
+        flowPlan:   
+            null,
+
+        modificationPlan:
             null,
     };
 }
@@ -5659,6 +6241,22 @@ function buildAssistantMessage(
     }
 
     if (
+    intent ===
+    "analyzeSelectedNode"
+) {
+    console.error(
+    "[AI SELECTED NODE] ENTER",
+    {
+        intent,
+        message,
+        selectedNodeId:
+            context?.flow?.selectedNodeId,
+    },
+);
+    return parsedMessage;
+}
+
+    if (
         typeof parsedMessage ===
         "string"
     ) {
@@ -5667,6 +6265,15 @@ function buildAssistantMessage(
 
     return "Saya siap membantu flow kamu.";
 }
+
+console.error(
+    "[AI FINAL RESPONSE]",
+    JSON.stringify(
+        finalResponse,
+        null,
+        2,
+    ),
+);
 
 return finalResponse;
 }

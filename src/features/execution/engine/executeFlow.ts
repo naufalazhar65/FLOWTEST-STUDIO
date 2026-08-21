@@ -49,6 +49,9 @@ import {
 interface ExecuteFlowOptions {
     skipNodeIds?:
     ReadonlySet<string>;
+
+    preserveExecutionHistory?:
+    boolean;
 }
 
 export async function executeFlow(
@@ -68,7 +71,18 @@ export async function executeFlow(
 
     executionLogger.clear();
 
-    execution.reset();
+    const preserveExecutionHistory =
+        options?.preserveExecutionHistory ??
+        false;
+
+    console.error(
+        "[EXECUTION HISTORY] EXECUTE FLOW HISTORY MODE",
+        preserveExecutionHistory,
+    );
+
+    execution.prepareForExecution(
+        preserveExecutionHistory,
+    );
 
     const graph =
         new GraphNavigator(

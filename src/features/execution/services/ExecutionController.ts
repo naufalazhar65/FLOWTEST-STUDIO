@@ -392,6 +392,10 @@ export class ExecutionController {
                                             selfHealingPlan.strategy,
                                     },
                                 );
+
+                                useExecutionStore
+                                    .getState()
+                                    .markNextExecutionAsRerun();
                                 /*
                                  * Runtime recovery has already created
                                  * a fresh Appium session.
@@ -513,7 +517,12 @@ export class ExecutionController {
                                                 edges:
                                                     latestEdges,
                                             },
-                                            executeOptions,
+                                            {
+                                                ...(executeOptions ?? {}),
+
+                                                preserveExecutionHistory:
+                                                    true,
+                                            },
                                         );
                                     } else {
                                         await executeFlow(
@@ -523,6 +532,10 @@ export class ExecutionController {
 
                                                 edges:
                                                     latestEdges,
+                                            },
+                                            {
+                                                preserveExecutionHistory:
+                                                    true,
                                             },
                                         );
                                     }

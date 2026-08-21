@@ -14,6 +14,939 @@ function createTargetCandidate(
     };
 }
 
+function normalizeNodeTargetText(
+    value,
+) {
+    return String(
+        value ?? "",
+    )
+        .toLowerCase()
+        .trim()
+        .replace(
+            /[?!.,;:]+$/g,
+            "",
+        )
+        .replace(
+            /[\s_-]+/g,
+            " ",
+        )
+        .trim();
+}
+
+function getNodeSearchValues(
+    node,
+) {
+    const values = [];
+
+    if (
+        typeof node?.title ===
+        "string"
+    ) {
+        values.push(
+            node.title,
+        );
+    }
+
+    if (
+        typeof node?.subtitle ===
+        "string"
+    ) {
+        values.push(
+            node.subtitle,
+        );
+    }
+
+    if (
+        typeof node?.action ===
+        "string"
+    ) {
+        values.push(
+            node.action,
+        );
+    }
+
+    if (
+        typeof node?.locator ===
+        "string"
+    ) {
+        values.push(
+            node.locator,
+        );
+    }
+
+    if (
+        node?.details &&
+        typeof node.details ===
+            "object"
+    ) {
+        for (
+            const value of
+            Object.values(
+                node.details,
+            )
+        ) {
+            if (
+                typeof value ===
+                "string"
+            ) {
+                values.push(
+                    value,
+                );
+            }
+        }
+    }
+
+    return values
+        .map(
+            normalizeNodeTargetText,
+        )
+        .filter(Boolean);
+}
+
+function extractNodeReference(
+    message,
+) {
+    const normalized =
+        normalizeNodeTargetText(
+            message,
+        );
+
+    const failureMatch =
+        normalized.match(
+            /^(?:kenapa|mengapa)\s+(?:node\s+)?(.+?)\s+(?:gagal|fail|failed)$/i,
+        );
+
+    if (
+        failureMatch?.[1]
+    ) {
+        return failureMatch[1].trim();
+    }
+
+    const englishFailureMatch =
+        normalized.match(
+            /^why\s+did\s+(?:the\s+)?(?:node\s+)?(.+?)\s+(?:fail|failed)$/i,
+        );
+
+    if (
+        englishFailureMatch?.[1]
+    ) {
+        return englishFailureMatch[1].trim();
+    }
+
+    const causedByMatch =
+        normalized.match(
+            /^(?:apa\s+penyebab|what\s+caused)\s+(?:node\s+)?(.+?)\s+(?:gagal|fail|failed)$/i,
+        );
+
+    if (
+        causedByMatch?.[1]
+    ) {
+        return causedByMatch[1].trim();
+    }
+
+    const genericNodeMatch =
+        normalized.match(
+            /^(?:kenapa|mengapa|why)\s+(?:node\s+)?(.+)$/i,
+        );
+
+    return (
+        genericNodeMatch?.[1]?.trim() ??
+        ""
+    );
+}
+
+function extractNodeOrdinal(
+    message,
+) {
+    const normalized =
+        normalizeNodeTargetText(
+            message,
+        );
+
+    if (
+        /\b(?:yang\s+)?pertama\b|\bfirst\b/i.test(
+            normalized,
+        )
+    ) {
+        return 0;
+    }
+
+    if (
+        /\b(?:yang\s+)?kedua\b|\bsecond\b/i.test(
+            normalized,
+        )
+    ) {
+        return 1;
+    }
+
+    if (
+        /\b(?:yang\s+)?ketiga\b|\bthird\b/i.test(
+            normalized,
+        )
+    ) {
+        return 2;
+    }
+
+    if (
+        /\b(?:yang\s+)?keempat\b|\bfourth\b/i.test(
+            normalized,
+        )
+    ) {
+        return 3;
+    }
+
+    if (
+        /\b(?:yang\s+)?kelima\b|\bfifth\b/i.test(
+            normalized,
+        )
+    ) {
+        return 4;
+    }
+
+    if (
+        /\b(?:yang\s+)?terakhir\b|\blast\b|\blatest\b/i.test(
+            normalized,
+        )
+    ) {
+        return "last";
+    }
+
+    const numericMatch =
+        normalized.match(
+            /\b(?:yang\s+)?ke[-\s]?(\d+)\b/i,
+        );
+
+    if (
+        numericMatch
+    ) {
+        return (
+            Number(
+                numericMatch[1],
+            ) - 1
+        );
+    }
+
+    const englishNumericMatch =
+        normalized.match(
+            /\b(\d+)(?:st|nd|rd|th)\b/i,
+        );
+
+    if (
+        englishNumericMatch
+    ) {
+        return (
+            Number(
+                englishNumericMatch[1],
+            ) - 1
+        );
+    }
+
+    return null;
+}
+
+function removeNodeOrdinal(
+    value,
+) {
+    return value
+        .replace(
+            /\b(?:yang\s+)?(?:pertama|kedua|ketiga|keempat|kelima|terakhir)\b/gi,
+            "",
+        )
+        .replace(
+            /\b(?:first|second|third|fourth|fifth|last|latest)\b/gi,
+            "",
+        )
+        .replace(
+            /\b(?:yang\s+)?ke[-\s]?\d+\b/gi,
+            "",
+        )
+        .replace(
+            /\b\d+(?:st|nd|rd|th)\b/gi,
+            "",
+        )
+        .replace(
+            /\s+/g,
+            " ",
+        )
+        .trim();
+}
+
+export function resolveNodeTarget(
+    {
+        context,
+        message = "",
+    },
+) {
+    const nodes =
+        Array.isArray(
+            context?.nodes,
+        )
+            ? context.nodes
+            : [];
+
+    if (
+        nodes.length === 0 ||
+        typeof message !== "string"
+    ) {
+        return {
+            status:
+                "notFound",
+        };
+    }
+
+    const reference =
+        extractNodeReference(
+            message,
+        );
+
+    if (
+        !reference
+    ) {
+        return {
+            status:
+                "notFound",
+        };
+    }
+
+    const normalizedReference =
+        normalizeNodeTargetText(
+            removeNodeOrdinal(
+                reference,
+            ),
+        );
+
+    if (
+        !normalizedReference
+    ) {
+        return {
+            status:
+                "notFound",
+        };
+    }
+
+        /*
+     * --------------------------------------------------
+     * Semantic target matching
+     *
+     * Semantic target is the strongest signal.
+     *
+     * Examples:
+     * "Login Screen"
+     * -> "login screen"
+     * -> matches semanticTarget "login-screen"
+     *
+     * "Login button"
+     * -> matches semanticTarget "login-button"
+     *
+     * Do this before title/locator matching so
+     * "login-screen" can never accidentally resolve
+     * to a "login-button" locator.
+     * --------------------------------------------------
+     */
+
+    function normalizeSemanticTarget(
+        value,
+    ) {
+        return normalizeNodeTargetText(
+            value,
+        )
+            .replace(
+                /[-_]+/g,
+                " ",
+            )
+            .replace(
+                /\s+/g,
+                " ",
+            )
+            .trim();
+    }
+
+    const normalizedSemanticReference =
+        normalizeSemanticTarget(
+            normalizedReference,
+        );
+        console.error(
+    "[AI SELECTED NODE] SEMANTIC MATCH DEBUG",
+    {
+        normalizedReference,
+        normalizedSemanticReference,
+
+        semanticTargets:
+            nodes.map(
+                (
+                    node,
+                ) => ({
+                    id:
+                        node.id,
+
+                    title:
+                        node.title,
+
+                    rawSemanticTarget:
+                        node?.details
+                            ?.semanticTarget,
+
+                    normalizedSemanticTarget:
+                        normalizeSemanticTarget(
+                            node?.details
+                                ?.semanticTarget,
+                        ),
+                }),
+            ),
+    },
+);
+    const semanticCandidates =
+        nodes
+            .map(
+                (
+                    node,
+                    index,
+                ) => ({
+                    node,
+                    index,
+
+                    semanticTarget:
+                        normalizeSemanticTarget(
+                            node?.details
+                                ?.semanticTarget,
+                        ),
+                }),
+            )
+            .filter(
+                (
+                    candidate,
+                ) =>
+                    candidate
+                        .semanticTarget ===
+                    normalizedSemanticReference,
+            );
+
+    if (
+        semanticCandidates.length >
+        0
+    ) {
+        const ordinal =
+            extractNodeOrdinal(
+                message,
+            );
+
+        if (
+            ordinal === "last"
+        ) {
+            const selected =
+                semanticCandidates[
+                    semanticCandidates.length -
+                        1
+                ];
+
+            return {
+                status:
+                    "resolved",
+
+                targetNodeId:
+                    selected.node.id,
+
+                candidate:
+                    createTargetCandidate(
+                        selected.node,
+                    ),
+            };
+        }
+
+        if (
+            typeof ordinal ===
+            "number"
+        ) {
+            if (
+                ordinal < 0 ||
+                ordinal >=
+                    semanticCandidates.length
+            ) {
+                return {
+                    status:
+                        "notFound",
+                };
+            }
+
+            const selected =
+                semanticCandidates[
+                    ordinal
+                ];
+
+            return {
+                status:
+                    "resolved",
+
+                targetNodeId:
+                    selected.node.id,
+
+                candidate:
+                    createTargetCandidate(
+                        selected.node,
+                    ),
+            };
+        }
+
+        if (
+            semanticCandidates.length ===
+            1
+        ) {
+            return {
+                status:
+                    "resolved",
+
+                targetNodeId:
+                    semanticCandidates[0]
+                        .node.id,
+
+                candidate:
+                    createTargetCandidate(
+                        semanticCandidates[0]
+                            .node,
+                    ),
+            };
+        }
+
+        return {
+            status:
+                "ambiguous",
+
+            candidates:
+                semanticCandidates.map(
+                    (
+                        candidate,
+                    ) =>
+                        createTargetCandidate(
+                            candidate.node,
+                        ),
+                ),
+        };
+    }
+
+    const referenceWords =
+        normalizedReference
+            .split(" ")
+            .filter(
+                (word) =>
+                    word.length >= 2 &&
+                    ![
+                        "node",
+                        "element",
+                        "screen",
+                        "test",
+                        "flow",
+                        "the",
+                        "yang",
+                        "ini",
+                        "itu",
+                    ].includes(
+                        word,
+                    ),
+            );
+
+    function getSemanticTarget(
+        node,
+    ) {
+        const semanticTarget =
+            node?.details
+                ?.semanticTarget;
+
+        return typeof semanticTarget ===
+            "string"
+            ? normalizeNodeTargetText(
+                semanticTarget,
+            )
+            : "";
+    }
+
+    function extractLocatorNames(
+        locator,
+    ) {
+        if (
+            typeof locator !==
+            "string"
+        ) {
+            return [];
+        }
+
+        const matches = [];
+
+        /*
+         * iOS / XPath style:
+         * @name="Login"
+         * @label="Login"
+         * name == "Login"
+         * label == "Login"
+         */
+        const quotedMatches =
+            locator.matchAll(
+                /(?:@name|@label|name|label)\s*(?:==|=)\s*["'`]([^"'`]+)["'`]/gi,
+            );
+
+        for (
+            const match of
+            quotedMatches
+        ) {
+            if (
+                match[1]
+            ) {
+                matches.push(
+                    normalizeNodeTargetText(
+                        match[1],
+                    ),
+                );
+            }
+        }
+
+        /*
+         * Generic quoted values inside locator.
+         *
+         * This also helps accessibility/id based
+         * locators without hardcoding a platform.
+         */
+        const quotedValues =
+            locator.matchAll(
+                /["'`]([^"'`]+)["'`]/g,
+            );
+
+        for (
+            const match of
+            quotedValues
+        ) {
+            if (
+                match[1]
+            ) {
+                matches.push(
+                    normalizeNodeTargetText(
+                        match[1],
+                    ),
+                );
+            }
+        }
+
+        return [
+            ...new Set(
+                matches.filter(
+                    Boolean,
+                ),
+            ),
+        ];
+    }
+
+    function scoreNode(
+        node,
+    ) {
+        const title =
+            normalizeNodeTargetText(
+                node.title,
+            );
+
+        const subtitle =
+            normalizeNodeTargetText(
+                node.subtitle,
+            );
+
+        const semanticTarget =
+            getSemanticTarget(
+                node,
+            );
+
+        const locatorNames =
+            extractLocatorNames(
+                node.locator,
+            );
+
+        /*
+         * Exact title is the strongest
+         * human-facing signal.
+         */
+        if (
+            title ===
+            normalizedReference
+        ) {
+            return 100;
+        }
+
+        /*
+         * Explicit semantic target.
+         */
+        if (
+            semanticTarget ===
+            normalizedReference
+        ) {
+            return 95;
+        }
+
+        /*
+         * Exact semantic/locator name.
+         *
+         * Example:
+         * "Login Screen"
+         * -> reference word "login"
+         * -> locator name "Login"
+         */
+        if (
+            referenceWords.some(
+                (
+                    word,
+                ) =>
+                    semanticTarget ===
+                        word ||
+                    locatorNames.includes(
+                        word,
+                    ),
+            )
+        ) {
+            return 80;
+        }
+
+        /*
+         * Match all meaningful reference words
+         * against title.
+         */
+        const titleWords =
+            title.split(" ")
+                .filter(Boolean);
+
+        const titleMatches =
+            referenceWords.filter(
+                (
+                    word,
+                ) =>
+                    titleWords.includes(
+                        word,
+                    ),
+            );
+
+        if (
+            referenceWords.length > 0 &&
+            titleMatches.length ===
+                referenceWords.length
+        ) {
+            return 75;
+        }
+
+        /*
+         * Match all meaningful reference words
+         * against locator names.
+         */
+        const locatorMatches =
+            referenceWords.filter(
+                (
+                    word,
+                ) =>
+                    locatorNames.some(
+                        (
+                            name,
+                        ) =>
+                            name ===
+                                word ||
+                            name.includes(
+                                word,
+                            ) ||
+                            word.includes(
+                                name,
+                            ),
+                    ),
+            );
+
+        if (
+            referenceWords.length > 0 &&
+            locatorMatches.length ===
+                referenceWords.length
+        ) {
+            return 70;
+        }
+
+        /*
+         * Subtitle is weaker evidence.
+         */
+        const subtitleWords =
+            subtitle
+                .split(" ")
+                .filter(Boolean);
+
+        const subtitleMatches =
+            referenceWords.filter(
+                (
+                    word,
+                ) =>
+                    subtitleWords.includes(
+                        word,
+                    ),
+            );
+
+        if (
+            referenceWords.length > 0 &&
+            subtitleMatches.length ===
+                referenceWords.length
+        ) {
+            return 40;
+        }
+
+        return 0;
+    }
+
+    const scoredCandidates =
+        nodes
+            .map(
+                (
+                    node,
+                    index,
+                ) => ({
+                    node,
+
+                    index,
+
+                    score:
+                        scoreNode(
+                            node,
+                        ),
+                }),
+            )
+            .filter(
+                (
+                    candidate,
+                ) =>
+                    candidate.score >
+                    0,
+            )
+            .sort(
+                (
+                    first,
+                    second,
+                ) =>
+                    second.score -
+                        first.score ||
+                    first.index -
+                        second.index,
+            );
+
+    if (
+        scoredCandidates.length ===
+        0
+    ) {
+        return {
+            status:
+                "notFound",
+        };
+    }
+
+    const bestScore =
+        scoredCandidates[0]
+            .score;
+
+    let candidates =
+        scoredCandidates.filter(
+            (
+                candidate,
+            ) =>
+                candidate.score ===
+                bestScore,
+        );
+
+    const ordinal =
+        extractNodeOrdinal(
+            message,
+        );
+
+    if (
+        ordinal === "last"
+    ) {
+        const selected =
+            candidates[
+                candidates.length -
+                    1
+            ];
+
+        return {
+            status:
+                "resolved",
+
+            targetNodeId:
+                selected.node.id,
+
+            candidate:
+                createTargetCandidate(
+                    selected.node,
+                ),
+        };
+    }
+
+    if (
+        typeof ordinal ===
+        "number"
+    ) {
+        /*
+         * Ordinal applies to equally
+         * strong candidates only.
+         */
+        if (
+            ordinal < 0 ||
+            ordinal >=
+                candidates.length
+        ) {
+            return {
+                status:
+                    "notFound",
+            };
+        }
+
+        const selected =
+            candidates[
+                ordinal
+            ];
+
+        return {
+            status:
+                "resolved",
+
+            targetNodeId:
+                selected.node.id,
+
+            candidate:
+                createTargetCandidate(
+                    selected.node,
+                ),
+        };
+    }
+
+    if (
+        candidates.length ===
+        1
+    ) {
+        return {
+            status:
+                "resolved",
+
+            targetNodeId:
+                candidates[0]
+                    .node.id,
+
+            candidate:
+                createTargetCandidate(
+                    candidates[0]
+                        .node,
+                ),
+        };
+    }
+
+    return {
+        status:
+            "ambiguous",
+
+        candidates:
+            candidates.map(
+                (
+                    candidate,
+                ) =>
+                    createTargetCandidate(
+                        candidate.node,
+                    ),
+            ),
+    };
+}
+
 export function findAmbiguousModificationTargets({
     context,
     message = "",
@@ -226,27 +1159,307 @@ export function findAmbiguousModificationTargets({
      * --------------------------------------------------
      */
 
-    const candidates =
-        nodes.filter(
-            (node) => {
-                const values =
-                    getSearchValues(
-                        node,
-                    );
+    const STOP_WORDS = new Set([
+    "node",
+    "element",
+    "screen",
+    "test",
+    "flow",
+    "the",
+    "yang",
+    "ini",
+    "itu",
+]);
 
-                return values.some(
-                    (value) =>
-                        value ===
-                            reference ||
-                        value.includes(
-                            reference,
-                        ) ||
-                        reference.includes(
-                            value,
-                        ),
-                );
-            },
+function tokenize(
+    value,
+) {
+    return normalizeNodeTargetText(
+        value,
+    )
+        .split(" ")
+        .filter(
+            (word) =>
+                word.length >= 2 &&
+                !STOP_WORDS.has(
+                    word,
+                ),
         );
+}
+
+function getSemanticTarget(
+    node,
+) {
+    if (
+        node?.details &&
+        typeof node.details ===
+            "object" &&
+        typeof node.details
+            .semanticTarget ===
+            "string"
+    ) {
+        return normalizeNodeTargetText(
+            node.details.semanticTarget,
+        );
+    }
+
+    return "";
+}
+
+function scoreNode(
+    node,
+    reference,
+) {
+    const normalizedReference =
+        normalizeNodeTargetText(
+            reference,
+        );
+
+    const referenceWords =
+        tokenize(
+            normalizedReference,
+        );
+
+    const title =
+        normalizeNodeTargetText(
+            node.title,
+        );
+
+    const locator =
+        normalizeNodeTargetText(
+            node.locator,
+        );
+
+    const semanticTarget =
+        getSemanticTarget(
+            node,
+        );
+
+    const scores = [];
+
+    if (
+        semanticTarget ===
+        normalizedReference
+    ) {
+        scores.push(
+            100,
+        );
+    }
+
+    if (
+        referenceWords.some(
+            (
+                word,
+            ) =>
+                semanticTarget
+                    .split(" ")
+                    .includes(
+                        word,
+                    ),
+        )
+    ) {
+        scores.push(
+            95,
+        );
+    }
+
+    if (
+        title ===
+        normalizedReference
+    ) {
+        scores.push(
+            90,
+        );
+    }
+
+    if (
+        locator ===
+        normalizedReference
+    ) {
+        scores.push(
+            85,
+        );
+    }
+
+    const titleWords =
+        tokenize(
+            title,
+        );
+
+    const titleMatches =
+        referenceWords.filter(
+            (
+                word,
+            ) =>
+                titleWords.includes(
+                    word,
+                ),
+        ).length;
+
+    if (
+        referenceWords.length > 0 &&
+        titleMatches ===
+            referenceWords.length
+    ) {
+        scores.push(
+            80,
+        );
+    }
+
+    const locatorWords =
+        tokenize(
+            locator,
+        );
+
+    const locatorMatches =
+        referenceWords.filter(
+            (
+                word,
+            ) =>
+                locatorWords.some(
+                    (
+                        locatorWord,
+                    ) =>
+                        locatorWord.includes(
+                            word,
+                        ),
+                ),
+        ).length;
+
+    if (
+        referenceWords.length > 0 &&
+        locatorMatches ===
+            referenceWords.length
+    ) {
+        scores.push(
+            70,
+        );
+    }
+
+    if (
+        referenceWords.some(
+            (
+                word,
+            ) =>
+                semanticTarget.includes(
+                    word,
+                ),
+        )
+    ) {
+        scores.push(
+            65,
+        );
+    }
+
+    return (
+        scores.length > 0
+            ? Math.max(
+                ...scores,
+            )
+            : 0
+    );
+}
+
+console.error(
+    "[AI NODE RESOLUTION] SCORED",
+    scoredCandidates.map(
+        (
+            candidate,
+        ) => ({
+            id:
+                candidate.node.id,
+
+            title:
+                candidate.node.title,
+
+            locator:
+                candidate.node.locator,
+
+            score:
+                candidate.score,
+        }),
+    ),
+);
+
+const scoredCandidates =
+    nodes
+        .map(
+            (
+                node,
+                index,
+            ) => ({
+                node,
+                index,
+                score:
+                    scoreNode(
+                        node,
+                        reference,
+                    )
+            }),
+        )
+        .filter(
+            (
+                candidate,
+            ) =>
+                candidate.score >
+                0,
+        )
+        .sort(
+            (
+                a,
+                b,
+            ) =>
+                b.score -
+                a.score,
+        );
+
+        console.error(
+    "[AI SELECTED NODE] SCORES",
+    nodes.map(
+        (
+            node,
+        ) => ({
+            id:
+                node.id,
+
+            title:
+                node.title,
+
+            locator:
+                node.locator,
+
+            semanticTarget:
+                node.details?.semanticTarget,
+
+            score:
+                scoreNode(
+                    node,
+                ),
+        }),
+    ),
+);
+
+if (
+    scoredCandidates.length ===
+    0
+) {
+    return {
+        status:
+            "notFound",
+    };
+}
+
+const bestScore =
+    scoredCandidates[0].score;
+
+const candidates =
+    scoredCandidates.filter(
+        (
+            candidate,
+        ) =>
+            candidate.score ===
+            bestScore,
+    );
 
     /*
      * --------------------------------------------------
@@ -263,23 +1476,25 @@ export function findAmbiguousModificationTargets({
     }
 
     return candidates.map(
-        (node) => ({
-            nodeId:
-                node.id,
+    (
+        candidate,
+    ) => ({
+        nodeId:
+            candidate.node.id,
 
-            title:
-                node.title ??
-                null,
+        title:
+            candidate.node.title ??
+            null,
 
-            action:
-                node.action ??
-                null,
+        action:
+            candidate.node.action ??
+            null,
 
-            subtitle:
-                node.subtitle ??
-                null,
-        }),
-    );
+        subtitle:
+            candidate.node.subtitle ??
+            null,
+    }),
+);
 }
 
 export function resolveModificationTarget({

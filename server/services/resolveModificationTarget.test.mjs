@@ -1,10 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { resolveModificationTarget } from "./resolveModificationTarget.mjs";
-
 import {
   resolveModificationTarget,
   findAmbiguousModificationTargets,
+  resolveNodeTarget,
 } from "./resolveModificationTarget.mjs";
 
 function createNode({
@@ -422,5 +421,200 @@ describe("resolveModificationTarget", () => {
     });
 
     expect(result).toEqual([]);
+  });
+
+    it("resolves a node from a failure question", () => {
+    const nodes = [
+      createNode({
+        id: "login-screen",
+        title: "Login Screen",
+        action: "tap",
+      }),
+      createNode({
+        id: "menu",
+        title: "Menu",
+        action: "tap",
+      }),
+    ];
+
+    const context = createContext({
+      nodes,
+      edges: [],
+    });
+
+    const result =
+      resolveNodeTarget({
+        context,
+        message:
+          "Kenapa node Login Screen gagal?",
+      });
+
+    expect(
+      result.status,
+    ).toBe(
+      "resolved",
+    );
+
+    expect(
+      result.targetNodeId,
+    ).toBe(
+      "login-screen",
+    );
+  });
+
+  it("resolves the second duplicate node from a failure question", () => {
+    const nodes = [
+      createNode({
+        id: "product-a-1",
+        title: "Product A",
+        action: "tap",
+      }),
+      createNode({
+        id: "product-a-2",
+        title: "Product A",
+        action: "tap",
+      }),
+    ];
+
+    const context = createContext({
+      nodes,
+      edges: [],
+    });
+
+    const result =
+      resolveNodeTarget({
+        context,
+        message:
+          "Kenapa Product A yang kedua gagal?",
+      });
+
+    expect(
+      result.status,
+    ).toBe(
+      "resolved",
+    );
+
+    expect(
+      result.targetNodeId,
+    ).toBe(
+      "product-a-2",
+    );
+  });
+
+  it("resolves the last duplicate node from a failure question", () => {
+    const nodes = [
+      createNode({
+        id: "product-a-1",
+        title: "Product A",
+        action: "tap",
+      }),
+      createNode({
+        id: "product-a-2",
+        title: "Product A",
+        action: "tap",
+      }),
+    ];
+
+    const context = createContext({
+      nodes,
+      edges: [],
+    });
+
+    const result =
+      resolveNodeTarget({
+        context,
+        message:
+          "Kenapa Product A terakhir gagal?",
+      });
+
+    expect(
+      result.status,
+    ).toBe(
+      "resolved",
+    );
+
+    expect(
+      result.targetNodeId,
+    ).toBe(
+      "product-a-2",
+    );
+  });
+
+  it("returns ambiguous for duplicate nodes without an ordinal", () => {
+    const nodes = [
+      createNode({
+        id: "product-a-1",
+        title: "Product A",
+        action: "tap",
+      }),
+      createNode({
+        id: "product-a-2",
+        title: "Product A",
+        action: "tap",
+      }),
+    ];
+
+    const context = createContext({
+      nodes,
+      edges: [],
+    });
+
+    const result =
+      resolveNodeTarget({
+        context,
+        message:
+          "Kenapa Product A gagal?",
+      });
+
+    expect(
+      result.status,
+    ).toBe(
+      "ambiguous",
+    );
+
+    if (
+      result.status ===
+      "ambiguous"
+    ) {
+      expect(
+        result.candidates.map(
+          (
+            candidate,
+          ) =>
+            candidate.nodeId,
+        ),
+      ).toEqual([
+        "product-a-1",
+        "product-a-2",
+      ]);
+    }
+  });
+
+  it("returns notFound when the requested node does not exist", () => {
+    const nodes = [
+      createNode({
+        id: "login",
+        title: "Login",
+        action: "tap",
+      }),
+    ];
+
+    const context = createContext({
+      nodes,
+      edges: [],
+    });
+
+    const result =
+      resolveNodeTarget({
+        context,
+        message:
+          "Kenapa Checkout gagal?",
+      });
+
+    expect(
+      result.status,
+    ).toBe(
+      "notFound",
+    );
   });
 });

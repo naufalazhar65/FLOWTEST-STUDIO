@@ -35,6 +35,33 @@ export function buildAIExecutionContext(): AIExecutionContext {
     const nodeResults =
         execution.nodeResults;
 
+    const nodeExecutionHistory =
+        Object.fromEntries(
+            Object.entries(
+                execution.nodeExecutionHistory,
+            ).map(
+                (
+                    [
+                        nodeId,
+                        history,
+                    ],
+                ) => [
+                        nodeId,
+                        history.map(
+                            (result) => {
+                                const {
+                                    screenshot,
+                                    pageSource,
+                                    ...aiResult
+                                } = result;
+
+                                return aiResult;
+                            },
+                        ),
+                    ],
+            ),
+        );
+
     const results =
         Object.values(
             nodeResults,
@@ -64,7 +91,7 @@ export function buildAIExecutionContext(): AIExecutionContext {
         Math.max(
             0,
             totalNodes -
-                executedNodes,
+            executedNodes,
         );
 
     const progress =
@@ -91,7 +118,7 @@ export function buildAIExecutionContext(): AIExecutionContext {
                 finishedAt ??
                 Date.now()
             ) -
-                startedAt
+            startedAt
             : 0;
 
     return {
@@ -111,6 +138,8 @@ export function buildAIExecutionContext(): AIExecutionContext {
                 execution.edgeStatus,
 
             nodeResults,
+
+            nodeExecutionHistory,
 
             statistics: {
                 totalNodes,
