@@ -1722,5 +1722,96 @@ it(
         );
     },
 );
+
+it(
+    "rejects an unsupported generated flow action",
+    async () => {
+        vi.stubGlobal(
+            "fetch",
+            vi.fn(
+                async () => ({
+                    ok: true,
+
+                    json:
+                        async () => ({
+                            message: {
+                                content:
+                                    JSON.stringify({
+                                        message:
+                                            "Saya sudah menyiapkan flow.",
+
+                                        intent:
+                                            "generateFlow",
+
+                                        flowPlan: {
+                                            type:
+                                                "flow_plan",
+
+                                            summary:
+                                                "Scroll flow.",
+
+                                            steps: [
+                                                {
+                                                    id:
+                                                        "ai-launch-app",
+
+                                                    action:
+                                                        "launchApp",
+
+                                                    title:
+                                                        "Launch App",
+
+                                                    description:
+                                                        "Launch the application.",
+                                                },
+
+                                                {
+                                                    id:
+                                                        "ai-scroll",
+
+                                                    action:
+                                                        "scroll",
+
+                                                    title:
+                                                        "Scroll",
+
+                                                    description:
+                                                        "Scroll down.",
+
+                                                    locatorStrategy:
+                                                        null,
+
+                                                    locator:
+                                                        null,
+                                                },
+                                            ],
+
+                                            warnings: [],
+                                        },
+
+                                        modificationPlan:
+                                            null,
+                                    }),
+                            },
+                        }),
+                }),
+            ),
+        );
+
+        await expect(
+            generateAIResponse({
+                message:
+                    "Buat flow lalu scroll ke bawah",
+
+                context: {
+                    nodes: [],
+                    edges: [],
+                },
+            }),
+        ).rejects.toThrow(
+            'AI action "scroll" is not currently supported by the AI flow applier.',
+        );
+    },
+);
     },
 );
