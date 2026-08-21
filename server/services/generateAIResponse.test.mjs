@@ -282,5 +282,147 @@ describe(
         );
     },
 );
+
+it(
+    "preserves resultId and symbolic target references in multi-operation modifications",
+    async () => {
+        vi.stubGlobal(
+            "fetch",
+            vi.fn(
+                async () => ({
+                    ok: true,
+
+                    json:
+                        async () => ({
+                            message: {
+                                content:
+                                    JSON.stringify({
+                                        message:
+                                            "Saya sudah menyiapkan perubahan.",
+
+                                        intent:
+                                            "modifyFlow",
+
+                                        flowPlan:
+                                            null,
+
+                                        modificationPlan:
+                                            {
+                                                type:
+                                                    "modification_plan",
+
+                                                operations: [
+                                                    {
+                                                        type:
+                                                            "addNodeBefore",
+
+                                                        targetNodeId:
+                                                            "login-1",
+
+                                                        resultId:
+                                                            "newWait",
+
+                                                        step:
+                                                            {
+                                                                action:
+                                                                    "wait",
+
+                                                                locatorStrategy:
+                                                                    "accessibilityId",
+
+                                                                locator:
+                                                                    "Login",
+
+                                                                timeout:
+                                                                    1000,
+
+                                                                pollingInterval:
+                                                                    500,
+                                                            },
+                                                    },
+
+                                                    {
+                                                        type:
+                                                            "addNodeAfter",
+
+                                                        targetNodeId:
+                                                            "$newWait",
+
+                                                        step:
+                                                            {
+                                                                action:
+                                                                    "tap",
+
+                                                                locatorStrategy:
+                                                                    "accessibilityId",
+
+                                                                locator:
+                                                                    "Continue",
+
+                                                            },
+                                                    },
+                                                ],
+                                            },
+                                    }),
+                            },
+                        }),
+                }),
+            ),
+        );
+
+        const result =
+            await generateAIResponse({
+                message:
+                    "Tambahkan wait sebelum Login lalu tambahkan Continue setelah node hasilnya.",
+
+                context: {
+                    nodes: [
+                        {
+                            id:
+                                "login-1",
+
+                            title:
+                                "Login",
+
+                            action:
+                                "tap",
+                        },
+                    ],
+
+                    edges: [],
+                },
+            });
+
+        expect(
+            result.intent,
+        ).toBe(
+            "modifyFlow",
+        );
+
+        expect(
+            result.modificationPlan,
+        ).not.toBeNull();
+
+        expect(
+            result.modificationPlan.operations,
+        ).toHaveLength(
+            2,
+        );
+
+        expect(
+            result.modificationPlan.operations[0]
+                .resultId,
+        ).toBe(
+            "newWait",
+        );
+
+        expect(
+            result.modificationPlan.operations[1]
+                .targetNodeId,
+        ).toBe(
+            "$newWait",
+        );
+    },
+);
     },
 );
