@@ -81,7 +81,7 @@ function getSemanticTarget(
         return undefined;
     }
 
-    const target =
+    const normalizedTitle =
         title
             .replace(
                 /^(enter|input|type|tap|click|press|verify|check|assert|select|choose)\s+/i,
@@ -93,8 +93,42 @@ function getSemanticTarget(
             )
             .trim();
 
-    return target ||
-        undefined;
+    if (
+        /^(username|user\s*name)$/i.test(
+            normalizedTitle,
+        )
+    ) {
+        return "username-field";
+    }
+
+    if (
+        /^password$/i.test(
+            normalizedTitle,
+        )
+    ) {
+        return "password-field";
+    }
+
+    if (
+        /^login$/i.test(
+            normalizedTitle,
+        )
+    ) {
+        return "login-button";
+    }
+
+    if (
+        /^login\s+screen$/i.test(
+            normalizedTitle,
+        )
+    ) {
+        return "login-screen";
+    }
+
+    return (
+        normalizedTitle ||
+        undefined
+    );
 }
 
 function applyStep(
@@ -237,11 +271,20 @@ function applyStep(
                 );
             }
 
+            const credentialField =
+                planStep.semanticTarget ===
+                "username-field" ||
+                planStep.semanticTarget ===
+                "password-field";
+
             if (
-                planStep.text ===
-                undefined ||
-                planStep.text ===
-                null
+                !credentialField &&
+                (
+                    planStep.text ===
+                    undefined ||
+                    planStep.text ===
+                    null
+                )
             ) {
                 throw new Error(
                     `Input step "${planStep.title}" is missing text.`,
@@ -254,7 +297,7 @@ function applyStep(
                     planStep.locatorStrategy,
                 ),
                 planStep.locator,
-                planStep.text,
+                planStep.text ?? "",
             );
 
             const node =
@@ -265,6 +308,22 @@ function applyStep(
                     `Failed to create input node for "${planStep.title}".`,
                 );
             }
+
+            console.error(
+                "[AI APPLY INPUT]",
+                {
+                    title:
+                        planStep.title,
+
+                    semanticTarget:
+                        planStep.semanticTarget,
+
+                    resolvedSemanticTarget:
+                        getSemanticTarget(
+                            planStep,
+                        ),
+                },
+            );
 
             store.updateNodeData(
                 node.id,

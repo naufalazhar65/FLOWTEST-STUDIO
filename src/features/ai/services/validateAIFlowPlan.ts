@@ -171,12 +171,21 @@ function validateStep(
         step.action ===
         "input"
     ) {
+        const credentialField =
+            step.semanticTarget ===
+            "username-field" ||
+            step.semanticTarget ===
+            "password-field";
+
         if (
-            step.text ===
-            undefined ||
-            step.text ===
-            null ||
-            !step.text.trim()
+            !credentialField &&
+            (
+                step.text ===
+                undefined ||
+                step.text ===
+                null ||
+                !step.text.trim()
+            )
         ) {
             errors.push(
                 `Step ${position}: input requires text.`,

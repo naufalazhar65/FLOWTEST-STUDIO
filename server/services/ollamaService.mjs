@@ -108,17 +108,21 @@ function extractValue(
     text,
     labels,
 ) {
-    if (typeof text !== "string") {
+    if (
+        typeof text !==
+        "string"
+    ) {
         return null;
     }
 
     const labelPattern =
         labels
-            .map((label) =>
-                label.replace(
-                    /[.*+?^${}()|[\]\\]/g,
-                    "\\$&",
-                ),
+            .map(
+                (label) =>
+                    label.replace(
+                        /[.*+?^${}()|[\]\\]/g,
+                        "\\$&",
+                    ),
             )
             .join("|");
 
@@ -129,7 +133,7 @@ function extractValue(
         ),
 
         new RegExp(
-            `(?:${labelPattern})\\s+["'\`]?([^"',\\n\`]+?)["'\`]?\\s*(?:,|\\.|$)`,
+            `(?:${labelPattern})\\s*(?:value|nilai)\\s*["'\`]?([^"',\\n\`]+?)["'\`]?\\s*(?:,|\\.|$)`,
             "i",
         ),
     ];
@@ -138,10 +142,24 @@ function extractValue(
         const pattern of patterns
     ) {
         const match =
-            text.match(pattern);
+            text.match(
+                pattern,
+            );
 
-        if (match?.[1]) {
-            return match[1].trim();
+        if (
+            match?.[1]
+        ) {
+            const value =
+                match[1].trim();
+
+            if (
+                value &&
+                !/^(and|dan|or|atau)$/i.test(
+                    value,
+                )
+            ) {
+                return value;
+            }
         }
     }
 
@@ -1580,7 +1598,7 @@ if (Array.isArray(rawPlan)) {
      * Model already returned
      * native AIFlowPlan format.
      */
-    if (
+        if (
         Array.isArray(
             rawPlan.steps,
         )
@@ -1601,8 +1619,86 @@ if (Array.isArray(rawPlan)) {
                     Boolean,
                 );
 
+        const {
+            username,
+            password,
+        } = extractLoginValues(
+            message,
+        );
+
+        if (
+            username &&
+            !steps.some(
+                (step) =>
+                    step.action === "input" &&
+                    (
+                        step.locator === "username" ||
+                        step.text === username
+                    ),
+            )
+        ) {
+            insertBeforeAction(
+                steps,
+                "tap",
+                createStep({
+                    id:
+                        "ai-input-username",
+                    action:
+                        "input",
+                    title:
+                        "Input Username",
+                    description:
+                        `Enter username "${username}".`,
+                    semanticTarget:
+                        "username-field",
+                    locatorStrategy:
+                        "accessibilityId",
+                    locator:
+                        "username",
+                    text:
+                        username,
+                }),
+            );
+        }
+
+        if (
+            password &&
+            !steps.some(
+                (step) =>
+                    step.action === "input" &&
+                    (
+                        step.locator === "password" ||
+                        step.text === password
+                    ),
+            )
+        ) {
+            insertBeforeAction(
+                steps,
+                "tap",
+                createStep({
+                    id:
+                        "ai-input-password",
+                    action:
+                        "input",
+                    title:
+                        "Input Password",
+                    description:
+                        `Enter password "${password}".`,
+                    semanticTarget:
+                        "password-field",
+                    locatorStrategy:
+                        "accessibilityId",
+                    locator:
+                        "password",
+                    text:
+                        password,
+                }),
+            );
+        }
+
         return {
-            type: "flow_plan",
+            type:
+                "flow_plan",
 
             summary:
                 typeof rawPlan.summary ===
@@ -5085,6 +5181,40 @@ For generateFlow, return exactly:
   },
   "modificationPlan": null
 }
+
+GENERATE FLOW PRIORITY:
+
+- If the normalized intent is "generateFlow", the user is asking
+  to create a new flow.
+- You MUST return intent = "generateFlow".
+- You MUST return a non-null flowPlan.
+- You MUST return modificationPlan = null.
+- Do not analyze execution results.
+- Do not create an updateNode, addNode, deleteNode, or any other
+  modificationPlan.
+- Do not use analyzeExecution or analyzeSelectedNode for a
+  generateFlow request.
+
+LOGIN FLOW RULES:
+
+- When the user requests a login flow using username and password,
+  always generate both Input Username and Input Password steps.
+
+- The words "username" and "password" in the request describe
+  required input fields, not credential values.
+
+- If an actual username value is not provided, set
+  Input Username.text = null.
+
+- If an actual password value is not provided, set
+  Input Password.text = null.
+
+- Never invent username or password values.
+
+- Do not add a wait step unless the user explicitly requests a wait.
+
+- Preserve the requested order:
+  launchApp → Input Username → Input Password → Login.
 
 IMPORTANT FOR generateFlow:
 

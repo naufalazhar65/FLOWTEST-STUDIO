@@ -144,10 +144,6 @@ function normalizeSemanticTarget(
         return null;
     }
 
-    /*
-     * Ignore generic UI titles that don't
-     * identify a real semantic target.
-     */
     const genericTitles =
         new Set([
             "input text",
@@ -175,16 +171,6 @@ function normalizeSemanticTarget(
         return null;
     }
 
-    /*
-     * Remove common action prefixes.
-     *
-     * Example:
-     *   "Input Username"
-     *       → "Username"
-     *
-     *   "Tap Login Button"
-     *       → "Login"
-     */
     normalized =
         normalized
             .replace(
@@ -193,16 +179,6 @@ function normalizeSemanticTarget(
             )
             .trim();
 
-    /*
-     * Remove common UI suffixes.
-     *
-     * Example:
-     *   "Username Field"
-     *       → "Username"
-     *
-     *   "Login Button"
-     *       → "Login"
-     */
     normalized =
         normalized
             .replace(
@@ -210,6 +186,38 @@ function normalizeSemanticTarget(
                 "",
             )
             .trim();
+
+    if (
+        /^username$/i.test(
+            normalized,
+        )
+    ) {
+        return "username-field";
+    }
+
+    if (
+        /^password$/i.test(
+            normalized,
+        )
+    ) {
+        return "password-field";
+    }
+
+    if (
+        /^login$/i.test(
+            normalized,
+        )
+    ) {
+        return "login-button";
+    }
+
+    if (
+        /^login\s+screen$/i.test(
+            normalized,
+        )
+    ) {
+        return "login-screen";
+    }
 
     return normalized || null;
 }
@@ -294,19 +302,19 @@ export async function applyResolvedAILocatorsToFlow(
         }
 
         const action =
-    node.data.action;
+            node.data.action;
 
-const resolution =
-    await resolveAILocatorFromApp(
-        target,
-        action === "input"
-            ? "input"
-            : action === "tap"
-                ? "tap"
-                : action === "wait"
-                    ? "wait"
-                    : "generic",
-    );
+        const resolution =
+            await resolveAILocatorFromApp(
+                target,
+                action === "input"
+                    ? "input"
+                    : action === "tap"
+                        ? "tap"
+                        : action === "wait"
+                            ? "wait"
+                            : "generic",
+            );
 
         if (
             resolution.status !==
