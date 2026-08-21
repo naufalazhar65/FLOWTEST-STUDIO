@@ -65,6 +65,8 @@ const breakpointNode: FlowNode = {
 const executionStore = {
     reset: vi.fn(),
 
+    prepareForExecution: vi.fn(),
+
     startExecution: vi.fn(),
 
     finishExecution: vi.fn(),
@@ -116,9 +118,51 @@ vi.mock(
     "../store/useExecutionStore",
     () => ({
         useExecutionStore: {
-            getState: vi.fn(
-                () => executionStore,
-            ),
+            getState:
+                vi.fn(
+                    () => ({
+                        ...executionStore,
+
+                        prepareForExecution:
+                            executionStore.prepareForExecution,
+
+                        reset:
+                            executionStore.reset,
+
+                        startExecution:
+                            executionStore.startExecution,
+
+                        finishExecution:
+                            executionStore.finishExecution,
+
+                        setStatus:
+                            executionStore.setStatus,
+
+                        setCurrentNode:
+                            executionStore.setCurrentNode,
+
+                        setNodeStatus:
+                            executionStore.setNodeStatus,
+
+                        setNodeResult:
+                            executionStore.setNodeResult,
+
+                        setEdgeStatus:
+                            executionStore.setEdgeStatus,
+
+                        setEnvironment:
+                            executionStore.setEnvironment,
+
+                        pauseExecution:
+                            executionStore.pauseExecution,
+
+                        resumeExecution:
+                            executionStore.resumeExecution,
+
+                        stopExecution:
+                            executionStore.stopExecution,
+                    }),
+                ),
         },
     }),
 );
@@ -234,8 +278,10 @@ describe("executeFlow", () => {
             );
 
             expect(
-                executionStore.reset,
-            ).toHaveBeenCalled();
+                executionStore.prepareForExecution,
+            ).toHaveBeenCalledWith(
+                false,
+            );
 
             expect(
                 executionStore.startExecution,

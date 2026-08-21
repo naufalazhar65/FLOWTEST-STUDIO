@@ -104,10 +104,9 @@ export const aiResponseSchema = {
                     type: ["string", "null"],
                   },
 
-                  value: {
+                  text: {
                     type: ["string", "null"],
                   },
-
                   variableName: {
                     type: ["string", "null"],
                   },
@@ -148,7 +147,7 @@ export const aiResponseSchema = {
                   "description",
                   "locatorStrategy",
                   "locator",
-                  "value",
+                  "text",
                   "variableName",
                   "duration",
                   "actual",

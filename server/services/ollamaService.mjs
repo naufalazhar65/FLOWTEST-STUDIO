@@ -74,6 +74,18 @@ const VALID_ACTIONS = new Set([
     "repeat",
 ]);
 
+const AI_APPLY_SUPPORTED_ACTIONS =
+    new Set([
+        "launchApp",
+        "tap",
+        "input",
+        "assert",
+        "delay",
+        "wait",
+    ]);
+
+
+
 const VALID_LOCATOR_STRATEGIES =
     new Set([
         "accessibilityId",
@@ -127,13 +139,26 @@ function extractValue(
             .join("|");
 
     const patterns = [
+        // Explicit separator:
+        // "username: naufal"
+        // "username = naufal"
+        // "username is naufal"
         new RegExp(
-            `(?:${labelPattern})\\s*(?:is|=|:)\\s*["'\`]?([^"',\\n\`]+?)["'\`]?\\s*(?:,|\\.|$)`,
+            `(?:${labelPattern})\\s*(?:is|=|:)\\s*["'\`]?([^"',\\n\`]+?)["'\`]?\\s*(?=(?:\\s+(?:and|dan|or|atau)\\s+)|[,.]|$)`,
             "i",
         ),
 
+        // Direct natural-language form:
+        // "username naufal"
+        // "password rahasia123"
         new RegExp(
-            `(?:${labelPattern})\\s*(?:value|nilai)\\s*["'\`]?([^"',\\n\`]+?)["'\`]?\\s*(?:,|\\.|$)`,
+            `(?:${labelPattern})\\s+["'\`]?([^"',\\n\`]+?)["'\`]?\\s*(?=(?:\\s+(?:and|dan|or|atau)\\s+(?:${labelPattern})\\b)|[,.]|$)`,
+            "i",
+        ),
+
+        // Existing "value/nilai" form.
+        new RegExp(
+            `(?:${labelPattern})\\s*(?:value|nilai)\\s*["'\`]?([^"',\\n\`]+?)["'\`]?\\s*(?=(?:\\s+(?:and|dan|or|atau)\\s+)|[,.]|$)`,
             "i",
         ),
     ];
@@ -169,6 +194,39 @@ function extractValue(
 function extractLoginValues(
     message,
 ) {
+    if (
+        typeof message !==
+        "string"
+    ) {
+        return {
+            username: null,
+            password: null,
+        };
+    }
+
+    const usernameMatch =
+        message.match(
+            /\b(?:username|user|email)\s*(?:is|=|:)?\s*["'`]?(.+?)["'`]?\s+(?:and|dan)\s+(?:password|pass)\b/i,
+        );
+
+    const passwordMatch =
+        message.match(
+            /\b(?:password|pass)\s*(?:is|=|:)?\s*["'`]?([^"',\n`]+?)["'`]?\s*$/i,
+        );
+
+    if (
+        usernameMatch?.[1] &&
+        passwordMatch?.[1]
+    ) {
+        return {
+            username:
+                usernameMatch[1].trim(),
+
+            password:
+                passwordMatch[1].trim(),
+        };
+    }
+
     return {
         username:
             extractValue(
@@ -190,6 +248,8 @@ function extractLoginValues(
             ),
     };
 }
+
+
 
 function createStep({
     id,
@@ -1485,16 +1545,21 @@ function normalizeNodeToStep(
     return null;
 }
 
-function insertBeforeAction(
+function insertBeforeLoginAction(
     steps,
-    action,
     newStep,
 ) {
     const index =
         steps.findIndex(
             (step) =>
                 step?.action ===
-                action,
+                    "tap" &&
+                (
+                    step?.semanticTarget ===
+                        "login-button" ||
+                    step?.locator ===
+                        "Login"
+                ),
         );
 
     if (index >= 0) {
@@ -1507,7 +1572,95 @@ function insertBeforeAction(
         return;
     }
 
-    steps.push(newStep);
+    insertBeforeAction(
+        steps,
+        "tap",
+        newStep,
+    );
+}
+
+function sanitizeLoginCredentialInputs(
+    steps,
+    username,
+    password,
+) {
+    for (
+        const step of steps
+    ) {
+        if (
+            !step ||
+            step.action !==
+                "input"
+        ) {
+            continue;
+        }
+
+        const isUsernameField =
+            step.semanticTarget ===
+                "username-field" ||
+            step.locator ===
+                "username";
+
+        const isPasswordField =
+            step.semanticTarget ===
+                "password-field" ||
+            step.locator ===
+                "password";
+
+        if (
+            isUsernameField
+        ) {
+            step.text =
+                username ??
+                null;
+        }
+
+        if (
+            isPasswordField
+        ) {
+            step.text =
+                password ??
+                null;
+        }
+    }
+}
+
+function sanitizeGeneratedWaitTargets(
+    steps,
+) {
+    for (
+        const step of steps
+    ) {
+        if (
+            !step ||
+            step.action !==
+                "wait"
+        ) {
+            continue;
+        }
+
+        const locator =
+            typeof step.locator ===
+                "string"
+                ? step.locator.trim()
+                : "";
+
+        const semanticTarget =
+            typeof step.semanticTarget ===
+                "string"
+                ? step.semanticTarget.trim()
+                : "";
+
+        if (
+            locator ===
+                "Login" ||
+            semanticTarget ===
+                "login-button"
+        ) {
+            step.semanticTarget =
+                "login-button";
+        }
+    }
 }
 
 function normalizeModelFlowPlan(
@@ -1529,18 +1682,28 @@ function normalizeModelFlowPlan(
  */
 if (Array.isArray(rawPlan)) {
     const {
-        username,
-        password,
-    } = extractLoginValues(message);
+    username,
+    password,
+} = extractLoginValues(message);
 
-    const steps = rawPlan
-        .map((step, index) =>
-            normalizeNativeStep(
-                step,
-                index,
-            ),
-        )
-        .filter(Boolean);
+const steps = rawPlan
+    .map((step, index) =>
+        normalizeNativeStep(
+            step,
+            index,
+        ),
+    )
+    .filter(Boolean);
+
+sanitizeLoginCredentialInputs(
+    steps,
+    username,
+    password,
+);
+
+sanitizeGeneratedWaitTargets(
+    steps,
+);
 
     /*
      * Qwen sometimes returns input steps
@@ -1701,27 +1864,38 @@ if (Array.isArray(rawPlan)) {
         )
     ) {
         const steps =
-            rawPlan.steps
-                .map(
-                    (
-                        step,
-                        index,
-                    ) =>
-                        normalizeNativeStep(
-                            step,
-                            index,
-                        ),
-                )
-                .filter(
-                    Boolean,
-                );
-
-        const {
-            username,
-            password,
-        } = extractLoginValues(
-            message,
+    rawPlan.steps
+        .map(
+            (
+                step,
+                index,
+            ) =>
+                normalizeNativeStep(
+                    step,
+                    index,
+                ),
+        )
+        .filter(
+            Boolean,
         );
+
+const {
+    username,
+    password,
+} = extractLoginValues(
+    message,
+);
+
+
+sanitizeLoginCredentialInputs(
+    steps,
+    username,
+    password,
+);
+
+sanitizeGeneratedWaitTargets(
+    steps,
+);
 
         if (
             username &&
@@ -1842,6 +2016,7 @@ if (Array.isArray(rawPlan)) {
                             node,
                             index,
                         ),
+                        
                 )
                 .filter(
                     Boolean,
@@ -1853,6 +2028,16 @@ if (Array.isArray(rawPlan)) {
         } =
             extractLoginValues(
                 message,
+            );
+
+            sanitizeLoginCredentialInputs(
+                steps,
+                username,
+                password,
+            );
+
+            sanitizeGeneratedWaitTargets(
+                steps,
             );
 
         /*
@@ -1893,7 +2078,7 @@ if (Array.isArray(rawPlan)) {
                     locator:
                         "username",
 
-                    value:
+                    text:
                         username,
                 }),
             );
@@ -1937,7 +2122,7 @@ if (Array.isArray(rawPlan)) {
                     locator:
                         "password",
 
-                    value:
+                    text:
                         password,
                 }),
             );
@@ -2044,6 +2229,33 @@ function validateNormalizedPlan(
     ) {
         return null;
     }
+
+    const seenIds =
+    new Set();
+
+for (
+    const step of steps
+) {
+    if (
+        !step?.id
+    ) {
+        continue;
+    }
+
+    if (
+        seenIds.has(
+            step.id,
+        )
+    ) {
+        throw new Error(
+            `Duplicate AI flow step ID detected: ${step.id}`,
+        );
+    }
+
+    seenIds.add(
+        step.id,
+    );
+}
 
     const invalidStep =
         steps.find(
@@ -5229,8 +5441,8 @@ Examples from this flow:
 - Get Displayed for the login screen:
   semanticTarget = "login-screen"
 
-- Tap LogOut-menu-item that opens the login screen:
-  semanticTarget = "login-screen"
+- Tap Login:
+  semanticTarget = "login-button"
 
 - Get Text Username:
   semanticTarget = "username-prompt"
@@ -5388,14 +5600,14 @@ Example generateFlow response:
         "pollingInterval": null
       },
       {
-        "id": "ai-tap-logout",
-        "action": "tap",
-        "title": "Tap Logout",
-        "description": "Tap the logout menu item to return to the login screen.",
-        "semanticTarget": "login-screen",
-        "locatorStrategy": "xpath",
-        "locator": "//XCUIElementTypeButton[@name=\"LogOut-menu-item\"]",
-        "text": null,
+        "id": "ai-input-password",
+        "action": "input",
+        "title": "Input Password",
+        "description": "Enter the password.",
+        "semanticTarget": "password-field",
+        "locatorStrategy": "accessibilityId",
+        "locator": "password",
+        "text": "secret",
         "duration": null,
         "actual": null,
         "operator": null,
@@ -5410,7 +5622,7 @@ Example generateFlow response:
         "title": "Tap Login",
         "description": "Tap the Login button.",
         "semanticTarget": "login-button",
-       "locatorStrategy": "accessibilityId",
+        "locatorStrategy": "accessibilityId",
         "locator": "Login",
         "text": null,
         "duration": null,
@@ -6445,6 +6657,26 @@ if (
             message,
         );
 
+    const requestedWait =
+    /\b(?:tunggu sampai|wait until|wait for)\b/i.test(
+        message,
+    );
+
+if (
+    normalizedPlan &&
+    Array.isArray(
+        normalizedPlan.steps,
+    ) &&
+    !requestedWait
+) {
+    normalizedPlan.steps =
+        normalizedPlan.steps.filter(
+            (step) =>
+                step?.action !==
+                "wait",
+        );
+}
+
     /*
      * Deterministic wait fallback.
      *
@@ -6453,10 +6685,6 @@ if (
      * deterministically instead of relying on
      * the model to follow the instruction.
      */
-    const requestedWait =
-        /\b(?:tunggu sampai|wait until|wait for)\b/i.test(
-            message,
-        );
 
     const hasWait =
         Array.isArray(
@@ -6548,6 +6776,20 @@ if (
             );
         }
     }
+
+    const unsupportedStep =
+    normalizedPlan?.steps?.find(
+        (step) =>
+            !AI_APPLY_SUPPORTED_ACTIONS.has(
+                step?.action,
+            ),
+    );
+
+if (unsupportedStep) {
+    throw new Error(
+        `AI action "${unsupportedStep.action}" is not currently supported by the AI flow applier.`,
+    );
+}
 
     flowPlan =
         validateNormalizedPlan(

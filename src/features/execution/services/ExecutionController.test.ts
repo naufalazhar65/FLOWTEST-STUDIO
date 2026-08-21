@@ -126,6 +126,9 @@ vi.mock(
 
                         stopExecution:
                             mocks.stopExecution,
+
+                        markNextExecutionAsRerun:
+                            vi.fn(),
                     }),
                 ),
         },
@@ -971,18 +974,16 @@ describe(
                         expect(
                             executeFlowMock,
                         ).toHaveBeenNthCalledWith(
-                            1,
-                            nodes,
-                            context,
-                        );
-
-                        expect(
-                            executeFlowMock,
-                        ).toHaveBeenNthCalledWith(
                             2,
                             nodes,
                             context,
+                            {
+                                preserveExecutionHistory:
+                                    true,
+                            },
                         );
+
+
 
                         expect(
                             mocks.analyzeExecutionFailure,
@@ -1197,8 +1198,17 @@ describe(
 
                         expect(
                             executeFlowMock,
-                        ).toHaveBeenCalledTimes(
+                        ).toHaveBeenNthCalledWith(
                             2,
+                            repairedNodes,
+                            {
+                                edges:
+                                    originalEdges,
+                            },
+                            {
+                                preserveExecutionHistory:
+                                    true,
+                            },
                         );
 
                         expect(
@@ -1212,16 +1222,7 @@ describe(
                             },
                         );
 
-                        expect(
-                            executeFlowMock,
-                        ).toHaveBeenNthCalledWith(
-                            2,
-                            repairedNodes,
-                            {
-                                edges:
-                                    originalEdges,
-                            },
-                        );
+
                     },
                 );
 
@@ -1579,7 +1580,7 @@ describe(
 
                         flowState.edges = [];
 
-                        
+
 
                         executeNodeMock
                             .mockResolvedValue({
@@ -1610,7 +1611,7 @@ describe(
                                         true,
                                     );
 
-                                
+
 
                                     const rerunSucceeded =
                                         await options.rerun();
@@ -1671,7 +1672,7 @@ describe(
                             1,
                         );
 
-                       
+
 
                         expect(
                             executeFlowMock,

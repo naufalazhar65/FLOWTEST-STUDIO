@@ -72,6 +72,17 @@ const validAssertOperators:
         "matches",
     ];
 
+const aiApplySupportedActions:
+    NodeAction[] = [
+        "launchApp",
+        "tap",
+        "input",
+        "assert",
+        "delay",
+        "wait",
+    ];
+
+
 function requiresLocator(
     action: NodeAction,
 ): boolean {
@@ -118,6 +129,17 @@ function validateStep(
 
     const position =
         index + 1;
+    if (
+        !aiApplySupportedActions.includes(
+            step.action,
+        )
+    ) {
+        errors.push(
+            `Step ${position}: AI action "${step.action}" is not currently supported by the AI flow applier.`,
+        );
+
+        return errors;
+    }
 
     if (
         !step.id.trim()
@@ -292,14 +314,16 @@ function validateStep(
         }
 
         if (
-            step.pollingInterval ===
-            undefined ||
-            step.pollingInterval ===
-            null ||
-            step.pollingInterval <= 0
+            step.pollingInterval !==
+            undefined &&
+            (
+                step.pollingInterval ===
+                null ||
+                step.pollingInterval <= 0
+            )
         ) {
             errors.push(
-                `Step ${position}: wait requires a positive polling interval.`,
+                `Step ${position}: wait polling interval must be positive when provided.`,
             );
         }
     }

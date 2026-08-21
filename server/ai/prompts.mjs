@@ -137,7 +137,7 @@ input requires:
 
 locatorStrategy
 locator
-value
+text
 
 DELAY
 

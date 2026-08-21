@@ -38,7 +38,8 @@ export function buildAIExecutionContext(): AIExecutionContext {
     const nodeExecutionHistory =
         Object.fromEntries(
             Object.entries(
-                execution.nodeExecutionHistory,
+                execution.nodeExecutionHistory ??
+                {},
             ).map(
                 (
                     [
@@ -48,7 +49,9 @@ export function buildAIExecutionContext(): AIExecutionContext {
                 ) => [
                         nodeId,
                         history.map(
-                            (result) => {
+                            (
+                                result,
+                            ) => {
                                 const {
                                     screenshot,
                                     pageSource,

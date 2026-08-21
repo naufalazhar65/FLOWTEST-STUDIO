@@ -1360,6 +1360,41 @@ function scoreNode(
     );
 }
 
+
+
+const scoredCandidates =
+    nodes
+        .map(
+            (
+                node,
+                index,
+            ) => ({
+                node,
+                index,
+
+                score:
+                    scoreNode(
+                        node,
+                        reference,
+                    ),
+            }),
+        )
+        .filter(
+            (
+                candidate,
+            ) =>
+                candidate.score >
+                0,
+        )
+        .sort(
+            (
+                a,
+                b,
+            ) =>
+                b.score -
+                a.score,
+        );
+
 console.error(
     "[AI NODE RESOLUTION] SCORED",
     scoredCandidates.map(
@@ -1381,39 +1416,7 @@ console.error(
     ),
 );
 
-const scoredCandidates =
-    nodes
-        .map(
-            (
-                node,
-                index,
-            ) => ({
-                node,
-                index,
-                score:
-                    scoreNode(
-                        node,
-                        reference,
-                    )
-            }),
-        )
-        .filter(
-            (
-                candidate,
-            ) =>
-                candidate.score >
-                0,
-        )
-        .sort(
-            (
-                a,
-                b,
-            ) =>
-                b.score -
-                a.score,
-        );
-
-        console.error(
+console.error(
     "[AI SELECTED NODE] SCORES",
     nodes.map(
         (
@@ -1434,6 +1437,7 @@ const scoredCandidates =
             score:
                 scoreNode(
                     node,
+                    reference,
                 ),
         }),
     ),
