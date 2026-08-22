@@ -4,48 +4,79 @@ import { useFlowStore } from "../store/useFlowStore";
 
 export function useClipboardShortcuts() {
   const {
-    undo,
-    redo,
     copyNode,
     pasteNode,
   } = useFlowStore();
 
   useEffect(() => {
-    const handler = (event: KeyboardEvent) => {
-      const isMac = navigator.platform
-        .toLowerCase()
-        .includes("mac");
+    const handler = (
+      event: KeyboardEvent,
+    ) => {
+      const target =
+        event.target;
 
-      const modifier = isMac
-        ? event.metaKey
-        : event.ctrlKey;
+      if (
+        target instanceof
+        HTMLInputElement ||
+        target instanceof
+        HTMLTextAreaElement ||
+        target instanceof
+        HTMLSelectElement ||
+        (
+          target instanceof
+          HTMLElement &&
+          target.isContentEditable
+        )
+      ) {
+        return;
+      }
 
-      if (!modifier) return;
+      const isMac =
+        navigator.platform
+          .toLowerCase()
+          .includes("mac");
 
-      const key = event.key.toLowerCase();
+      const modifier =
+        isMac
+          ? event.metaKey
+          : event.ctrlKey;
+
+      if (!modifier) {
+        return;
+      }
+
+      const key =
+        event.key.toLowerCase();
 
       if (key === "c") {
         event.preventDefault();
+
         copyNode();
+
         return;
       }
 
       if (key === "v") {
         event.preventDefault();
+
         pasteNode();
+
         return;
       }
     };
 
     window.addEventListener(
       "keydown",
-      handler
+      handler,
     );
 
     return () =>
       window.removeEventListener(
         "keydown",
-        handler
+        handler,
       );
-  }, [undo, redo, copyNode, pasteNode]);
+  }, [
+    copyNode,
+    pasteNode,
+  ]);
 }

@@ -29,6 +29,16 @@ export interface LocatorRepairSuggestion {
     reason: string;
 }
 
+interface LocatorCandidate {
+    strategy: string;
+
+    value: string;
+
+    score: number;
+
+    reason: string;
+}
+
 function extractLocatorText(
     locator: string,
 ): string | null {
@@ -559,6 +569,348 @@ function getPrimaryElementValue(
     }
 }
 
+function getLocatorStrategies(
+    element: ElementInfo,
+): string[] {
+    const strategies: string[] = [];
+
+    if (
+        element.resourceId?.trim()
+    ) {
+        strategies.push(
+            "id",
+        );
+    }
+
+    if (
+        element.name?.trim() ||
+        element.label?.trim() ||
+        element.contentDescription?.trim() ||
+        element.semanticLabel?.trim()
+    ) {
+        strategies.push(
+            "accessibilityId",
+        );
+    }
+
+    if (
+        element.className?.trim() ||
+        element.tagName?.trim()
+    ) {
+        strategies.push(
+            "className",
+        );
+    }
+
+    if (
+        element.tagName?.trim() &&
+        (
+            element.name?.trim() ||
+            element.label?.trim() ||
+            element.text?.trim() ||
+            element.value?.trim() ||
+            element.resourceId?.trim()
+        )
+    ) {
+        strategies.push(
+            "xpath",
+        );
+    }
+
+    if (
+        element.resourceId?.trim() ||
+        element.text?.trim() ||
+        element.contentDescription?.trim()
+    ) {
+        strategies.push(
+            "androidUiAutomator",
+        );
+    }
+
+    if (
+        element.name?.trim() ||
+        element.label?.trim() ||
+        element.value?.trim()
+    ) {
+        strategies.push(
+            "iOSPredicateString",
+        );
+    }
+
+    if (
+        element.tagName?.trim() &&
+        (
+            element.name?.trim() ||
+            element.label?.trim() ||
+            element.value?.trim()
+        )
+    ) {
+        strategies.push(
+            "iOSClassChain",
+        );
+    }
+
+    return [
+        ...new Set(
+            strategies,
+        ),
+    ];
+}
+
+function findBestCandidateForStrategy(
+    element: ElementInfo,
+    target: string,
+    originalLocator: string,
+    strategy: string,
+    originalStrategy: string,
+): LocatorCandidate | null {
+    const suggestedLocator =
+        buildSuggestedLocator(
+            strategy,
+            element,
+            originalLocator,
+        );
+
+    if (
+        !suggestedLocator ||
+        (
+            suggestedLocator ===
+            originalLocator &&
+            strategy ===
+            originalStrategy
+        )
+    ) {
+        return null;
+    }
+
+    const values =
+        getElementValues(
+            element,
+            strategy,
+        );
+
+    let bestSimilarity = 0;
+
+    let bestValue:
+        | string
+        | null = null;
+
+    for (
+        const value of values
+    ) {
+        const similarity =
+            partialSimilarity(
+                target,
+                value,
+            );
+
+        if (
+            similarity >
+            bestSimilarity
+        ) {
+            bestSimilarity =
+                similarity;
+
+            bestValue =
+                value;
+        }
+    }
+
+    if (!bestValue) {
+        return null;
+    }
+
+    /*
+     * Make the generated locator and the
+     * scored evidence consistent.
+     *
+     * A strategy must be scored by the
+     * attribute that actually produces the
+     * suggested locator.
+     */
+    let generatedValue:
+        | string
+        | null = null;
+
+    switch (
+    strategy
+    ) {
+        case "accessibilityId":
+            generatedValue =
+                element.name ??
+                element.label ??
+                element.contentDescription ??
+                element.semanticLabel ??
+                element.value ??
+                element.text ??
+                null;
+            break;
+
+        case "id":
+            generatedValue =
+                element.resourceId ??
+                element.name ??
+                element.label ??
+                null;
+            break;
+
+        case "className":
+            generatedValue =
+                element.className ??
+                element.tagName ??
+                null;
+            break;
+
+        case "xpath":
+            generatedValue =
+                element.name ??
+                element.label ??
+                element.text ??
+                element.value ??
+                element.resourceId ??
+                null;
+            break;
+
+        case "androidUiAutomator":
+            generatedValue =
+                element.resourceId ??
+                element.text ??
+                element.contentDescription ??
+                null;
+            break;
+
+        case "iOSPredicateString":
+            generatedValue =
+                element.name ??
+                element.label ??
+                element.value ??
+                null;
+            break;
+
+        case "iOSClassChain":
+            generatedValue =
+                element.name ??
+                element.label ??
+                element.value ??
+                null;
+            break;
+
+        default:
+            generatedValue =
+                bestValue;
+    }
+
+    if (
+        !generatedValue
+    ) {
+        return null;
+    }
+
+    const generatedSimilarity =
+        partialSimilarity(
+            target,
+            generatedValue,
+        );
+
+    let strategyBonus = 0;
+
+    if (
+        strategy ===
+        originalStrategy
+    ) {
+        if (
+            strategy ===
+            "accessibilityId"
+        ) {
+            strategyBonus =
+                0.03;
+        } else if (
+            strategy ===
+            "id" ||
+            strategy ===
+            "className"
+        ) {
+            strategyBonus =
+                0.05;
+        }
+    }
+
+    if (
+        strategy ===
+        "id"
+    ) {
+        strategyBonus +=
+            0.05;
+    } else if (
+        strategy ===
+        "accessibilityId"
+    ) {
+        strategyBonus +=
+            0.04;
+    } else if (
+        strategy ===
+        "className"
+    ) {
+        strategyBonus +=
+            0.02;
+    }
+
+    return {
+        strategy,
+
+        value:
+            suggestedLocator,
+
+        score:
+            generatedSimilarity +
+            strategyBonus,
+
+        reason:
+            `Matched "${generatedValue}" using ${strategy}.`,
+    };
+}
+
+function buildLocatorCandidates(
+    element: ElementInfo,
+    target: string,
+    originalLocator: string,
+    originalStrategy: string,
+): LocatorCandidate[] {
+    const strategies = [
+        originalStrategy,
+
+        ...getLocatorStrategies(
+            element,
+        ).filter(
+            (
+                strategy,
+            ) =>
+                strategy !==
+                originalStrategy,
+        ),
+    ];
+
+    return strategies
+        .map(
+            (
+                strategy,
+            ) =>
+                findBestCandidateForStrategy(
+                    element,
+                    target,
+                    originalLocator,
+                    strategy,
+                    originalStrategy,
+                )
+        )
+        .filter(
+            (
+                candidate,
+            ): candidate is LocatorCandidate =>
+                candidate !== null,
+        );
+}
+
 function escapeValue(
     value: string,
 ): string {
@@ -830,120 +1182,30 @@ export function suggestLocatorRepair(
         return null;
     }
 
-         
 
     const allElements =
         collectElements(
             elements,
         );
 
-    const normalizedTarget =
-        normalize(target);
 
     const rankedCandidates =
         allElements
-            .map(
+            .flatMap(
                 (
                     element,
-                ) => {
-                    const values =
-                        getElementValues(
-                            element,
-                            locatorStrategy,
-                        );
-
-                    let bestSimilarity =
-                        0;
-
-                    let bestValue:
-                        string | null =
-                        null;
-
-                    for (
-                        const value of
-                        values
-                    ) {
-                        const similarity =
-                            partialSimilarity(
-                                normalizedTarget,
-                                value,
-                            );
-
-                        if (
-                            similarity >
-                            bestSimilarity
-                        ) {
-                            bestSimilarity =
-                                similarity;
-
-                            bestValue =
-                                value;
-                        }
-                    }
-
-                    /*
-                     * Prefer values appropriate
-                     * for the active locator
-                     * strategy.
-                     */
-                    let strategyBonus =
-                        0;
-
-                    if (
-                        locatorStrategy ===
-                        "accessibilityId" &&
-                        (
-                            element.name ||
-                            element.label ||
-                            element.contentDescription
-                        )
-                    ) {
-                        strategyBonus =
-                            0.03;
-                    }
-
-                    if (
-                        locatorStrategy ===
-                        "id" &&
-                        element.resourceId
-                    ) {
-                        strategyBonus =
-                            0.05;
-                    }
-
-                    if (
-                        locatorStrategy ===
-                        "className" &&
-                        (
-                            element.className ||
-                            element.tagName
-                        )
-                    ) {
-                        strategyBonus =
-                            0.05;
-                    }
-
-                    return {
+                ) =>
+                    buildLocatorCandidates(
                         element,
-
-                        similarity:
-                            Math.min(
-                                1,
-                                bestSimilarity +
-                                strategyBonus,
-                            ),
-
-                        bestValue,
-                    };
-                },
+                        target,
+                        locator,
+                        locatorStrategy,
+                    ),
             )
             .sort(
-                (
-                    first,
-                    second,
-                ) =>
-                    second.similarity -
-                    first.similarity,
+                (first, second) =>
+                    second.score -
+                    first.score,
             );
 
     const candidate =
@@ -960,32 +1222,32 @@ export function suggestLocatorRepair(
      * is sufficiently strong evidence.
      */
     if (
-        candidate.similarity <
+        candidate.score <
         0.70
     ) {
         return null;
     }
 
     const suggestedLocator =
-        buildSuggestedLocator(
-            locatorStrategy,
-            candidate.element,
-            locator,
-        );
+        candidate.value;
 
     if (
         !suggestedLocator ||
-        suggestedLocator ===
-        locator
+        (
+            suggestedLocator ===
+            locator &&
+            candidate.strategy ===
+            locatorStrategy
+        )
     ) {
         return null;
     }
 
     const confidence =
-        candidate.similarity >=
+        candidate.score >=
             0.90
             ? "high"
-            : candidate.similarity >=
+            : candidate.score >=
                 0.80
                 ? "medium"
                 : "low";
@@ -996,11 +1258,12 @@ export function suggestLocatorRepair(
 
         suggestedLocator,
 
-        locatorStrategy,
+        locatorStrategy:
+            candidate.strategy,
 
         confidence,
 
         reason:
-            `The configured locator uses "${target}", but the active page source contains "${candidate.bestValue ?? "a matching element"}".`,
+            candidate.reason,
     };
 }
