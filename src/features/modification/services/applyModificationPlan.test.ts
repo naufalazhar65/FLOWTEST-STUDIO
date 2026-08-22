@@ -7,6 +7,7 @@ import {
 } from "vitest";
 
 import type {
+    ModificationPlanMultiple,
     ModificationPlanSingle,
 } from "../types/ModificationPlan";
 
@@ -606,6 +607,129 @@ describe(
                         .runInHistoryBatch,
                 ).toHaveBeenCalledTimes(
                     1,
+                );
+            },
+        );
+
+        it(
+            "applies multiple generic operations in order",
+            () => {
+                const plan: ModificationPlanMultiple = {
+                    type:
+                        "modification_plan",
+
+                    summary:
+                        "Apply multiple modifications",
+
+                    operations: [
+                        {
+                            type:
+                                "addNodeAfter",
+
+                            targetNodeId:
+                                "node-1",
+
+                            resultId:
+                                "wait-node",
+
+                            step: {
+                                action:
+                                    "wait",
+
+                                title:
+                                    "Wait Before Login",
+
+                                locatorStrategy:
+                                    "accessibilityId",
+
+                                locator:
+                                    "Login",
+
+                                timeout:
+                                    5000,
+
+                                pollingInterval:
+                                    250,
+                            },
+                        },
+
+                        {
+                            type:
+                                "updateNode",
+
+                            targetNodeId:
+                                "$wait-node",
+
+                            step: {
+                                action:
+                                    "wait",
+
+                                title:
+                                    "Updated Wait",
+
+                                locatorStrategy:
+                                    "accessibilityId",
+
+                                locator:
+                                    "Login",
+
+                                timeout:
+                                    10000,
+
+                                pollingInterval:
+                                    500,
+                            },
+                        },
+                    ],
+                };
+
+                const result =
+                    applyModificationPlan(
+                        plan,
+                    );
+
+                expect(
+                    result.success,
+                ).toBe(
+                    true,
+                );
+
+                expect(
+                    result.appliedSteps,
+                ).toBe(
+                    2,
+                );
+
+                expect(
+                    flowState.nodes,
+                ).toHaveLength(
+                    2,
+                );
+
+                const createdNode =
+                    flowState.nodes.at(
+                        -1,
+                    );
+
+                expect(
+                    createdNode?.data
+                        .title,
+                ).toBe(
+                    "Updated Wait",
+                );
+
+                expect(
+                    createdNode?.data
+                        .timeout,
+                ).toBe(
+                    10000,
+                );
+
+                expect(
+                    createdNode?.data
+                        .pollingInterval,
+                ).toBe(
+                    500,
                 );
             },
         );
