@@ -27,6 +27,9 @@ export interface LocatorRepairSuggestion {
     | "low";
 
     reason: string;
+
+    candidates:
+    LocatorRepairCandidate[];
 }
 
 interface LocatorCandidate {
@@ -35,6 +38,21 @@ interface LocatorCandidate {
     value: string;
 
     score: number;
+
+    reason: string;
+}
+
+export interface LocatorRepairCandidate {
+    strategy: string;
+
+    locator: string;
+
+    score: number;
+
+    confidence:
+    | "high"
+    | "medium"
+    | "low";
 
     reason: string;
 }
@@ -1228,6 +1246,43 @@ export function suggestLocatorRepair(
         return null;
     }
 
+    const candidates:
+        LocatorRepairCandidate[] =
+        rankedCandidates
+            .filter(
+                (
+                    item,
+                ) =>
+                    item.score >=
+                    0.70,
+            )
+            .map(
+                (
+                    item,
+                ): LocatorRepairCandidate => ({
+                    strategy:
+                        item.strategy,
+
+                    locator:
+                        item.value,
+
+                    score:
+                        item.score,
+
+                    confidence:
+                        item.score >=
+                            0.90
+                            ? "high"
+                            : item.score >=
+                                0.80
+                                ? "medium"
+                                : "low",
+
+                    reason:
+                        item.reason,
+                }),
+            );
+
     const suggestedLocator =
         candidate.value;
 
@@ -1265,5 +1320,7 @@ export function suggestLocatorRepair(
 
         reason:
             candidate.reason,
+
+        candidates,
     };
 }
