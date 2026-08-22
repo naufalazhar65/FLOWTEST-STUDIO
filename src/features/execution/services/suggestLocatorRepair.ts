@@ -39,6 +39,8 @@ interface LocatorCandidate {
 
     score: number;
 
+    uniqueness: number;
+
     reason: string;
 }
 
@@ -883,8 +885,11 @@ function findBestCandidateForStrategy(
             generatedSimilarity +
             strategyBonus,
 
+        uniqueness:
+            0,
+
         reason:
-            `Matched "${generatedValue}" using ${strategy}.`,
+            `Matched "${bestValue}" using ${strategy}.`,
     };
 }
 
@@ -1159,6 +1164,7 @@ function collectElements(
 
     return result;
 }
+
 
 export function suggestLocatorRepair(
     context: FailureContext,
