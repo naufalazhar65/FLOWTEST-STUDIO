@@ -338,5 +338,149 @@ describe(
                 );
             },
         );
+
+                it(
+            "prefers a unique locator over a duplicated locator",
+            () => {
+                const context =
+                    createContext(
+                        {
+                            locator:
+                                "target-action",
+                        },
+                        {
+                            pageSource:
+                                `
+                                    <hierarchy>
+                                        <node
+                                            resource-id="target-action"
+                                            class="android.widget.Button"
+                                            text="Target Action"
+                                        />
+
+                                        <node
+                                            resource-id="target-action"
+                                            class="android.widget.Button"
+                                            text="Target Action"
+                                        />
+
+                                        <node
+                                            resource-id="target-action-unique"
+                                            class="android.widget.Button"
+                                            text="Target Action"
+                                        />
+                                    </hierarchy>
+                                `,
+                        },
+                    );
+
+                const result =
+                    suggestLocatorRepair(
+                        context,
+                    );
+
+                expect(
+                    result,
+                ).not.toBeNull();
+
+                expect(
+                    result?.suggestedLocator,
+                ).toBe(
+                    "target-action-unique",
+                );
+
+                expect(
+                    result?.locatorStrategy,
+                ).toBe(
+                    "id",
+                );
+            },
+        );
+
+                it(
+            "returns null when no candidate has sufficient evidence",
+            () => {
+                const context =
+                    createContext(
+                        {
+                            locator:
+                                "target-action",
+                        },
+                        {
+                            pageSource:
+                                `
+                                    <hierarchy>
+                                        <node
+                                            resource-id="com.app.cancel"
+                                            class="android.widget.Button"
+                                            text="Cancel"
+                                        />
+
+                                        <node
+                                            resource-id="com.app.settings"
+                                            class="android.widget.Button"
+                                            text="Settings"
+                                        />
+
+                                        <node
+                                            resource-id="com.app.help"
+                                            class="android.widget.Button"
+                                            text="Help"
+                                        />
+                                    </hierarchy>
+                                `,
+                        },
+                    );
+
+                const result =
+                    suggestLocatorRepair(
+                        context,
+                    );
+
+                expect(
+                    result,
+                ).toBeNull();
+            },
+        );
+
+                it(
+            "returns null when multiple candidates are equally ambiguous",
+            () => {
+                const context =
+                    createContext(
+                        {
+                            locator:
+                                "target-action",
+                        },
+                        {
+                            pageSource:
+                                `
+                                    <hierarchy>
+                                        <node
+                                            resource-id="target-action-primary"
+                                            class="android.widget.Button"
+                                            text="Target Action"
+                                        />
+
+                                        <node
+                                            resource-id="target-action-secondary"
+                                            class="android.widget.Button"
+                                            text="Target Action"
+                                        />
+                                    </hierarchy>
+                                `,
+                        },
+                    );
+
+                const result =
+                    suggestLocatorRepair(
+                        context,
+                    );
+
+                expect(
+                    result,
+                ).toBeNull();
+            },
+        );
     },
 );

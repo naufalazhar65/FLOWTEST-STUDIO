@@ -633,5 +633,255 @@ describe(
                 });
             },
         );
+
+        it(
+            "requires manual review when direct locator repair does not change the locator",
+            async () => {
+                const result =
+                    await buildSelfHealingPlan(
+                        createAnalysis({
+                            fixType:
+                                "repairLocator",
+
+                            locatorStrategy:
+                                "accessibilityId",
+
+                            locator:
+                                "Login",
+
+                            suggestedLocator:
+                                "Login",
+                        }),
+                    );
+
+                expect(
+                    resolveAILocatorFromApp,
+                ).not.toHaveBeenCalled();
+
+                expect(
+                    result.canAutoApply,
+                ).toBe(false);
+
+                expect(
+                    result.strategy,
+                ).toBe(
+                    "manual",
+                );
+
+                expect(
+                    result.modificationPlan,
+                ).toBeNull();
+            },
+        );
+
+        it(
+            "creates a modification plan when direct locator repair changes the strategy",
+            async () => {
+                const result =
+                    await buildSelfHealingPlan(
+                        createAnalysis({
+                            fixType:
+                                "repairLocator",
+
+                            locatorStrategy:
+                                "id",
+
+                            locator:
+                                "old-target",
+
+                            suggestedLocator:
+                                "target-action",
+
+                        }),
+                    );
+
+                expect(
+                    resolveAILocatorFromApp,
+                ).not.toHaveBeenCalled();
+
+                expect(
+                    result.canAutoApply,
+                ).toBe(true);
+
+                expect(
+                    result.strategy,
+                ).toBe(
+                    "modification",
+                );
+
+                expect(
+                    result.modificationPlan,
+                ).toMatchObject({
+                    type:
+                        "modification_plan",
+
+                    operation: {
+                        type:
+                            "updateNode",
+
+                        targetNodeId:
+                            "node-1",
+
+                        step: {
+                            locatorStrategy:
+                                "id",
+
+                            locator:
+                                "target-action",
+                        },
+                    },
+                });
+            },
+        );
+
+        it(
+            "requires manual review when AI locator fallback fails",
+            async () => {
+                vi.mocked(
+                    resolveAILocatorFromApp,
+                ).mockResolvedValueOnce({
+                    status: "unavailable",
+                    target: "...",
+                    selected: null,
+                    candidates: [],
+                    matchedElementId: null,
+                    error: "No verified locator found.",
+                });
+
+                const result =
+                    await buildSelfHealingPlan(
+                        createAnalysis({
+                            fixType:
+                                "repairLocator",
+
+                            autoApplicable:
+                                true,
+
+                            locatorStrategy:
+                                "accessibilityId",
+
+                            locator:
+                                "Login",
+
+                            suggestedLocator:
+                                null,
+                        }),
+                    );
+
+                expect(
+                    resolveAILocatorFromApp,
+                ).toHaveBeenCalledTimes(
+                    1,
+                );
+
+                expect(
+                    result.canAutoApply,
+                ).toBe(false);
+
+                expect(
+                    result.strategy,
+                ).toBe(
+                    "manual",
+                );
+
+                expect(
+                    result.modificationPlan,
+                ).toBeNull();
+            },
+        );
+
+        it(
+            "requires manual review when AI resolves the same locator",
+            async () => {
+                vi.mocked(
+                    resolveAILocatorFromApp,
+                ).mockResolvedValueOnce({
+                    status:
+                        "resolved",
+
+                    target:
+                        "Login",
+
+                    selected: {
+                        strategy:
+                            "accessibilityId",
+
+                        value:
+                            "Login",
+
+                        score:
+                            1,
+
+                        reason:
+                            "Exact accessibility label match.",
+
+                        recommended:
+                            true,
+                    },
+
+                    candidates: [
+                        {
+                            strategy:
+                                "accessibilityId",
+
+                            value:
+                                "Login",
+
+                            score:
+                                1,
+
+                            reason:
+                                "Exact accessibility label match.",
+
+                            recommended:
+                                true,
+                        },
+                    ],
+
+                    matchedElementId:
+                        "element-login",
+                });
+
+                const result =
+                    await buildSelfHealingPlan(
+                        createAnalysis({
+                            fixType:
+                                "repairLocator",
+
+                            autoApplicable:
+                                true,
+
+                            locatorStrategy:
+                                "accessibilityId",
+
+                            locator:
+                                "Login",
+
+                            suggestedLocator:
+                                null,
+                        }),
+                    );
+
+                expect(
+                    resolveAILocatorFromApp,
+                ).toHaveBeenCalledTimes(
+                    1,
+                );
+
+                expect(
+                    result.canAutoApply,
+                ).toBe(false);
+
+                expect(
+                    result.strategy,
+                ).toBe(
+                    "manual",
+                );
+
+                expect(
+                    result.modificationPlan,
+                ).toBeNull();
+            },
+        );
     },
 );

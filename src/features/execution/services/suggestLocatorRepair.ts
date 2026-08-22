@@ -1206,12 +1206,10 @@ export function suggestLocatorRepair(
         return null;
     }
 
-
     const allElements =
         collectElements(
             elements,
         );
-
 
     const rankedCandidates =
         allElements
@@ -1237,6 +1235,28 @@ export function suggestLocatorRepair(
 
     if (
         !candidate
+    ) {
+        return null;
+    }
+
+    /*
+     * Do not automatically repair when
+     * the strongest candidates are too
+     * close to each other.
+     *
+     * This prevents arbitrary selection
+     * when multiple elements have nearly
+     * identical evidence.
+     */
+    const secondCandidate =
+        rankedCandidates[1];
+
+    if (
+        secondCandidate &&
+        Math.abs(
+            candidate.score -
+            secondCandidate.score,
+        ) < 0.01
     ) {
         return null;
     }
