@@ -24,15 +24,15 @@ import {
 } from "./AIMessage";
 
 import type {
-    AIModificationOperationData,
-    AIModificationPlan,
-} from "../types/AIModificationPlan";
+    ModificationOperationData,
+    ModificationPlan,
+} from "../../modification/types/ModificationPlan";
 
 interface AIChatProps {
     draftPlan: AIFlowPlan | null;
 
     draftModificationPlan:
-    AIModificationPlan | null;
+    ModificationPlan | null;
 
     onApply(): void;
 
@@ -43,7 +43,7 @@ function ModificationOperationPreview({
     operation,
 }: {
     operation:
-    AIModificationOperationData;
+    ModificationOperationData;
 }) {
     const step =
         "step" in operation
@@ -339,13 +339,13 @@ function ModificationPreview({
     onApply,
     onCancel,
 }: {
-    plan: AIModificationPlan;
+    plan: ModificationPlan;
 
     onApply(): void;
 
     onCancel(): void;
 }) {
-    const operations: AIModificationOperationData[] =
+    const operations: ModificationOperationData[] =
         Array.isArray(
             plan.operations,
         )

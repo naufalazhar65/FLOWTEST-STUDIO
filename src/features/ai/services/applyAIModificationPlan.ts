@@ -1,6 +1,6 @@
 import type {
-    AIModificationPlan,
-} from "../types/AIModificationPlan";
+    ModificationPlan,
+} from "../../modification/types/ModificationPlan";
 
 import type {
     ModificationApplyResult,
@@ -14,7 +14,7 @@ export type AIModificationApplyResult =
     ModificationApplyResult;
 
 export function applyAIModificationPlan(
-    plan: AIModificationPlan,
+    plan: ModificationPlan,
 ): AIModificationApplyResult {
     return applyModificationPlan(
         plan,

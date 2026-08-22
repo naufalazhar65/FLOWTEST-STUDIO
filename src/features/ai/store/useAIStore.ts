@@ -5,8 +5,8 @@ import type {
 } from "../types/AIFlowPlan";
 
 import type {
-    AIModificationPlan,
-} from "../types/AIModificationPlan";
+    ModificationPlan,
+} from "../../modification/types/ModificationPlan";
 
 import type {
     AIMessage,
@@ -59,7 +59,7 @@ interface AIStore {
     AIFlowPlan | null;
 
     draftModificationPlan:
-    AIModificationPlan | null;
+    ModificationPlan | null;
 
     draftTestCases:
     AITestCase[] | null;
@@ -90,7 +90,7 @@ interface AIStore {
 
     setDraftModificationPlan: (
         plan:
-            AIModificationPlan | null,
+            ModificationPlan | null,
     ) => void;
 
     setDraftTestCases: (
@@ -454,7 +454,7 @@ export const useAIStore =
                             null;
 
                         const draftModificationPlan:
-                            AIModificationPlan |
+                            ModificationPlan |
                             null =
                             response.modificationPlan ??
                             null;

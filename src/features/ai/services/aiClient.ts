@@ -6,8 +6,8 @@ import type {
 } from "../types/AIRequest";
 
 import type {
-    AIModificationPlan,
-} from "../types/AIModificationPlan";
+    ModificationPlan,
+} from "../../modification/types/ModificationPlan";
 
 import type {
     AITestCaseGenerationResult,
@@ -17,8 +17,6 @@ import type {
     AITestCaseFlowRequest,
     AITestCaseFlowResponse,
 } from "../types/AITestCaseFlow";
-
-
 
 const AI_API_URL =
     import.meta.env.VITE_AI_API_URL ??
@@ -61,7 +59,7 @@ export async function sendAIRequest(
 export async function requestQAFixPlan(
     recommendation: AIQARecommendation,
     context: AIFlowContext,
-): Promise<AIModificationPlan> {
+): Promise<ModificationPlan> {
     const response = await fetch(
         `${AI_API_URL}/api/ai/qa/fix`,
         {
@@ -101,7 +99,7 @@ export async function requestQAFixPlan(
         );
     }
 
-    return data.modificationPlan as AIModificationPlan;
+    return data.modificationPlan as ModificationPlan;
 }
 
 export async function generateAITestCases(
@@ -185,12 +183,12 @@ export async function convertAITestCaseToFlow(
     if (
         !data ||
         typeof data !==
-            "object" ||
+        "object" ||
         typeof data.testCaseId !==
-            "string" ||
+        "string" ||
         !data.flowPlan ||
         typeof data.flowPlan !==
-            "object"
+        "object"
     ) {
         throw new Error(
             "AI test-case flow response did not contain a valid flow plan.",

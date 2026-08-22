@@ -1,6 +1,6 @@
 import type {
-    AIModificationPlan,
-} from "../types/AIModificationPlan";
+    ModificationPlan,
+} from "../../modification/types/ModificationPlan";
 
 import {
     validateModificationPlan,
@@ -15,7 +15,7 @@ export interface AIModificationValidationResult {
 }
 
 export function validateAIModificationPlan(
-    plan: AIModificationPlan,
+    plan: ModificationPlan,
     existingNodeIds: Set<string>,
 ): AIModificationValidationResult {
     return validateModificationPlan(

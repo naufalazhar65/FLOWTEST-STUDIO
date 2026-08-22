@@ -1,7 +1,11 @@
-import type { AIFlowPlan } from "./AIFlowPlan";
 import type {
-    AIModificationPlan,
-} from "./AIModificationPlan";
+    AIFlowPlan,
+} from "./AIFlowPlan";
+
+import type {
+    ModificationPlan,
+} from "../../modification/types/ModificationPlan";
+
 import type {
     AIQARecommendation,
 } from "./AIRequest";
@@ -18,10 +22,11 @@ export interface AIMessage {
 
     content: string;
 
-    flowPlan?: AIFlowPlan;
+    flowPlan?:
+    AIFlowPlan;
 
     modificationPlan?:
-    AIModificationPlan;
+    ModificationPlan;
 
     createdAt: number;
 

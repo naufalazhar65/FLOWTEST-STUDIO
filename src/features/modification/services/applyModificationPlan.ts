@@ -17,7 +17,7 @@ import {
 } from "./validateModificationPlan";
 
 export interface ModificationApplyResult
-    extends AIFlowApplyResult {}
+    extends AIFlowApplyResult { }
 
 /*
  * --------------------------------------------------
@@ -37,9 +37,9 @@ export interface ModificationApplyResult
 type StepModificationOperation =
     ModificationOperationData & {
         type:
-            | "addNodeAfter"
-            | "addNodeBefore"
-            | "updateNode";
+        | "addNodeAfter"
+        | "addNodeBefore"
+        | "updateNode";
 
         step: ModificationStep;
     };
@@ -170,7 +170,7 @@ function buildUpdatePatch(
     }
 
     switch (
-        step.action
+    step.action
     ) {
         case "input":
             if (
@@ -629,7 +629,7 @@ function applyOperation(
     operation: ModificationOperationData,
 ): string | null {
     switch (
-        operation.type
+    operation.type
     ) {
         case "addNodeAfter":
             return applyAddNodeAfter(
@@ -673,6 +673,8 @@ export function applyModificationPlan(
 ): ModificationApplyResult {
     const store =
         useFlowStore.getState();
+
+    let appliedSteps = 0;
 
     const existingNodeIds =
         new Set(
@@ -768,9 +770,11 @@ export function applyModificationPlan(
                             resolvedOperation,
                         );
 
+                    appliedSteps += 1;
+
                     if (
                         "resultId" in
-                            operation &&
+                        operation &&
                         operation.resultId &&
                         createdNodeId
                     ) {
@@ -793,7 +797,7 @@ export function applyModificationPlan(
         return {
             success: false,
 
-            appliedSteps: 0,
+            appliedSteps,
 
             error:
                 error instanceof Error

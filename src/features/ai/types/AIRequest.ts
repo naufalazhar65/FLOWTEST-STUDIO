@@ -1,8 +1,8 @@
 import type { AIFlowPlan } from "./AIFlowPlan";
 
 import type {
-    AIModificationPlan,
-} from "./AIModificationPlan";
+    ModificationPlan,
+} from "../../modification/types/ModificationPlan";
 
 import type {
     AIExecutionContext,
@@ -125,35 +125,35 @@ export interface AIQARecommendation {
     string | null;
 
     suggestedFix:
-| {
-    type: string;
+    | {
+        type: string;
 
-    title?: string;
+        title?: string;
 
-    description?: string;
+        description?: string;
 
-    targetNodeId:
-    string | null;
+        targetNodeId:
+        string | null;
 
-    confidence?:
-    | "high"
-    | "medium"
-    | "low";
+        confidence?:
+        | "high"
+        | "medium"
+        | "low";
 
-    reason?: string;
+        reason?: string;
 
-    autoApplicable?: boolean;
+        autoApplicable?: boolean;
 
-    currentLocator?:
-    string | null;
+        currentLocator?:
+        string | null;
 
-    suggestedLocator?:
-    string | null;
+        suggestedLocator?:
+        string | null;
 
-    locatorStrategy?:
-    string | null;
-}
-| null;
+        locatorStrategy?:
+        string | null;
+    }
+    | null;
 }
 
 export interface AIPendingClarification {
@@ -173,7 +173,7 @@ export interface AIResponse {
     flowPlan?: AIFlowPlan;
 
     modificationPlan?:
-    AIModificationPlan;
+    ModificationPlan;
 
     clarification?:
     AIClarification;
