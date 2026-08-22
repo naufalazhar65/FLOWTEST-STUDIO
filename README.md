@@ -1,64 +1,69 @@
-# FlowTest Studio
+<div align="center">
+  <img src="src/assets/hero.png" alt="FlowTest Studio" width="180" />
 
-### Visual Mobile Automation Testing IDE
+  <h1>FlowTest Studio</h1>
 
-**Design • Inspect • Execute • Generate • Manage Mobile Automation Tests**
+  <p><strong>Visual Mobile Automation Testing Studio</strong></p>
 
-FlowTest Studio is an open-source visual IDE for building, inspecting, executing, and generating Appium-based mobile automation tests through an interactive workflow designer.
+  <p>
+    <a href="https://github.com/naufalazhar65/FlowTest-Studio">
+      <img src="https://img.shields.io/badge/Platform-Android%20%26%20iOS-7C3AED?style=flat-square" alt="Platforms: Android and iOS" />
+    </a>
+    <img src="https://img.shields.io/badge/Automation-Appium-00A6A6?style=flat-square" alt="Automation: Appium" />
+    <img src="https://img.shields.io/badge/Frontend-React%20%2B%20TypeScript-149ECA?style=flat-square" alt="Frontend: React and TypeScript" />
+    <img src="https://img.shields.io/badge/AI-Ollama-111827?style=flat-square" alt="AI: Ollama" />
+  </p>
 
-Built with **React**, **TypeScript**, **React Flow**, **Appium**, **Monaco Editor**, **Zustand**, and **Vite**.
+  <p>
+    <a href="#getting-started">Get started</a>
+    ·
+    <a href="#capabilities">Explore capabilities</a>
+    ·
+    <a href="#current-limitations">Current limitations</a>
+  </p>
+</div>
 
----
+<br />
 
-## Overview
+> **Design flows. Inspect elements. Run with confidence.**
+>
+> FlowTest Studio enables QA engineers to build Android and iOS automation as visual workflows rather than maintaining every scenario as handwritten code. It unifies flow authoring, Appium inspection, execution, evidence, reporting, test suites, AI-assisted authoring, and Python project generation in one browser-based workspace.
 
-FlowTest Studio is designed to modernize mobile automation development by replacing repetitive, script-first workflows with a visual approach.
+## Table of contents
 
-Instead of manually writing and maintaining automation code for every scenario, QA Engineers can:
+- [What it does](#what-it-does)
+- [Core workflow](#core-workflow)
+- [Capabilities](#capabilities)
+- [Supported flow nodes](#supported-flow-nodes)
+- [Architecture](#architecture)
+- [Getting started](#getting-started)
+- [AI service](#ai-service)
+- [Commands](#commands)
+- [Current limitations](#current-limitations)
+- [Testing](#testing)
+- [Technology](#technology)
+- [Roadmap](#roadmap)
+- [Contributing](#contributing)
+- [License](#license)
 
-- Design automation workflows visually.
-- Connect actions through a workflow graph.
-- Inspect mobile application elements through Appium.
-- Generate and test reliable locators.
-- Add inspected elements directly into the flow.
-- Validate workflows before execution.
-- Execute flows on Android and iOS.
-- Pause, resume, or stop executions.
-- Capture execution evidence.
-- Review detailed execution reports.
-- Compare previous executions.
-- Export reports in HTML, PDF, and JSON.
-- Preview generated automation projects.
+## ✨ What it does
 
-The project is built around a modular architecture so the workflow designer, execution engine, Appium integration, reporting system, and code generator can evolve independently.
+FlowTest Studio is designed for the end-to-end mobile QA workflow:
 
----
+```text
+Create project → Design flow → Inspect app → Validate → Execute with Appium
+                                                   │
+                                                   ▼
+                                  Capture evidence → Review report → Export or generate code
+```
 
-# ✨ Features
+It supports Android through UiAutomator2 and iOS through XCUITest, using Appium as its execution and inspection runtime.
 
-## 🎨 Visual Flow Designer
+| 🎨 Visual-first | 📱 Appium-native | 🧠 QA-aware |
+| --- | --- | --- |
+| Compose test scenarios as connected, editable flow nodes. | Inspect and automate Android or iOS application sessions. | Use reports, suites, validated AI plans, and deterministic recovery. |
 
-Create mobile automation scenarios through an interactive node-based workflow editor.
-
-### Included
-
-- Drag & Drop Workflow
-- Interactive Canvas
-- Zoom & Pan
-- Multi Selection
-- Smart Node Connections
-- Plugin-based Nodes
-- Dynamic Inspector
-- Validation
-- Breakpoint Support
-- Variable System
-- Expression Resolver
-- Undo / Redo History
-- Locator-to-Flow Integration
-- Runtime Node Status
-- Runtime Edge Status
-
-Example:
+## 🔄 Core workflow
 
 ```text
 Launch App
@@ -67,625 +72,139 @@ Launch App
 Tap Login
     │
     ▼
-Input Username
+Input credentials
     │
     ▼
-Input Password
+Tap Submit
     │
     ▼
-Press Return
-    │
-    ▼
-Tap Login
-    │
-    ▼
-Assert
+Assert Dashboard
 ```
 
----
+1. Create or open a flow project.
+2. Add nodes to the visual canvas and connect their execution path.
+3. Use the Element Inspector to examine the target app and add tested locators.
+4. Validate the flow before execution.
+5. Run the flow against an Android or iOS Appium session.
+6. Review execution state, logs, screenshots, page source, and the persisted report.
 
-## 🔍 Mobile Element Inspector
+## 🧩 Capabilities
 
-Inspect mobile application elements directly through Appium.
+### 🎨 Visual Flow Designer
 
-The Element Inspector provides a visual representation of the mobile application's element hierarchy and exposes element properties that can be used to create automation locators.
+The visual editor is the core authoring surface for automation flows.
 
-### Included
+- Drag-and-drop, zoom, pan, multi-select, and canvas navigation
+- Plugin-based node catalog with typed fields and platform metadata
+- Smart node connections and insert-node-on-edge actions
+- Node inspector, node duplication, copy/paste, and undo/redo history
+- Breakpoints and real-time node/edge execution status
+- Runtime variables and expression resolution
+- Pre-run flow and node validation
 
-- Mobile Element Tree
-- Element Selection
-- Element Properties
-- Element Attribute Inspection
-- Locator Generation
-- Locator Recommendation
-- Locator Copy
-- Locator Testing
-- Add Locator to Flow
-- Android Locator Support
-- iOS Locator Support
-- XCUITest Locator Support
+### ⚙️ Appium Execution Engine
 
-### Locator Strategies
+The execution engine traverses the graph, resolves variables, invokes node runners, and records execution state.
 
-#### Android
+- Graph traversal with conditional branches and repeat support
+- Pause, resume, stop, and breakpoint handling
+- Android and iOS capability configuration
+- Separate Android and iOS driver implementations
+- Appium session lifecycle and application-state recovery
+- Execution timeline, node result history, and structured execution logs
+- Screenshot and page-source capture for failed nodes when a session is available
 
-- Accessibility ID
-- Resource ID
-- Class Name
-- XPath
-- Android UiAutomator
+### 🔍 Element Inspector and Locator Tools
 
-#### iOS
+The inspector uses the current Appium session to turn the application UI into reusable flow locators.
 
-- Class Name
-- iOS Predicate
-- iOS Class Chain
-- XPath
-- Accessibility ID
+- Retrieve and parse page source into an element tree
+- Inspect element properties and attributes
+- Generate locator candidates and test them against the session
+- Copy a locator or add it directly to a flow node
 
-### Locator Workflow
+| Android strategies | iOS strategies |
+| --- | --- |
+| Accessibility ID | Accessibility ID |
+| Resource ID | Class Name |
+| Class Name | iOS Predicate |
+| XPath | iOS Class Chain |
+| Android UiAutomator | XPath |
 
-```text
-Connect to Appium
-        │
-        ▼
-Create Appium Session
-        │
-        ▼
-Retrieve Page Source
-        │
-        ▼
-Parse Element Hierarchy
-        │
-        ▼
-Select Element
-        │
-        ▼
-Inspect Properties
-        │
-        ▼
-Generate Locator Candidates
-        │
-        ▼
-Test Locator
-        │
-        ▼
-Add Locator to Flow
-```
+### 📊 Reports and Evidence
 
-Generated locators can be preserved together with their selected strategy when creating flow nodes.
+Completed runs are stored per project and can be reviewed after execution.
 
----
+- Passed, failed, and stopped run tracking
+- Environment and Appium capability information
+- Node execution results, duration, and errors
+- Logs, screenshot evidence, and page-source evidence
+- Report analytics, execution trends, and comparison view
+- HTML and JSON download exports
+- Print-oriented PDF export through the browser print dialog
 
-# ⚙️ Execution Engine
+### 🧪 Test Suites
 
-Execute automation flows directly from the visual designer.
+Group flow projects into reusable test suites.
 
-The execution engine traverses the workflow graph, resolves variables, executes node runners, resolves transitions, and tracks runtime state.
+- Add, edit, delete, and search suites
+- Include or disable individual test cases
+- Run enabled cases sequentially
+- Stop a suite and retain per-test-case run results and history
 
-### Included
+### 📁 Project Workspace
 
-- Graph Traversal
-- Sequential Execution
-- Runtime Variables
-- Conditional Branching
-- Breakpoints
-- Pause / Resume
-- Stop Execution
-- Execution Timeline
-- Execution Logger
-- Node Status Tracking
-- Edge Status Tracking
-- Runtime Statistics
-- Node Execution History
-- Appium Session Management
-- Android Execution
-- iOS Execution
-- Screenshot Evidence
-- Page Source Capture
-- Stopped Run Tracking
+Projects have a dedicated lifecycle rather than being only an in-memory flow.
 
-### Execution Pipeline
+- Create Android, iOS, or cross-platform projects
+- Open, save, save as, download, and close project files
+- Restore active and recent projects
+- Persist project metadata and file handles using browser storage APIs
+- Scope reports and suites to the active project
 
-```text
-Load Flow
-    │
-    ▼
-Validate Flow
-    │
-    ▼
-Initialize Execution
-    │
-    ▼
-Traverse Graph
-    │
-    ▼
-Execute Current Node
-    │
-    ▼
-Resolve Variables
-    │
-    ▼
-Execute Runner
-    │
-    ▼
-Resolve Transition
-    │
-    ▼
-Execute Next Node
-    │
-    ▼
-Finish Execution
-```
+### 🐍 Python Project Generator
 
-Execution failures and stopped runs are recorded with their corresponding execution state and timing information.
+Generate a Python/pytest/Appium project from a visual flow.
 
----
+- Structured emitters for actions, locators, getters, and device operations
+- Generated framework, pages, tests, driver, variables, waits, and pytest configuration
+- File explorer and multi-tab Monaco code preview
+- Copy or download generated code and project files
 
-# 📊 Test Reporting & Analytics
+### 🤖 AI Assistant and QA Intelligence
 
-FlowTest Studio includes a persistent reporting system for reviewing automation executions after they finish.
+The optional local AI service uses the current flow and selected node as context. It integrates with Ollama and applies structured plans rather than directly mutating the canvas.
 
-Reports are designed to preserve the important information needed to understand an execution without rerunning the test.
+- Analyze the current flow or selected node
+- Generate test cases from a written requirement
+- Convert approved AI test cases into executable flow plans
+- Add, update, or delete flow nodes through validated modification plans
+- Resolve ambiguous target nodes with selection and clarification support
+- Preview and atomically apply multi-operation modifications through flow history
+- Suggest deterministic fixes after failures, including supported locator repair, waits, and application-state recovery
 
-## Report Information
-
-A report can contain:
-
-```text
-Execution Report
-├── Status
-├── Start Time
-├── Finish Time
-├── Duration
-├── Node Statistics
-│   ├── Total
-│   ├── Executed
-│   ├── Passed
-│   └── Failed
-│
-├── Environment
-│   ├── Platform
-│   ├── Platform Version
-│   ├── Device
-│   ├── Automation
-│   └── Session ID
-│
-├── Appium Capabilities
-├── Node Execution Results
-├── Screenshot Evidence
-├── Page Source
-└── Execution Logs
-```
-
-## Reporting Features
-
-- Execution History
-- Passed / Failed / Stopped Run Tracking
-- Execution Summary
-- Execution Trend
-- Report Analytics
-- Environment Information
-- Appium Capabilities
-- Session ID Tracking
-- Node Execution Results
-- Execution Logs
-- Screenshot Evidence
-- Page Source Evidence
-- Report Comparison
-- Persistent Report Storage
-- Delete Individual Report
-- Clear All Reports
-- HTML Export
-- PDF Export
-- JSON Export
-
-### Report Lifecycle
-
-```text
-Execute Flow
-     │
-     ▼
-Collect Execution Data
-     │
-     ├── Environment
-     ├── Capabilities
-     ├── Nodes
-     ├── Logs
-     ├── Screenshots
-     └── Page Source
-     │
-     ▼
-Create Report
-     │
-     ▼
-Persist Report
-     │
-     ▼
-Review / Compare
-     │
-     ├── HTML
-     ├── PDF
-     └── JSON
-```
-
----
-
-# 🤖 AI Assistant & AI Flow Modification
-
-FlowTest Studio now includes an AI Assistant for understanding the current flow context and generating targeted modifications without recreating the entire workflow.
-
-The AI modification pipeline uses the current FlowTest Studio state as the source of truth.
-
-## AI Capabilities
-
-### Flow Analysis
-
-- Current flow context analysis
-- Selected node analysis
-- Node and edge context awareness
-- Current selected-node tracking
-
-### AI Flow Modification
-
-The AI Assistant supports targeted modifications to the existing flow:
-
-- Add Node Before
-- Add Node After
-- Update Node
-- Delete Node
-- Single-operation modifications
-- Multi-operation modifications
-- Selected-node targeting
-- Action-specific field validation
-- Modification preview before applying
-- Apply changes directly to the current flow
-- Undo AI modifications through flow history
-
-### Supported Modification Examples
+Example requests:
 
 ```text
 Tambahkan wait 1000ms sebelum node yang dipilih
 ```
 
 ```text
-Hapus node yang dipilih
+Ubah assertion setelah login menjadi contains Dashboard
 ```
 
-```text
-Ubah assertion menjadi contains Dashboard
-```
-
-Multiple modifications can also be handled in a single request:
-
-```text
-Tambahkan wait 1000ms sebelum node yang dipilih,
-lalu ubah assertion setelahnya menjadi contains Dashboard
-```
-
-The resulting modification plan can contain multiple ordered operations:
-
-```text
-Modification Request
-        │
-        ▼
-AI / Ollama
-        │
-        ▼
-Raw Modification Plan
-        │
-        ▼
-Normalization
-        │
-        ▼
-Validation
-        │
-        ▼
-Modification Preview
-        │
-        ▼
-Apply Changes
-        │
-        ▼
-Flow Store
-        │
-        ▼
-Updated Canvas
-```
-
-### Selected Node Resolution
-
-The current FlowTest Studio selection is authoritative when the user refers to:
-
-- "node yang dipilih"
-- "selected node"
-- "node terpilih"
-
-The AI server can correct an AI-generated target node ID using the current `selectedNodeId` from the FlowTest Studio context.
-
-### Modification Validation
-
-AI modification plans are validated before they are applied.
-
-Validation includes:
-
-- Supported modification operation
-- Target node existence
-- Required step fields
-- Locator requirements
-- Input text requirements
-- Assertion requirements
-- Delay duration requirements
-- Wait timeout validation
-- Wait polling interval validation
-- Delete-node operation without a step
-
-### Wait Defaults
-
-For generated `wait` nodes:
-
-- `timeout` uses the requested timeout
-- `pollingInterval` defaults to `500 ms` when not explicitly provided
-
-For example:
-
-```json
-{
-  "action": "wait",
-  "timeout": 1000,
-  "pollingInterval": 500
-}
-```
-
-### AI Modification History
-
-Multiple AI operations are applied through the FlowTest Studio history system so an AI request can be reverted through Undo.
-
-Example:
-
-```text
-AI Request
-   │
-   ├── Add Wait
-   │
-   └── Update Assertion
-          │
-          ▼
-       One Apply
-          │
-          ▼
-       History Entry
-          │
-          ▼
-       Undo
-          │
-          ▼
-   Restore Previous Flow
-```
-
-### AI Technology
-
-The AI server is implemented as a separate service and integrates with Ollama for local model-based responses.
-
-The AI flow is separated into:
-
-```text
-AI Client
-    │
-    ▼
-AI Server
-    │
-    ▼
-Ollama
-    │
-    ▼
-Intent Detection
-    │
-    ├── Analyze Flow
-    ├── Analyze Selected Node
-    ├── Generate Flow
-    └── Modify Flow
-           │
-           ▼
-Modification Normalizer
-           │
-           ▼
-Modification Validator
-           │
-           ▼
-Flow Store
-```
-
----
-
-# 🤖 Code Generator
-
-FlowTest Studio can generate production-oriented Appium automation project structures from visual workflows.
-
-### Included
-
-- Python Generator
-- Modular Emitters
-- Project Templates
-- Runtime Templates
-- Code Formatter
-- Monaco Preview
-- Multi Tab Preview
-- File Explorer
-
-ZIP export is planned for a future iteration.
-
-Example generated project structure:
-
-```text
-Generated Project
-│
-├── framework/
-├── pages/
-├── tests/
-├── actions.py
-├── driver.py
-├── variables.py
-├── waits.py
-├── pytest.ini
-└── requirements.txt
-```
-
----
-
-# 📱 Appium Integration
-
-Appium is the runtime foundation for mobile automation execution and inspection.
-
-### Included
-
-- Appium Session
-- Driver Factory
-- Android Driver
-- iOS Driver
-- Gesture Service
-- Element Service
-- Connection Manager
-- Capability Builder
-- Mobile Element Inspector
-- Locator Generation
-- Locator Testing
-
-### Supported Platforms
-
-```text
-Android
-└── UiAutomator2
-
-iOS
-└── XCUITest
-```
-
-### Locator API
-
-```text
-id
-xpath
-accessibilityId
-className
-androidUiAutomator
-iOSPredicateString
-iOSClassChain
-```
-
----
-
-# ⌨️ iOS Keyboard Automation
-
-FlowTest Studio provides dedicated keyboard-related actions for mobile automation.
-
-## Press Return
-
-The **Press Return** node triggers the native return action of the active text field.
-
-This is useful when the software keyboard remains visible after text input and covers elements that need to be interacted with next.
-
-Example:
-
-```text
-Tap Username
-      ↓
-Input Username
-      ↓
-Tap Password
-      ↓
-Input Password
-      ↓
-Press Return
-      ↓
-Tap Login
-```
-
-## Hide Keyboard
-
-The **Hide Keyboard** node provides a reusable action for native keyboard dismissal scenarios.
-
----
-
-# 📂 Project Management
-
-Manage automation projects directly inside FlowTest Studio.
-
-### Included
-
-- Open Project
-- Save Project
-- Save As
-- Export Project
-
-Importing existing projects is planned for a future iteration.
-
----
-
-# 🧩 Supported Nodes
-
-## Application
-
-- Launch App
-- Close App
-
-## Element Actions
-
-- Tap
-- Double Tap
-- Long Press
-- Input Text
-- Swipe
-- Drag
-- Pinch
-- Zoom
-- Fling
-- Press Return
-- Hide Keyboard
-
-## Device Actions
-
-- Home
-- Back
-- Delay
-- Wait
-- Scroll
-- Screenshot
-
-## Element Getters
-
-- Get Text
-- Get Attribute
-- Get Displayed
-- Get Enabled
-- Get Selected
-- Get Location
-- Get Size
-- Get Rect
-
-## Device Getters
-
-- Get Current Activity
-- Get Current Package
-- Get Orientation
-- Get Platform Version
-- Get Device Name
-- Get Device Time
-
-## Logic
-
-- If
-- Assert
-- Set Variable
-- Repeat *(In Progress)*
-
----
-
-# 🧠 Variable System
-
-FlowTest Studio provides runtime variables that can be shared between nodes.
-
-Example:
+## 🧱 Supported flow nodes
+
+| Category | Nodes |
+| --- | --- |
+| Application | Launch App, Close App |
+| Element actions | Tap, Input Text, Swipe, Scroll, Wait, Long Press, Double Tap, Drag, Pinch, Zoom, Fling, Hide Keyboard, Press Return |
+| Device actions | Back, Home, Delay, Screenshot |
+| Element getters | Get Text, Element Exists, Get Attribute, Get Displayed, Get Enabled, Get Selected |
+| Device getters | Get Current Activity, Get Current Package, Get Orientation, Get Platform Version, Get Device Name, Get Device Time, Get Location, Get Size, Get Rect |
+| Logic and data | If, Repeat, Assert, Set Variable |
+
+Variables may be referenced in node configuration and assertions:
 
 ```text
 ${username}
@@ -694,356 +213,165 @@ ${status}
 ${price}
 ```
 
-Variables are resolved during execution and can be reused throughout a workflow.
-
-This allows values produced or defined during one part of a flow to participate in subsequent actions and assertions.
-
----
-
-# ✅ Validation Engine
-
-Every workflow is validated before execution begins.
-
-### Validation Areas
-
-- Required Fields
-- Locator Validation
-- Getter Validation
-- Logic Validation
-- Expression Validation
-- Variable Validation
-- Platform Validation
-- Node Action Validation
-
-Invalid workflows are prevented from entering normal execution.
-
----
-
-# 🏗 Architecture
-
-FlowTest Studio is organized around several cooperating subsystems:
+## 🏗️ Architecture
 
 ```text
-                         FlowTest Studio
-                                │
-          ┌─────────────────────┼─────────────────────┐
-          │                     │                     │
-          ▼                     ▼                     ▼
-   Flow Designer        Element Inspector      Execution Engine
-          │                     │                     │
-          └─────────────────────┼─────────────────────┘
-                                │
-                                ▼
-                       Project / Flow Engine
-                                │
-                                ▼
-                        Appium Integration
-                                │
-                    ┌───────────┴───────────┐
-                    ▼                       ▼
-                 Android                  iOS
-                                │
-                                ▼
-                         Test Reporting
-                                │
-                                ▼
-                         Code Generator
+React workspace
+├── Flow Designer ────── Flow store, plugin registry, graph validation
+├── Inspector ────────── Page source, element tree, locator generation
+├── Execution ────────── Appium client, drivers, runners, recovery
+├── Reports ──────────── Evidence, analytics, comparison, export
+├── Test Suites ──────── Sequential suite orchestration
+├── Generator ────────── Python/pytest project emitters and Monaco preview
+└── AI Assistant ─────── Flow context and validated change application
+                              │
+                              ▼
+                      Express local AI service
+                      Ollama + QA intelligence
 ```
 
----
+```text
+src/
+├── components/          # Shared layout and UI
+├── features/
+│   ├── ai/              # AI client, plans, previews, and application
+│   ├── command/         # Command palette and keyboard commands
+│   ├── device/          # Device manager UI and configuration
+│   ├── execution/       # Engine, Appium services, runners, recovery
+│   ├── flow/            # Canvas, plugins, actions, store, validation
+│   ├── generator/       # Python generator and code preview
+│   ├── inspector/       # Element inspection and locator services
+│   ├── project/         # Project persistence and file-system workflows
+│   ├── reports/         # Report persistence, analytics, and exports
+│   └── suites/          # Test-suite models and execution
+└── themes/              # Design tokens
 
-# 🧪 Testing
+server/
+├── index.mjs            # Express API for local AI workflows
+├── ai/                  # Prompts and schemas
+└── services/            # Ollama, QA intelligence, and target resolution
+```
 
-FlowTest Studio uses **Vitest** for unit testing.
+## 🚀 Getting started
 
-### Covered Areas
+### 1. Prerequisites
 
-- Execution Engine
-- Graph Navigator
-- Generator Engine
-- Validation
-- Variable System
-- Plugin Emitters
-- Runner Registry
-- Utilities
-- Type Guards
-- Report Services
-- Report Persistence
-- AI Modification Validation
-- AI Modification Application
-- AI Flow Context
-- AI Flow Modification Workflows
-
-### Current Coverage
-
-| Module | Coverage |
-|---|---:|
-| Execution Engine | ✅ 100% |
-| Graph Navigation | ✅ 100% |
-| Validation | ✅ 97%+ |
-| Variable System | ✅ 98%+ |
-| Type Guards | ✅ 100% |
-| Utilities | ✅ 100% |
-
-Coverage continues to improve as additional Appium integration tests, mobile inspection scenarios, reporting scenarios, and generator scenarios are implemented.
-
----
-
-# 🛠 Technology Stack
-
-## Frontend
-
-- React
-- TypeScript
-- Vite
-- Tailwind CSS
-- React Flow
-- Zustand
-- Monaco Editor
-- Lucide React
-
-## Mobile Automation
-
+- Node.js and npm
 - Appium
-- WebDriver
-- XCUITest
-- Android Automation
+- Android SDK and an Android emulator/device for Android automation
+- Xcode and an iOS simulator/device for iOS automation
+- [Ollama](https://ollama.com/) only when using the AI Assistant
 
-## Testing
-
-- Vitest
-
-## AI
-
-- Ollama
-- Local AI Server
-- AI Intent Detection
-- AI Flow Context
-- AI Modification Normalization
-- AI Modification Validation
-
----
-
-# 🚀 Getting Started
-
-## Prerequisites
-
-Make sure the following tools are installed:
-
-- Node.js
-- npm
-- Appium
-- Android SDK *(for Android automation)*
-- Xcode *(for iOS automation)*
-- iOS Simulator or physical iOS device
-- Android Emulator or physical Android device
-
-## Clone Repository
+### 2. Install
 
 ```bash
 git clone https://github.com/naufalazhar65/FlowTest-Studio.git
 cd FlowTest-Studio
-```
-
-## Install Dependencies
-
-```bash
 npm install
 ```
 
-## Run Development Server
+### 3. Run the application
 
 ```bash
 npm run dev
 ```
 
-## Build Production
+### 4. Build for production
 
 ```bash
 npm run build
 ```
 
-## Run AI Development Server
+## 🧠 AI service
 
-FlowTest Studio's AI Assistant can be run with the local AI service:
+Start the local AI server in a second terminal:
 
 ```bash
 npm run dev:ai
 ```
 
-The AI service runs on:
+By default it listens on `http://localhost:8787`. The service exposes:
 
-```text
-http://localhost:8787
+| Endpoint | Purpose |
+| --- | --- |
+| `GET /api/health` | Service health and configured Ollama model |
+| `POST /api/ai` | Contextual chat, flow analysis, and modifications |
+| `POST /api/ai/qa/fix` | Build a deterministic QA fix plan |
+| `POST /api/ai/test-cases` | Generate test cases from a requirement |
+| `POST /api/ai/test-cases/to-flow` | Convert a test case to a flow plan |
+
+The default model can be set through `OLLAMA_MODEL`; the server port can be set through `AI_SERVER_PORT`.
+
+## ⌨️ Commands
+
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start the Vite development server |
+| `npm run dev:ai` | Start the local Express/Ollama AI service |
+| `npm run build` | Type-check and build the production bundle |
+| `npm run lint` | Run ESLint |
+| `npm run test` | Start Vitest in watch mode |
+| `npm run test:run` | Run the test suite once |
+| `npm run test:coverage` | Run tests with coverage collection |
+
+## ⚠️ Current limitations
+
+To set clear expectations, these areas are intentionally not represented as complete functionality:
+
+- The Device Manager has UI, configuration, and mock device data; automatic physical-device discovery is not yet established as a runtime integration.
+- Test suites run enabled test cases sequentially. Parallel execution and data-driven suites are future work.
+- The Python generator is the available generator target; ZIP project export and other language targets are not currently included.
+- PDF export opens a printable report page, so the browser is responsible for saving it as a PDF.
+- AI assistance runs through a local Ollama service and should be reviewed before applying changes to a test flow.
+
+## ✅ Testing
+
+The project uses Vitest for unit and integration-style tests across the flow editor, graph traversal, execution engine, node runners, variables, validation, generators, reports, project lifecycle, AI planning, and self-healing behavior.
+
+```bash
+npm run test:run
+npm run build
 ```
 
-The frontend sends AI requests to:
+## 🛠️ Technology
 
-```text
-POST /api/ai
-```
+| Area | Technologies |
+| --- | --- |
+| Frontend | React, TypeScript, Vite, Tailwind CSS |
+| Workflow editor | React Flow, Zustand, Framer Motion |
+| Code preview | Monaco Editor |
+| Mobile automation | Appium, WebDriver, UiAutomator2, XCUITest |
+| AI service | Express, Ollama, OpenAI SDK |
+| Testing | Vitest, JSDOM |
 
----
+## 🗺️ Roadmap
 
-# 🗺 Roadmap
+- Data-driven testing and richer suite configuration
+- Retry policies, advanced flow control, and parallel execution
+- Device discovery and cloud-device execution
+- Generator improvements, ZIP export, and additional language targets
+- Project templates and project import
+- Additional AI flow generation and self-healing safeguards
+- Collaboration and plugin extensibility
 
-## ✅ Completed
+## 🤝 Contributing
 
-### Core IDE
+Contributions, bug reports, and feature proposals are welcome.
 
-- Visual Flow Designer
-- Node Plugin Architecture
-- Execution Engine
-- Variable System
-- Validation Engine
-- Appium Runtime
-- Project Management
-- Monaco Code Preview
-- Generator Explorer
-- Unit Testing
+1. Fork the repository and create a focused branch.
+2. Add or update tests for behavior changes.
+3. Run `npm run test:run` and `npm run build` before opening a pull request.
+4. Describe the change and how it was verified.
 
-### Mobile Automation
+## 📄 License
 
-- Mobile Element Inspector
-- Element Tree
-- Element Properties Inspector
-- Locator Generation
-- Android Locator Support
-- iOS Locator Support
-- iOS Predicate Support
-- iOS Class Chain Support
-- XPath Locator Generation
-- Locator Testing
-- Add Locator to Flow
-- Press Return Node
-- Hide Keyboard Node
+This project is licensed under the MIT License.
 
-### AI Assistant
+## 👨‍💻 Author
 
-- AI Assistant
-- AI Flow Context
-- AI Intent Detection
-- Analyze Current Flow
-- Analyze Selected Node
-- AI Modify Flow
-- Add Node Before
-- Add Node After
-- Update Node
-- Delete Node
-- Single Modification Operations
-- Multiple Modification Operations
-- Selected Node Resolution
-- Modification Validation
-- Modification Preview
-- AI Apply Changes
-- AI Modification History / Undo
-
-### Execution & Reporting
-
-- Graph-based Execution
-- Pause / Resume
-- Stop Execution
-- Runtime Node Status
-- Runtime Edge Status
-- Execution Timeline
-- Execution Logger
-- Runtime Statistics
-- Stopped Run Detection
-- Node Execution History
-- Screenshot Evidence
-- Page Source Evidence
-- Environment Reporting
-- Appium Capabilities Reporting
-- Persistent Execution History
-- Report Analytics
-- Execution Trend
-- Report Comparison
-- Delete Report
-- Clear Reports
-- HTML Report Export
-- PDF Report Export
-- JSON Report Export
-
-## 🚧 Planned
-
-- Locator Recorder
-- Device Manager
-- Data Driven Testing
-- Test Suites
-- Advanced Flow Controls
-- Loop / Repeat Nodes
-- Retry Mechanism
-- Parallel Execution
-- Python Project Generator Improvements
-- Export ZIP
-- Import Existing Project
-- Project Templates
-- Advanced AI Flow Generation Improvements
-- Plugin Marketplace
-- Cloud Device Execution
-- Team Collaboration
-
----
-
-# 🌟 Vision
-
-FlowTest Studio aims to become a complete visual IDE for mobile automation testing.
-
-The long-term goal is to provide QA Engineers with an integrated environment where they can:
-
-```text
-Design
-  ↓
-Inspect
-  ↓
-Generate Locator
-  ↓
-Build Flow
-  ↓
-Validate
-  ↓
-Execute
-  ↓
-Capture Evidence
-  ↓
-Analyze Results
-  ↓
-Export Report
-  ↓
-Generate Automation Project
-```
-
-The project focuses on bringing the major stages of mobile automation development into a single workflow-oriented environment.
-
----
-
-# 🤝 Contributing
-
-Contributions are welcome.
-
-If you have ideas, improvements, bug fixes, or feature proposals, feel free to open an **Issue** or submit a **Pull Request**.
-
-Before contributing, please make sure changes preserve the existing execution, reporting, and Appium workflows.
-
----
-
-# 📄 License
-
-This project is licensed under the **MIT License**.
-
----
-
-# 👨‍💻 Author
-
-**Naufal Azhar**
-
-Software Quality Assurance Engineer
+**Naufal Azhar** — Software Quality Assurance Engineer
 
 - GitHub: [naufalazhar65](https://github.com/naufalazhar65)
 - LinkedIn: [naufalazhar](https://www.linkedin.com/in/naufalazhar)
 
----
-
-### ⭐ If you find FlowTest Studio useful, consider giving this repository a star.
-
-Made with ❤️ using **React, TypeScript, React Flow, and Appium**.
+If FlowTest Studio helps your team, consider giving the repository a star.
