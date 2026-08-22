@@ -346,13 +346,9 @@ npm run build
 
 ## 🗺️ Roadmap
 
-- Data-driven testing and richer suite configuration
-- Retry policies, advanced flow control, and parallel execution
-- Device discovery and cloud-device execution
-- Generator improvements, ZIP export, and additional language targets
-- Project templates and project import
-- Additional AI flow generation and self-healing safeguards
-- Collaboration and plugin extensibility
+The detailed, phased product plan is available in [docs/ROADMAP.md](docs/ROADMAP.md).
+
+Current priorities are real-device reliability, a headless CI runner with JUnit reports, data-driven resilient suites, and reviewable AI automation.
 
 ## 🤝 Contributing
 
