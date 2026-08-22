@@ -6,8 +6,8 @@ import {
 } from "vitest";
 
 import type {
-    AIModificationPlan,
-} from "../../ai/types/AIModificationPlan";
+    ModificationPlan,
+} from "../../modification/types/ModificationPlan";
 
 import {
     executeSelfHealing,
@@ -39,7 +39,7 @@ function createRuntimeRecoveryPlan(): SelfHealingPlan {
     };
 }
 
-function createModificationPlan(): AIModificationPlan {
+function createModificationPlan(): ModificationPlan {
     return {
         type:
             "modification_plan",

@@ -3,8 +3,8 @@ import type {
 } from "../../execution/types/LocatorStrategy";
 
 import type {
-    AIModificationPlan,
-} from "../../ai/types/AIModificationPlan";
+    ModificationPlan,
+} from "../../modification/types/ModificationPlan";
 
 import type {
     ExecutionFailureAnalysis,
@@ -13,7 +13,7 @@ import type {
 export function buildFailureModificationPlan(
     analysis:
         ExecutionFailureAnalysis,
-): AIModificationPlan | null {
+): ModificationPlan | null {
     const fix =
         analysis.suggestedFix;
 

@@ -24,8 +24,8 @@ import {
 } from "../services/appium/recoverApplicationState";
 
 import {
-    applyAIModificationPlan,
-} from "../../ai/services/applyAIModificationPlan";
+    applyModificationPlan,
+} from "../../modification/services/applyModificationPlan";
 
 import {
     analyzeExecutionFailure,
@@ -349,7 +349,7 @@ export class ExecutionController {
                             (
                                 modificationPlan,
                             ) =>
-                                applyAIModificationPlan(
+                                applyModificationPlan(
                                     modificationPlan,
                                 ),
 
@@ -572,7 +572,7 @@ export class ExecutionController {
                                         (
                                             modificationPlan,
                                         ) =>
-                                            applyAIModificationPlan(
+                                            applyModificationPlan(
                                                 modificationPlan,
                                             ),
 

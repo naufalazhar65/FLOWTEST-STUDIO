@@ -47,7 +47,7 @@ const mocks = vi.hoisted(
         executeSelfHealing:
             vi.fn(),
 
-        applyAIModificationPlan:
+        applyModificationPlan:
             vi.fn(),
     }),
 );
@@ -76,6 +76,14 @@ const flowState =
                 [] as ExecutionContext[
                 "edges"
                 ],
+
+            runInHistoryBatch:
+                vi.fn(
+                    (
+                        callback,
+                    ) =>
+                        callback(),
+                ),
         }),
     );
 
@@ -173,10 +181,10 @@ vi.mock(
 );
 
 vi.mock(
-    "../../ai/services/applyAIModificationPlan",
+    "../../modification/services/applyModificationPlan",
     () => ({
-        applyAIModificationPlan:
-            mocks.applyAIModificationPlan,
+        applyModificationPlan:
+            mocks.applyModificationPlan,
     }),
 );
 
@@ -354,7 +362,7 @@ describe(
                     },
                 );
 
-            mocks.applyAIModificationPlan
+            mocks.applyModificationPlan
                 .mockReturnValue(
                     {
                         success:
@@ -1004,7 +1012,7 @@ describe(
                         );
 
                         expect(
-                            mocks.applyAIModificationPlan,
+                            mocks.applyModificationPlan,
                         ).toHaveBeenCalledTimes(
                             1,
                         );

@@ -11,8 +11,8 @@ import {
 } from "../../ai/services/resolveAILocatorFromApp";
 
 import type {
-    AIModificationPlan,
-} from "../../ai/types/AIModificationPlan";
+    ModificationPlan,
+} from "../../modification/types/ModificationPlan";
 
 import type {
     NodeAction,
@@ -43,7 +43,7 @@ export interface SelfHealingPlan {
     reason: string;
 
     modificationPlan:
-    | AIModificationPlan
+    | ModificationPlan
     | null;
 
     targetNodeId:
@@ -209,7 +209,7 @@ export async function buildSelfHealingPlan(
             }
 
             const modificationPlan:
-                AIModificationPlan = {
+                ModificationPlan = {
                 type:
                     "modification_plan",
 
@@ -375,7 +375,7 @@ export async function buildSelfHealingPlan(
         }
 
         const modificationPlan:
-            AIModificationPlan = {
+            ModificationPlan = {
             type:
                 "modification_plan",
 

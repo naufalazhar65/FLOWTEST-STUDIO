@@ -13,8 +13,8 @@ import {
 } from "./buildFailureModificationPlan";
 
 import type {
-    AIModificationPlanSingle,
-} from "../../ai/types/AIModificationPlan";
+    ModificationPlanSingle,
+} from "../../modification/types/ModificationPlan";
 
 interface CreateAnalysisOptions {
     fixType?: string;
@@ -206,7 +206,7 @@ describe(
                 }
 
                 const singlePlan =
-                    result as AIModificationPlanSingle;
+                    result as ModificationPlanSingle;
 
                 const operation =
                     singlePlan.operation;
