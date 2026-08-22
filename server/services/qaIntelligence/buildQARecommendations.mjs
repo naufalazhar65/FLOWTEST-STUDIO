@@ -353,6 +353,23 @@ function buildRecommendation(
     switch (
         finding.title
     ) {
+        case "Incomplete locator":
+    return {
+        title:
+            "Configure locator",
+
+        description:
+            "This node does not have complete locator data. Configure both locator strategy and locator before executing this node.",
+
+        suggestedFix: {
+            type:
+                "fixLocator",
+
+            targetNodeId:
+                finding.nodeId ??
+                null,
+        },
+    };
         case "Flow ends without validation":
             return {
                 title:

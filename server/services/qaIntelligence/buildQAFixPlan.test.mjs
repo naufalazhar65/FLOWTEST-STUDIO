@@ -343,6 +343,60 @@ it(
     },
 );
 
+it(
+    "creates a locator fix plan",
+    () => {
+        const result =
+            buildQAFixPlan(
+                {
+                    priority:
+                        "critical",
+
+                    impact:
+                        "high",
+
+                    finding:
+                        "Incomplete locator",
+
+                    nodeId:
+                        "tap-login",
+
+                    suggestedFix: {
+                        type:
+                            "fixLocator",
+
+                        targetNodeId:
+                            "tap-login",
+
+                        suggestedLocator:
+                            "LoginButton",
+
+                        locatorStrategy:
+                            "accessibilityId",
+                    },
+                },
+                context,
+            );
+
+        expect(
+            result,
+        ).not.toBeNull();
+
+        expect(
+            result.operation.type,
+        ).toBe(
+            "updateNode",
+        );
+
+        expect(
+            result.operation
+                .targetNodeId,
+        ).toBe(
+            "tap-login",
+        );
+    },
+);
+
         it(
             "creates a locator review plan",
             () => {

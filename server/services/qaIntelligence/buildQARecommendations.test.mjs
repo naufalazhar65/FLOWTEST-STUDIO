@@ -421,5 +421,67 @@ it(
         );
     },
 );
+
+it(
+    "prioritizes incomplete locator findings",
+    () => {
+        const result =
+            buildQARecommendations({
+                findings: [
+                    {
+                        severity:
+                            "error",
+
+                        category:
+                            "locator",
+
+                        title:
+                            "Incomplete locator",
+
+                        nodeId:
+                            "login-1",
+
+                        message:
+                            "Locator data is incomplete.",
+
+                        recommendation:
+                            "Configure both locator strategy and locator.",
+                    },
+                ],
+            });
+
+        expect(
+            result,
+        ).toHaveLength(
+            1,
+        );
+
+        expect(
+            result[0].priority,
+        ).toBe(
+            "critical",
+        );
+
+        expect(
+            result[0].impact,
+        ).toBe(
+            "high",
+        );
+
+        expect(
+            result[0].suggestedFix
+                ?.type,
+        ).toBe(
+            "fixLocator",
+        );
+
+        expect(
+            result[0].suggestedFix
+                ?.targetNodeId,
+        ).toBe(
+            "login-1",
+        );
+    },
+);
     },
 );

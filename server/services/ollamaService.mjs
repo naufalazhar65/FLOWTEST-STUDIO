@@ -523,7 +523,38 @@ if (
     return "analyzeSelectedNode";
 }
 
-    
+    /*
+     * --------------------------------------------------
+     * Selected-node analysis.
+     * --------------------------------------------------
+     *
+     * Explicit requests to explain or analyze the
+     * currently selected node must never fall through
+     * to generateFlow.
+     * --------------------------------------------------
+     */
+
+    const selectedNodeAnalysisPatterns = [
+        /\bjelaskan\s+node\s+yang\s+dipilih\b/i,
+        /\bjelaskan\s+node\s+terpilih\b/i,
+        /\banalisis\s+node\s+yang\s+dipilih\b/i,
+        /\banalisa\s+node\s+yang\s+dipilih\b/i,
+        /\bjelaskan\s+selected\s+node\b/i,
+        /\banalyze\s+(the\s+)?selected\s+node\b/i,
+        /\banalyse\s+(the\s+)?selected\s+node\b/i,
+        /\bexplain\s+(the\s+)?selected\s+node\b/i,
+    ];
+
+    if (
+        selectedNodeAnalysisPatterns.some(
+            (pattern) =>
+                pattern.test(
+                    normalizedMessage,
+                ),
+        )
+    ) {
+        return "analyzeSelectedNode";
+    }
 
     /*
  * --------------------------------------------------
@@ -2690,6 +2721,26 @@ if (
                     );
                 }
             }
+        }
+
+                const hasDiagnosticEvidence =
+            Boolean(
+                failedResult.error ||
+                failedResult.locator ||
+                failedResult.pageSource ||
+                failedResult.screenshotFileName,
+            );
+
+        if (
+            !hasDiagnosticEvidence
+        ) {
+            lines.push(
+                "",
+                "### Diagnosis",
+                isEnglish
+                    ? "The available execution evidence is insufficient to determine the root cause of the failure."
+                    : "Evidence execution yang tersedia belum cukup untuk menentukan root cause dari kegagalan.",
+            );
         }
     }
 }

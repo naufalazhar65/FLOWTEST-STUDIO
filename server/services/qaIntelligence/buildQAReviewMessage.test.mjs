@@ -207,5 +207,58 @@ describe(
                 );
             },
         );
+
+        it(
+    "includes suggested fixes in QA review",
+    () => {
+        const result =
+            buildQAReviewMessage(
+                {
+                    score: 60,
+
+                    nodeCount: 2,
+
+                    edgeCount: 1,
+
+                    findings: [
+                        {
+                            severity:
+                                "error",
+
+                            category:
+                                "locator",
+
+                            nodeId:
+                                "login-1",
+
+                            title:
+                                "Incomplete locator",
+
+                            message:
+                                "Login does not have complete locator data.",
+
+                            recommendation:
+                                "Configure both locator strategy and locator.",
+
+                            suggestedFix: {
+                                type:
+                                    "fixLocator",
+
+                                targetNodeId:
+                                    "login-1",
+                            },
+                        },
+                    ],
+                },
+                "en",
+            );
+
+        expect(
+            result,
+        ).toContain(
+            "Suggested fix: `fixLocator`",
+        );
+    },
+);
     },
 );

@@ -562,9 +562,11 @@ export function buildQAFixPlan(
     }
 
         if (
-        fixType ===
-        "repairLocator"
-    ) {
+            fixType ===
+                "repairLocator" ||
+            fixType ===
+                "fixLocator"
+        ) {
         const suggestedLocator =
             recommendation
                 .suggestedFix
