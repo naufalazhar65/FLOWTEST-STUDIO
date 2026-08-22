@@ -733,5 +733,187 @@ describe(
                 );
             },
         );
+
+        it(
+            "rejects a modification that references an unknown resultId",
+            () => {
+                const plan:
+                    ModificationPlanSingle =
+                {
+                    type:
+                        "modification_plan",
+
+                    summary:
+                        "Invalid result reference",
+
+                    operation: {
+                        type:
+                            "updateNode",
+
+                        targetNodeId:
+                            "$missing-node",
+
+                        step: {
+                            action:
+                                "tap",
+
+                            title:
+                                "Invalid update",
+
+                            locatorStrategy:
+                                "accessibilityId",
+
+                            locator:
+                                "Login",
+                        },
+                    },
+                };
+
+                const result =
+                    applyModificationPlan(
+                        plan,
+                    );
+
+                expect(
+                    result.success,
+                ).toBe(
+                    false,
+                );
+
+                expect(
+                    result.appliedSteps,
+                ).toBe(
+                    0,
+                );
+
+                expect(
+                    result.error,
+                ).toContain(
+                    "does not refer to a previous operation result",
+                );
+
+                expect(
+                    flowState.nodes,
+                ).toHaveLength(
+                    1,
+                );
+
+                expect(
+                    flowState
+                        .updateNodeData,
+                ).not.toHaveBeenCalled();
+
+                expect(
+                    flowState
+                        .insertNodeWithData,
+                ).not.toHaveBeenCalled();
+
+                expect(
+                    flowState
+                        .removeNode,
+                ).not.toHaveBeenCalled();
+            },
+        );
+
+        it(
+            "does not apply a later operation when its target is invalid",
+            () => {
+                const plan: ModificationPlanMultiple = {
+                    type:
+                        "modification_plan",
+
+                    summary:
+                        "Partial failure test",
+
+                    operations: [
+                        {
+                            type:
+                                "addNodeAfter",
+
+                            targetNodeId:
+                                "node-1",
+
+                            resultId:
+                                "created-wait",
+
+                            step: {
+                                action:
+                                    "wait",
+
+                                title:
+                                    "Created Wait",
+
+                                locatorStrategy:
+                                    "accessibilityId",
+
+                                locator:
+                                    "Login",
+
+                                timeout:
+                                    5000,
+
+                                pollingInterval:
+                                    250,
+                            },
+                        },
+
+                        {
+                            type:
+                                "updateNode",
+
+                            targetNodeId:
+                                "node-that-does-not-exist",
+
+                            step: {
+                                action:
+                                    "tap",
+
+                                title:
+                                    "Should Not Apply",
+
+                                locatorStrategy:
+                                    "accessibilityId",
+
+                                locator:
+                                    "Login",
+                            },
+                        },
+                    ],
+                };
+
+                const result =
+                    applyModificationPlan(
+                        plan,
+                    );
+
+                expect(
+                    result.success,
+                ).toBe(
+                    false,
+                );
+
+                expect(
+                    result.appliedSteps,
+                ).toBe(
+                    0,
+                );
+
+                expect(
+                    flowState
+                        .insertNodeWithData,
+                ).not.toHaveBeenCalled();
+
+                expect(
+                    flowState
+                        .updateNodeData,
+                ).not.toHaveBeenCalled();
+
+                expect(
+                    flowState.nodes,
+                ).toHaveLength(
+                    1,
+                );
+            },
+        );
     },
 );
