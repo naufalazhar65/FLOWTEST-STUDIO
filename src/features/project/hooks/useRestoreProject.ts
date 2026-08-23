@@ -46,6 +46,12 @@ export function useRestoreProject() {
                         project,
                     );
 
+                useProjectStore
+                    .getState()
+                    .setProjectId(
+                        project.id,
+                    );
+
                 /*
                  * Restore the project name.
                  */

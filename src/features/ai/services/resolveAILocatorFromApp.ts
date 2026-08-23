@@ -24,6 +24,16 @@ export type AILocatorAppResolutionStatus =
     | "notFound"
     | "unavailable";
 
+export interface AILocatorResolutionContext {
+    targets: string[];
+
+    action:
+    | "input"
+    | "tap"
+    | "wait"
+    | "generic";
+}
+
 export interface AILocatorAppResolution {
     status:
     AILocatorAppResolutionStatus;
@@ -43,24 +53,57 @@ export interface AILocatorAppResolution {
 }
 
 export async function resolveAILocatorFromApp(
-    target: string,
-    action:
+    contextOrTarget:
+        | AILocatorResolutionContext
+        | string,
+    legacyAction:
         | "input"
         | "tap"
         | "wait"
-        | "generic" = "generic",
+        | "generic" =
+        "generic",
 ): Promise<AILocatorAppResolution> {
-    const normalizedTarget =
-        target.trim();
+    const context =
+        typeof contextOrTarget ===
+            "string"
+            ? {
+                targets: [
+                    contextOrTarget,
+                ],
+
+                action:
+                    legacyAction,
+            }
+            : contextOrTarget;
+
+    const rawTargets =
+        context.targets;
+
+    const targets =
+        rawTargets
+            .map(
+                (
+                    target,
+                ) =>
+                    target.trim(),
+            )
+            .filter(Boolean);
+
+    const targetDescription =
+        rawTargets.join(
+            " | ",
+        );
 
     if (
-        !normalizedTarget
+        targets.length ===
+        0
     ) {
         return {
             status:
                 "notFound",
 
-            target,
+            target:
+                targetDescription,
 
             selected:
                 null,
@@ -86,7 +129,7 @@ export async function resolveAILocatorFromApp(
                 "unavailable",
 
             target:
-                normalizedTarget,
+                targetDescription,
 
             selected:
                 null,
@@ -118,7 +161,7 @@ export async function resolveAILocatorFromApp(
                 "unavailable",
 
             target:
-                normalizedTarget,
+                targetDescription,
 
             selected:
                 null,
@@ -140,8 +183,8 @@ export async function resolveAILocatorFromApp(
     const resolution =
         resolveAILocator(
             elements,
-            normalizedTarget,
-            action,
+            targets,
+            context.action,
         );
 
     if (
@@ -153,7 +196,7 @@ export async function resolveAILocatorFromApp(
                 resolution.status,
 
             target:
-                normalizedTarget,
+                targetDescription,
 
             selected:
                 null,
@@ -179,35 +222,46 @@ export async function resolveAILocatorFromApp(
         const candidate of
         resolution.candidates
     ) {
-        const result =
-            await testLocator(
-                candidate,
-            );
+        try {
+            const result =
+                await testLocator(
+                    candidate,
+                );
 
-        if (
-            result.found
-        ) {
-            return {
-                status:
-                    "resolved",
+            if (
+                result.found
+            ) {
+                return {
+                    status:
+                        "resolved",
 
-                target:
-                    normalizedTarget,
+                    target:
+                        targetDescription,
 
-                selected:
-                {
-                    ...candidate,
+                    selected:
+                    {
+                        ...candidate,
 
-                    recommended:
-                        true,
-                },
+                        recommended:
+                            true,
+                    },
 
-                candidates:
-                    resolution.candidates,
+                    candidates:
+                        resolution.candidates,
 
-                matchedElementId:
-                    resolution.matchedElementId,
-            };
+                    matchedElementId:
+                        resolution.matchedElementId,
+                };
+            }
+        } catch {
+            /*
+             * Continue testing the
+             * remaining candidates.
+             *
+             * A single invalid candidate
+             * must not abort the entire
+             * resolution process.
+             */
         }
     }
 
@@ -216,7 +270,7 @@ export async function resolveAILocatorFromApp(
             "notFound",
 
         target:
-            normalizedTarget,
+            targetDescription,
 
         selected:
             null,

@@ -45,14 +45,46 @@ export function analyzeFailureRootCause(
     classification.category
     ) {
         case "elementNotFound": {
+            if (context.node.locator?.trim()) {
+                return {
+                    category:
+                        "staleLocator",
+
+                    title:
+                        "Target locator may be stale",
+
+                    explanation:
+                        "The configured locator did not resolve to an element during execution. The target may still exist in the current UI under a different locator.",
+
+                    confidence:
+                        "high",
+
+                    evidence: [
+                        ...classification.evidence,
+
+                        `Locator strategy: ${context.node.locatorStrategy ??
+                        "unknown"
+                        }`,
+
+                        `Locator: ${context.node.locator
+                        }`,
+                    ],
+
+                    likelyCauses: [
+                        "The locator became stale after a UI change.",
+                        "The target element is still present but uses a different locator.",
+                        "The locator is too specific.",
+                        "The application may be on a different screen.",
+                    ],
+                };
+            }
+
             const stateMismatch =
                 detectApplicationStateMismatch(
                     context,
                 );
 
-            if (
-                stateMismatch.detected
-            ) {
+            if (stateMismatch.detected) {
                 return {
                     category:
                         "wrongApplicationState",
@@ -81,44 +113,6 @@ export function analyzeFailureRootCause(
                 };
             }
 
-            if (
-                context.node.locator
-            ) {
-                return {
-                    category:
-                        "staleLocator",
-
-                    title:
-                        "Target locator may be stale",
-
-                    explanation:
-                        "The configured locator did not resolve to an element during execution. The locator may no longer match the current UI hierarchy or the application may not be in the expected state.",
-
-                    confidence:
-                        "high",
-
-                    evidence: [
-                        ...classification.evidence,
-
-                        `Locator strategy: ${context.node
-                            .locatorStrategy ??
-                        "unknown"
-                        }`,
-
-                        `Locator: ${context.node
-                            .locator
-                        }`,
-                    ],
-
-                    likelyCauses: [
-                        "Locator became stale after a UI change.",
-                        "The application is on a different screen.",
-                        "The target element is not currently rendered.",
-                        "The locator is too specific.",
-                    ],
-                };
-            }
-
             return {
                 category:
                     "elementNotReady",
@@ -142,29 +136,6 @@ export function analyzeFailureRootCause(
                 ],
             };
         }
-
-            return {
-                category:
-                    "elementNotReady",
-
-                title:
-                    "Target element was not available",
-
-                explanation:
-                    "The target element could not be found and the node does not contain a usable locator.",
-
-                confidence:
-                    "medium",
-
-                evidence:
-                    classification.evidence,
-
-                likelyCauses: [
-                    "The target element was not rendered yet.",
-                    "The application is on an unexpected screen.",
-                    "The node configuration is incomplete.",
-                ],
-            };
 
         case "invalidLocator":
             return {

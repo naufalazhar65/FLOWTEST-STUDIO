@@ -85,32 +85,34 @@ function toExecutionLocatorStrategy(
     }
 }
 
-function deriveGenericLocatorTarget(
+function deriveGenericLocatorTargets(
     analysis:
         ExecutionFailureAnalysis,
-): string | null {
+): string[] {
     const node =
         analysis.context?.node;
 
     if (!node) {
-        return null;
+        return [];
     }
 
-    /*
-     * Generic fallback only.
-     *
-     * No domain-specific targets such as Login,
-     * Username, Password, or Dashboard are encoded here.
-     *
-     * The preferred self-healing path uses the locator
-     * replacement discovered directly from page-source
-     * evidence.
-     */
-    return (
-        node.title?.trim() ||
-        node.subtitle?.trim() ||
-        null
-    );
+    return [
+        node.locator,
+        node.title,
+        node.subtitle,
+    ]
+        .filter(
+            (
+                value,
+            ): value is string =>
+                typeof value ===
+                "string" &&
+                value.trim().length > 0,
+        )
+        .map(
+            (value) =>
+                value.trim(),
+        );
 }
 
 export async function buildSelfHealingPlan(
@@ -285,12 +287,15 @@ export async function buildSelfHealingPlan(
          * The fallback target is generic node metadata only.
          * --------------------------------------------------
          */
-        const genericTarget =
-            deriveGenericLocatorTarget(
+        const genericTargets =
+            deriveGenericLocatorTargets(
                 analysis,
             );
 
-        if (!genericTarget) {
+        if (
+            genericTargets.length ===
+            0
+        ) {
             return {
                 canAutoApply:
                     false,
@@ -313,9 +318,22 @@ export async function buildSelfHealingPlan(
         }
 
         const resolution =
-            await resolveAILocatorFromApp(
-                genericTarget,
-            );
+            await resolveAILocatorFromApp({
+                targets:
+                    genericTargets,
+
+                action:
+                    targetNode.action ===
+                        "input"
+                        ? "input"
+                        : targetNode.action ===
+                            "tap"
+                            ? "tap"
+                            : targetNode.action ===
+                                "wait"
+                                ? "wait"
+                                : "generic",
+            });
 
         if (
             resolution.status !==
@@ -334,7 +352,9 @@ export async function buildSelfHealingPlan(
 
                 reason:
                     resolution.error ??
-                    `No verified replacement locator was found for "${genericTarget}".`,
+                    `No verified replacement locator was found for "${genericTargets.join(
+                        " | ",
+                    )}".`,
 
                 modificationPlan:
                     null,
@@ -361,10 +381,12 @@ export async function buildSelfHealingPlan(
                     "manual",
 
                 confidence:
-                    "low",
+                    fix.confidence,
 
                 reason:
-                    "The resolved locator is identical to the failed locator.",
+                    `No verified replacement locator was found for "${genericTargets.join(
+                        " | ",
+                    )}".`,
 
                 modificationPlan:
                     null,

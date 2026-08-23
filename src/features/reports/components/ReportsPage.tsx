@@ -48,11 +48,18 @@ export function ReportsPage() {
             (state) => state.reports,
         );
 
+    console.log(
+        "[ReportsPage] reports:",
+        reports,
+    );
+
     const activeProjectId =
         useProjectStore(
             (state) =>
                 state.projectId,
         );
+
+
 
     const projectReports =
         useMemo(
@@ -69,6 +76,16 @@ export function ReportsPage() {
                 activeProjectId,
             ],
         );
+
+    console.log(
+        "[ReportsPage] activeProjectId:",
+        activeProjectId,
+    );
+
+    console.log(
+        "[ReportsPage] projectReports:",
+        projectReports,
+    );
 
     const [
         selectedReportId,

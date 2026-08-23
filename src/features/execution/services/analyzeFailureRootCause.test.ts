@@ -349,6 +349,9 @@ describe(
                         "Element not found",
                     );
 
+                context.node.locator = null;
+                context.node.locatorStrategy = null;
+
                 context.execution.pageSource =
                     "<XCUIElementTypeApplication><XCUIElementTypeStaticText name='Home' /></XCUIElementTypeApplication>";
 

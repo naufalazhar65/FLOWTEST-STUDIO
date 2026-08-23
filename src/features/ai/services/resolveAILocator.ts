@@ -13,29 +13,29 @@ export type AILocatorResolutionStatus =
 
 export interface AILocatorResolution {
     status:
-        AILocatorResolutionStatus;
+    AILocatorResolutionStatus;
 
     target: string;
 
     selected:
-        LocatorCandidate | null;
+    LocatorCandidate | null;
 
     candidates:
-        LocatorCandidate[];
+    LocatorCandidate[];
 
     matchedElementId:
-        string | null;
+    string | null;
 }
 
 interface ElementMatch {
     element:
-        ElementInfo;
+    ElementInfo;
 
     score:
-        number;
+    number;
 
     reasons:
-        string[];
+    string[];
 }
 
 type AILocatorElementType =
@@ -213,11 +213,11 @@ function exactMatch(
 
     return (
         normalizedField !==
-            "" &&
+        "" &&
         normalizedField ===
-            normalize(
-                target,
-            )
+        normalize(
+            target,
+        )
     );
 }
 
@@ -290,9 +290,9 @@ function matchesInputSemanticLabel(
                 label,
             ) =>
                 label ===
-                    "username" ||
+                "username" ||
                 label ===
-                    "user name" ||
+                "user name" ||
                 label.includes(
                     "username",
                 ) ||
@@ -312,7 +312,7 @@ function matchesInputSemanticLabel(
                 label,
             ) =>
                 label ===
-                    "password" ||
+                "password" ||
                 label.includes(
                     "password",
                 ),
@@ -324,11 +324,48 @@ function matchesInputSemanticLabel(
             label,
         ) =>
             label ===
-                normalizedTarget ||
+            normalizedTarget ||
             label.includes(
                 normalizedTarget,
             ),
     );
+}
+
+function getSemanticAliases(
+    target: string,
+): string[] {
+    const normalized =
+        normalize(target);
+
+    if (!normalized) {
+        return [];
+    }
+
+    const aliases =
+        new Set<string>([
+            normalized,
+        ]);
+
+    const words =
+        normalized.split(" ");
+
+    if (words.length > 1) {
+        aliases.add(
+            words.join(""),
+        );
+
+        aliases.add(
+            words.join("-"),
+        );
+
+        aliases.add(
+            words.join("_"),
+        );
+    }
+
+    return [
+        ...aliases,
+    ];
 }
 
 function scoreElement(
@@ -381,7 +418,7 @@ function scoreElement(
      */
     if (
         action ===
-            "input" &&
+        "input" &&
         matchesInputSemanticLabel(
             element,
             normalizedTarget,
@@ -599,62 +636,21 @@ function scoreElement(
             normalizedTarget,
         );
 
-    for (
-        const alias of
-        semanticAliases
-    ) {
-        if (
-            normalizedFields.some(
-                (
-                    field,
-                ) =>
-                    field.includes(
-                        alias,
-                    ),
-            )
-        ) {
-            score +=
-                35;
-
-            reasons.push(
-                `Semantic alias "${alias}" matched.`,
-            );
-
-            break;
-        }
-    }
-
     if (
-        score <=
-        0
+        semanticAliases.some(
+            (alias) =>
+                normalizedFields.some(
+                    (field) =>
+                        field === alias ||
+                        field.includes(alias) ||
+                        alias.includes(field),
+                ),
+        )
     ) {
-        return null;
-    }
-
-    /*
-     * Prefer visible and enabled elements.
-     */
-    if (
-        element.displayed ===
-        true
-    ) {
-        score +=
-            10;
+        score += 40;
 
         reasons.push(
-            "Element is displayed.",
-        );
-    }
-
-    if (
-        element.enabled ===
-        true
-    ) {
-        score +=
-            10;
-
-        reasons.push(
-            "Element is enabled.",
+            "Semantic alias matched.",
         );
     }
 
@@ -700,7 +696,7 @@ function scoreElement(
         ) {
             if (
                 normalizedTarget ===
-                    "username" &&
+                "username" &&
                 !tagName.includes(
                     "securetextfield",
                 )
@@ -721,7 +717,7 @@ function scoreElement(
      */
     if (
         element.children.length >
-            0 &&
+        0 &&
         !element.resourceId &&
         !element.contentDescription &&
         !element.label &&
@@ -744,70 +740,6 @@ function scoreElement(
 
         reasons,
     };
-}
-
-function getSemanticAliases(
-    target:
-        string,
-): string[] {
-    const aliases:
-        Record<
-            string,
-            string[]
-        > = {
-            username: [
-                "user",
-                "user name",
-                "username",
-                "login user",
-            ],
-
-            password: [
-                "pass",
-                "password",
-                "pwd",
-            ],
-
-            login: [
-                "login",
-                "sign in",
-                "signin",
-                "log in",
-            ],
-
-            email: [
-                "email",
-                "e mail",
-                "mail",
-            ],
-
-            search: [
-                "search",
-                "query",
-                "find",
-            ],
-
-            submit: [
-                "submit",
-                "save",
-                "confirm",
-                "continue",
-            ],
-        };
-
-    return [
-        target,
-
-        ...(aliases[
-            target
-        ] ?? []),
-    ]
-        .map(
-            normalize,
-        )
-        .filter(
-            Boolean,
-        );
 }
 
 function buildCandidates(
@@ -969,9 +901,9 @@ function buildCandidates(
 
         if (
             semantic ===
-                "username" ||
+            "username" ||
             semantic ===
-                "user name"
+            "user name"
         ) {
             candidates.push({
                 strategy:
@@ -1137,7 +1069,7 @@ function deduplicateCandidates(
         if (
             !existing ||
             candidate.score >
-                existing.score
+            existing.score
         ) {
             map.set(
                 key,
@@ -1158,34 +1090,87 @@ function deduplicateCandidates(
     );
 }
 
+function scoreAgainstTargets(
+    element:
+        ElementInfo,
+    targets:
+        string[],
+    action:
+        AILocatorElementType,
+): ElementMatch | null {
+    let bestMatch:
+        ElementMatch | null =
+        null;
+
+    for (
+        const target of
+        targets
+    ) {
+        const match =
+            scoreElement(
+                element,
+                target,
+                action,
+            );
+
+        if (
+            match &&
+            (
+                !bestMatch ||
+                match.score >
+                bestMatch.score
+            )
+        ) {
+            bestMatch =
+                match;
+        }
+    }
+
+    return bestMatch;
+}
+
 export function resolveAILocator(
     elements:
         ElementInfo[],
-    target:
-        string,
+    targets:
+        string | string[],
     action:
         AILocatorElementType =
         "generic",
 ): AILocatorResolution {
-    const normalizedTarget =
-        normalize(
-            target,
+    const normalizedTargets =
+        (
+            Array.isArray(
+                targets,
+            )
+                ? targets
+                : [targets]
+        )
+            .map(
+                normalize,
+            )
+            .filter(Boolean);
+
+    const targetDescription =
+        normalizedTargets.join(
+            " | ",
         );
 
     if (
-        !normalizedTarget
+        normalizedTargets.length ===
+        0
     ) {
         return {
             status:
                 "notFound",
 
-            target,
+            target:
+                targetDescription,
 
             selected:
                 null,
 
-            candidates:
-                [],
+            candidates: [],
 
             matchedElementId:
                 null,
@@ -1197,15 +1182,17 @@ export function resolveAILocator(
             elements,
         );
 
+
+
     const matches =
         flattened
             .map(
                 (
                     element,
                 ) =>
-                    scoreElement(
+                    scoreAgainstTargets(
                         element,
-                        normalizedTarget,
+                        normalizedTargets,
                         action,
                     ),
             )
@@ -1213,8 +1200,7 @@ export function resolveAILocator(
                 (
                     match,
                 ): match is ElementMatch =>
-                    match !==
-                    null,
+                    match !== null,
             )
             .sort(
                 (
@@ -1225,22 +1211,49 @@ export function resolveAILocator(
                     left.score,
             );
 
-    if (
-        matches.length ===
-        0
-    ) {
+    const bestMatch =
+        matches[0];
 
+    const MIN_RESOLUTION_SCORE =
+        70;
+
+    if (
+        !bestMatch ||
+        bestMatch.score <
+        MIN_RESOLUTION_SCORE
+    ) {
         return {
             status:
                 "notFound",
 
-            target,
+            target:
+                targetDescription,
 
             selected:
                 null,
 
-            candidates:
-                [],
+            candidates: [],
+
+            matchedElementId:
+                null,
+        };
+    }
+
+    if (
+        matches.length ===
+        0
+    ) {
+        return {
+            status:
+                "notFound",
+
+            target:
+                targetDescription,
+
+            selected:
+                null,
+
+            candidates: [],
 
             matchedElementId:
                 null,
@@ -1267,13 +1280,13 @@ export function resolveAILocator(
             status:
                 "notFound",
 
-            target,
+            target:
+                targetDescription,
 
             selected:
                 null,
 
-            candidates:
-                [],
+            candidates: [],
 
             matchedElementId:
                 null,
@@ -1290,7 +1303,8 @@ export function resolveAILocator(
         status:
             "resolved",
 
-        target,
+        target:
+            targetDescription,
 
         selected,
 
