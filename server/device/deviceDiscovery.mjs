@@ -2,9 +2,21 @@ import {
     listIOSSimulators,
 } from "./ios/simctl.mjs";
 
-export async function discoverDevices() {
-    const simulators =
-        await listIOSSimulators();
+import {
+    listIOSPhysicalDevices,
+} from "./ios/devicectl.mjs";
 
-    return simulators;
+export async function discoverDevices() {
+    const [
+        simulators,
+        physicalDevices,
+    ] = await Promise.all([
+        listIOSSimulators(),
+        listIOSPhysicalDevices(),
+    ]);
+
+    return [
+        ...simulators,
+        ...physicalDevices,
+    ];
 }
