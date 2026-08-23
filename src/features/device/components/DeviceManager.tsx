@@ -1,4 +1,5 @@
 import {
+    useCallback,
     useEffect,
     useState,
 } from "react";
@@ -44,12 +45,21 @@ import {
     DeviceConfiguration,
 } from "./DeviceConfiguration";
 
+import {
+    discoverDevices,
+} from "../services/discoverDevices";
+
 export function DeviceManager() {
     const setDevices =
         useDeviceStore(
             (state) =>
                 state.setDevices,
         );
+
+    const [
+        isRefreshingDevices,
+        setIsRefreshingDevices,
+    ] = useState(false);
 
     const config =
         useAppiumConfigStore(
@@ -74,113 +84,44 @@ export function DeviceManager() {
         setConnecting,
     ] = useState(false);
 
+    const loadDevices =
+        useCallback(
+            async () => {
+                setIsRefreshingDevices(
+                    true,
+                );
+
+                try {
+                    const devices =
+                        await discoverDevices();
+
+                    setDevices(
+                        devices,
+                    );
+                } catch (error) {
+                    console.error(
+                        "Failed to discover devices:",
+                        error,
+                    );
+
+                    setDevices(
+                        [],
+                    );
+                } finally {
+                    setIsRefreshingDevices(
+                        false,
+                    );
+                }
+            },
+            [
+                setDevices,
+            ],
+        );
+
     useEffect(() => {
-        const androidVersion =
-            (
-                environment.platform ===
-                    "Android"
-                    ? (
-                        environment.osVersion ??
-                        config.android.platformVersion
-                    )
-                    : config.android.platformVersion
-            ) || "Unknown";
-
-        const iosVersion =
-            (
-                environment.platform ===
-                    "iOS"
-                    ? (
-                        environment.osVersion ??
-                        config.ios.platformVersion
-                    )
-                    : config.ios.platformVersion
-            ) || "Unknown";
-
-        const androidActive =
-            environment.platform ===
-            "Android" &&
-            environment.device ===
-            config.android.deviceName &&
-            appiumSession.hasSession();
-
-        const iosActive =
-            environment.platform ===
-            "iOS" &&
-            environment.device ===
-            config.ios.deviceName &&
-            appiumSession.hasSession();
-
-        const devices = [
-            {
-                id:
-                    config.android.udid ||
-                    `android-${config.android.deviceName}`,
-
-                name:
-                    config.android.deviceName,
-
-                platform:
-                    "android" as const,
-
-                version:
-                    androidVersion,
-
-                udid:
-                    config.android.udid,
-
-                status:
-                    androidActive
-                        ? "connected" as const
-                        : "offline" as const,
-
-                emulator:
-                    config.android.deviceName
-                        .toLowerCase()
-                        .includes(
-                            "emulator",
-                        ),
-            },
-
-            {
-                id:
-                    config.ios.udid ||
-                    `ios-${config.ios.deviceName}`,
-
-                name:
-                    config.ios.deviceName,
-
-                platform:
-                    "ios" as const,
-
-                version:
-                    iosVersion,
-
-                udid:
-                    config.ios.udid,
-
-                status:
-                    iosActive
-                        ? "connected" as const
-                        : "offline" as const,
-
-                emulator:
-                    config.ios.deviceName
-                        .toLowerCase()
-                        .includes(
-                            "simulator",
-                        ),
-            },
-        ];
-
-        setDevices(devices);
+        void loadDevices();
     }, [
-        config,
-        environment.platform,
-        environment.osVersion,
-        environment.device,
-        environment.sessionId,
-        setDevices,
+        loadDevices,
     ]);
 
     useEffect(() => {
@@ -405,12 +346,69 @@ export function DeviceManager() {
                         >
                             <div
                                 style={{
-                                    ...typography.subtitle,
-                                    color:
-                                        colors.text,
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 10,
                                 }}
                             >
-                                Available Devices
+                                <div
+                                    style={{
+                                        ...typography.subtitle,
+                                        color: colors.text,
+                                    }}
+                                >
+                                    Available Devices
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        void loadDevices();
+                                    }}
+                                    disabled={
+                                        isRefreshingDevices
+                                    }
+                                    style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        gap: 6,
+                                        padding: "6px 9px",
+                                        border:
+                                            `1px solid ${colors.border}`,
+                                        borderRadius:
+                                            radius.md,
+                                        background:
+                                            colors.panelHover,
+                                        color:
+                                            colors.textSecondary,
+                                        cursor:
+                                            isRefreshingDevices
+                                                ? "not-allowed"
+                                                : "pointer",
+                                        opacity:
+                                            isRefreshingDevices
+                                                ? 0.55
+                                                : 1,
+                                        fontSize: 11,
+                                        fontWeight: 600,
+                                    }}
+                                    title="Refresh available devices"
+                                >
+                                    <RefreshCw
+                                        size={13}
+                                        style={{
+                                            animation:
+                                                isRefreshingDevices
+                                                    ? "spin 1s linear infinite"
+                                                    : undefined,
+                                        }}
+                                    />
+
+                                    {isRefreshingDevices
+                                        ? "Refreshing..."
+                                        : "Refresh"}
+                                </button>
                             </div>
 
                             <div

@@ -19,6 +19,10 @@ import {
     convertTestCaseToFlow,
 } from "./services/qaIntelligence/convertTestCaseToFlow.mjs";
 
+import {
+    discoverDevices,
+} from "./device/deviceDiscovery.mjs";
+
 const app = express();
 
 const port = Number(
@@ -294,6 +298,41 @@ app.post(
         } catch (error) {
             console.error(
                 "[AI Test Case Flow API]",
+                error,
+            );
+
+            return res
+                .status(500)
+                .json({
+                    error:
+                        error instanceof Error
+                            ? error.message
+                            : String(
+                                error,
+                            ),
+                });
+        }
+    },
+);
+
+app.get(
+    "/api/devices",
+    async (_req, res) => {
+        console.log(
+            "[Device Discovery] request",
+            new Date().toISOString(),
+        );
+
+        try {
+            const devices =
+                await discoverDevices();
+
+            return res.json({
+                devices,
+            });
+        } catch (error) {
+            console.error(
+                "[Device Discovery API]",
                 error,
             );
 
