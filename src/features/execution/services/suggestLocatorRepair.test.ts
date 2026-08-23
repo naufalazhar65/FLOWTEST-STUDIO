@@ -339,7 +339,7 @@ describe(
             },
         );
 
-                it(
+        it(
             "prefers a unique locator over a duplicated locator",
             () => {
                 const context =
@@ -397,7 +397,7 @@ describe(
             },
         );
 
-                it(
+        it(
             "returns null when no candidate has sufficient evidence",
             () => {
                 const context =
@@ -443,7 +443,7 @@ describe(
             },
         );
 
-                it(
+        it(
             "returns null when multiple candidates are equally ambiguous",
             () => {
                 const context =
@@ -480,6 +480,172 @@ describe(
                 expect(
                     result,
                 ).toBeNull();
+            },
+        );
+
+        it(
+            "repairs Android accessibilityId to a resource id when the evidence is strong",
+            () => {
+                const context =
+                    createContext(
+                        {
+                            locatorStrategy:
+                                "accessibilityId",
+
+                            locator:
+                                "login-button",
+                        },
+                        {
+                            locatorStrategy:
+                                "accessibilityId",
+
+                            locator:
+                                "login-button",
+
+                            pageSource: `
+                        <hierarchy>
+                            <node
+                                resource-id="login-button"
+                                class="android.widget.Button"
+                                text="Login"
+                            />
+                        </hierarchy>
+                    `,
+                        },
+                    );
+
+                const result =
+                    suggestLocatorRepair(
+                        context,
+                    );
+
+                expect(
+                    result,
+                ).not.toBeNull();
+
+                expect(
+                    result?.suggestedLocator,
+                ).toBe(
+                    "login-button",
+                );
+
+                expect(
+                    result?.locatorStrategy,
+                ).toBe(
+                    "id",
+                );
+            },
+        );
+
+        it(
+            "generates an Android UiAutomator candidate from contentDescription",
+            () => {
+                const context =
+                    createContext(
+                        {
+                            locatorStrategy:
+                                "id",
+
+                            locator:
+                                "login",
+                        },
+                        {
+                            locatorStrategy:
+                                "id",
+
+                            locator:
+                                "login",
+
+                            pageSource: `
+                <hierarchy>
+                    <node
+                        content-desc="Login"
+                        class="android.widget.Button"
+                        text=""
+                    />
+                </hierarchy>
+            `,
+                        },
+                    );
+
+                const result =
+                    suggestLocatorRepair(
+                        context,
+                    );
+
+                expect(
+                    result,
+                ).not.toBeNull();
+
+                expect(
+                    result?.candidates,
+                ).toEqual(
+                    expect.arrayContaining([
+                        expect.objectContaining({
+                            strategy:
+                                "androidUiAutomator",
+
+                            locator:
+                                'new UiSelector().description("Login")',
+                        }),
+                    ]),
+                );
+            },
+        );
+
+        it(
+            "generates an XPath candidate from Android contentDescription",
+            () => {
+                const context =
+                    createContext(
+                        {
+                            locatorStrategy:
+                                "id",
+
+                            locator:
+                                "login",
+                        },
+                        {
+                            locatorStrategy:
+                                "id",
+
+                            locator:
+                                "login",
+
+                            pageSource: `
+                <hierarchy>
+                    <node
+                        content-desc="Login"
+                        class="android.widget.Button"
+                        text=""
+                    />
+                </hierarchy>
+            `,
+                        },
+                    );
+
+                const result =
+                    suggestLocatorRepair(
+                        context,
+                    );
+
+                expect(
+                    result,
+                ).not.toBeNull();
+
+                expect(
+                    result?.candidates,
+                ).toEqual(
+                    expect.arrayContaining([
+                        expect.objectContaining({
+                            strategy:
+                                "xpath",
+
+                            locator:
+                                '//node[@content-desc="Login"]',
+                        }),
+                    ]),
+                );
             },
         );
     },

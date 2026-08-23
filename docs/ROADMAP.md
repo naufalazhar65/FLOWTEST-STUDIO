@@ -28,10 +28,10 @@ The next stages therefore focus first on dependable execution and CI adoption, t
 | Area | Current state | Next outcome |
 | --- | --- | --- |
 | Visual authoring | Mature local flow editor with a plugin-based node system | Faster reuse and maintainable flow versioning |
-| Appium execution | Android/iOS runners, execution controls, evidence, and recovery paths | Stable operation on detected real devices |
+| Appium execution | Android/iOS runners, iOS simulator/physical-device discovery, XCUITest/WDA integration, execution controls, evidence, and recovery paths; real iOS device execution validated | Stable Android/iOS real-device operation and CI execution |
 | Test suites | Sequential suite execution and history | Data-driven, retryable, CI-ready suites |
-| Reports | Persisted, comparable reports with HTML/JSON/print export | CI-compatible reporting and richer evidence |
-| AI | Local Ollama workflow, generated plans, validation, and self-healing | Safe, reviewable, auditable AI assistance |
+| Reports | Persisted, comparable reports with HTML/JSON/print export; project-scoped report loading fixed | CI-compatible reporting and richer evidence |
+| AI | Local Ollama workflow, generated plans, validation, generic locator self-healing, and rerun recovery | Safe, reviewable, auditable AI assistance |
 | Collaboration | Local-first project persistence | Versioning, sharing, and team workflow |
 
 ---
@@ -53,6 +53,10 @@ These capabilities form the current baseline and should be preserved as future w
 - Android UiAutomator2 and iOS XCUITest capability support
 - Appium client, driver factory, element service, and gesture service
 - Page-source inspection, element tree, locator candidates, locator testing, and add-to-flow workflow
+- iOS simulator discovery through Xcode `simctl`
+- iOS physical-device discovery through Xcode `devicectl`
+- WebDriverAgent build/test workflow validated for a physical iOS device
+- Real-device iOS flow execution validated through Appium/XCUITest
 - Execution timeline, pause/resume/stop control, node and edge status
 - Screenshot/page-source failure evidence when a session is active
 
@@ -62,7 +66,11 @@ These capabilities form the current baseline and should be preserved as future w
 - Sequential test suites with per-case run history
 - Python/pytest/Appium project generation with Monaco preview
 - AI flow analysis, test-case generation, flow-plan generation, clarification, and validated modification plans
-- Deterministic self-healing for supported locator, timing, and application-state failures
+- Generic self-healing locator resolution across locator strategies and node types
+- `tap` self-healing validated, including `accessibilityId`
+- Self-healing rerun behavior restored
+- Root-cause analysis distinguishes stale locators from wrong application state
+- Focused self-healing tests and production build passing
 
 ---
 
@@ -72,16 +80,26 @@ These capabilities form the current baseline and should be preserved as future w
 
 **Why now:** The editor and execution engine are strong, but a test platform earns trust through reliable sessions on actual devices and emulators.
 
-### Scope
+### Progress
+
+- [x] Discover iOS simulators through Xcode tooling
+- [x] Discover iOS physical devices through Xcode tooling
+- [x] Display platform, OS version, UDID, connection, and emulator/physical state
+- [x] Establish an iOS real-device Appium/XCUITest session
+- [x] Validate the WebDriverAgent build/test workflow required by the physical device
+- [x] Execute a FlowTest flow successfully on a real iOS device
+- [x] Persist the resulting execution report under the active project
+- [x] Restore generic self-healing and rerun behavior after locator failures
+
+### Remaining scope
 
 - [ ] Discover Android devices/emulators through ADB
-- [ ] Discover iOS simulators/devices through Xcode tooling
-- [ ] Display live platform, OS version, UDID, connection, and busy state
 - [ ] Validate capabilities before session creation with actionable errors
 - [ ] Add connection/session retry for transient Appium failures
 - [ ] Capture optional video evidence where the driver supports it
 - [ ] Create an Android and iOS device compatibility matrix
 - [ ] Add end-to-end smoke tests against maintained sample applications
+- [ ] Document the required iOS WebDriverAgent/Xcode setup for real devices
 
 ### Exit criteria
 
@@ -164,7 +182,15 @@ These capabilities form the current baseline and should be preserved as future w
 
 **Objective:** Ensure AI accelerates maintenance without making unreviewable or unsafe flow changes.
 
-### Scope
+### Progress
+
+- [x] Generic locator self-healing works across locator strategies instead of being tied to a specific node type
+- [x] `tap` self-healing works with `accessibilityId`
+- [x] Candidate locators are verified against the active Appium session
+- [x] Failure analysis distinguishes stale locator, invalid locator, timing, application-state, assertion, and session failures
+- [x] Self-healing rerun behavior is restored and validated
+
+### Remaining scope
 
 - [ ] Display a node/edge diff before applying an AI change
 - [ ] Require explicit approval for auto-healing configuration changes
@@ -234,6 +260,12 @@ M6 Collaboration + versioning
 ```
 
 This ordering is deliberate: CI adoption should not precede dependable runtime behavior, and autonomous AI or collaboration should not precede traceable project changes.
+
+**Current checkpoint:** M1 is in active validation. iOS simulator and physical-device execution are working; Android discovery, retry resilience, compatibility documentation, and maintained E2E smoke coverage remain.
+
+**Current AI checkpoint:** Generic locator self-healing is operational. The next AI work is governance, traceability, approval, and measurement rather than locator-specific special cases.
+
+
 
 ## Backlog candidates
 

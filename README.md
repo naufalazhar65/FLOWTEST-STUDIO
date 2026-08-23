@@ -111,6 +111,9 @@ The execution engine traverses the graph, resolves variables, invokes node runne
 - Android and iOS capability configuration
 - Separate Android and iOS driver implementations
 - Appium session lifecycle and application-state recovery
+- iOS simulator and physical-device discovery through Xcode tooling
+- WebDriverAgent/XCUITest workflow for real iOS devices
+- Real-device iOS flow execution validated through Appium
 - Execution timeline, node result history, and structured execution logs
 - Screenshot and page-source capture for failed nodes when a session is available
 
@@ -122,6 +125,9 @@ The inspector uses the current Appium session to turn the application UI into re
 - Inspect element properties and attributes
 - Generate locator candidates and test them against the session
 - Copy a locator or add it directly to a flow node
+- Verify generated candidates against the active Appium session
+- Generic AI locator resolution across supported locator strategies
+- Self-healing support for failed interaction locators, including `tap` and `accessibilityId`
 
 | Android strategies | iOS strategies |
 | --- | --- |
@@ -181,7 +187,11 @@ The optional local AI service uses the current flow and selected node as context
 - Add, update, or delete flow nodes through validated modification plans
 - Resolve ambiguous target nodes with selection and clarification support
 - Preview and atomically apply multi-operation modifications through flow history
-- Suggest deterministic fixes after failures, including supported locator repair, waits, and application-state recovery
+- Perform generic self-healing locator resolution instead of node-specific special cases
+- Verify replacement locators against the active Appium session before applying repairs
+- Re-run failed execution after a verified self-healing modification
+- Classify failures by locator, timing, application state, assertion, and automation-session causes
+- Suggest deterministic fixes after failures, including locator repair, waits, and application-state recovery
 
 Example requests:
 
@@ -260,7 +270,10 @@ server/
 - Appium
 - Android SDK and an Android emulator/device for Android automation
 - Xcode and an iOS simulator/device for iOS automation
+- Xcode command-line tooling for iOS device discovery and WebDriverAgent workflows
 - [Ollama](https://ollama.com/) only when using the AI Assistant
+
+For physical iOS execution, the project currently uses Xcode/XCUITest and WebDriverAgent through Appium.
 
 ### 2. Install
 
@@ -318,11 +331,13 @@ The default model can be set through `OLLAMA_MODEL`; the server port can be set 
 
 To set clear expectations, these areas are intentionally not represented as complete functionality:
 
-- The Device Manager has UI, configuration, and mock device data; automatic physical-device discovery is not yet established as a runtime integration.
+- iOS simulator and physical-device discovery are integrated; Android automatic device discovery through ADB remains future work.
+- iOS real-device execution has been validated through Appium/XCUITest, but broader device compatibility coverage and maintained E2E smoke coverage are still future work.
+- Connection/session retry for transient Appium failures is still future work.
 - Test suites run enabled test cases sequentially. Parallel execution and data-driven suites are future work.
 - The Python generator is the available generator target; ZIP project export and other language targets are not currently included.
 - PDF export opens a printable report page, so the browser is responsible for saving it as a PDF.
-- AI assistance runs through a local Ollama service and should be reviewed before applying changes to a test flow.
+- AI self-healing is now generic across supported locator strategies and includes verified rerun behavior; AI governance, approval, audit history, and healing metrics remain future work.
 
 ## ✅ Testing
 
@@ -348,7 +363,12 @@ npm run build
 
 The detailed, phased product plan is available in [docs/ROADMAP.md](docs/ROADMAP.md).
 
-Current priorities are real-device reliability, a headless CI runner with JUnit reports, data-driven resilient suites, and reviewable AI automation.
+### Current progress
+
+- **Milestone 1 — Real-device reliability:** iOS simulator and physical-device execution are working; Android discovery, session retry, compatibility coverage, and maintained E2E smoke tests remain.
+- **AI self-healing:** Generic locator resolution is working across supported strategies, including `tap` with `accessibilityId`. Verified locator candidates and rerun behavior are working.
+- **Reports:** Project-scoped active-project report loading is working.
+- **Next priorities:** Complete M1 reliability work, then move toward the headless CI runner, JUnit reporting, data-driven resilient suites, and trustworthy AI governance.
 
 ## 🤝 Contributing
 
