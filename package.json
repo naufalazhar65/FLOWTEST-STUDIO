@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest",
-    "test:run": "vitest run",
+    "test:run": "vitest run --config vitest.unit.config.ts",
     "test:e2e": "vitest run tests/e2e",
     "test:headless": "node scripts/run-headless.mjs",
     "test:coverage": "vitest run --coverage",

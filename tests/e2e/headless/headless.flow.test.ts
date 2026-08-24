@@ -21,6 +21,10 @@ import {
     useExecutionStore,
 } from "../../../src/features/execution/store/useExecutionStore";
 
+import {
+    exportHeadlessArtifacts,
+} from "./exportHeadlessArtifacts";
+
 const flowPath =
     process.env.FLOWTEST_FLOW;
 
@@ -106,6 +110,19 @@ describe(
 
                 console.info(
                     `[Headless] Execution passed: ${project.name}`,
+                );
+
+                const artifactDirectory =
+                    process.env.FLOWTEST_ARTIFACT_DIR ??
+                    "artifacts/execution";
+
+                await exportHeadlessArtifacts({
+                    outputDirectory:
+                        artifactDirectory,
+                });
+
+                console.info(
+                    `[Headless] Execution artifacts written to: ${artifactDirectory}`,
                 );
             },
             120_000,
