@@ -1,7 +1,6 @@
-import { appiumConfig } from "./config";
-
-
-
+import {
+    useAppiumConfigStore,
+} from "../../store/useAppiumConfigStore";
 
 export class WebDriverClient {
     private readonly baseUrl: string;
@@ -137,8 +136,9 @@ export class WebDriverClient {
         return payload as T;
     }
 }
-
 export const webDriverClient =
     new WebDriverClient(
-        appiumConfig.baseUrl,
+        useAppiumConfigStore
+            .getState()
+            .config.serverUrl,
     );
