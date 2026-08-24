@@ -101,7 +101,7 @@ These capabilities form the current baseline and should be preserved as future w
 - [x] Add connection/session retry for transient Appium failures
 - [x] Capture optional video evidence where the driver supports it
 - [x] Create an Android and iOS device compatibility matrix
-- [ ] Add end-to-end smoke tests against maintained sample applications
+- [x] Add end-to-end smoke tests against maintained sample applications
 - [x] Document the required iOS WebDriverAgent/Xcode setup for real devices
 
 > Compatibility details are maintained in [docs/COMPATIBILITY.md](COMPATIBILITY.md).
