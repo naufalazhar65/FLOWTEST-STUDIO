@@ -123,11 +123,11 @@ These capabilities form the current baseline and should be preserved as future w
 
 ### Scope
 
-- [ ] Build a headless CLI runner for a project or test suite
-- [ ] Add machine-readable exit codes and concise terminal output
-- [ ] Export JUnit XML alongside the existing HTML/JSON reports
-- [ ] Support configuration through environment variables
-- [ ] Add reusable CI templates for GitHub Actions first
+- [x] Build a headless CLI runner for a project or test suite
+- [x] Add machine-readable exit codes and concise terminal output
+- [x] Export JUnit XML alongside the existing HTML/JSON reports
+- [x] Support configuration through environment variables
+- [x] Add reusable CI templates for GitHub Actions first
 - [ ] Document Appium, emulator/simulator, and secret setup for CI
 - [ ] Publish execution artifacts: logs, screenshots, page source, and reports
 
@@ -266,7 +266,7 @@ M6 Collaboration + versioning
 
 This ordering is deliberate: CI adoption should not precede dependable runtime behavior, and autonomous AI or collaboration should not precede traceable project changes.
 
-**Current checkpoint:** M1 real-device reliability is complete. iOS simulator, iOS physical-device discovery, Android device/emulator discovery, Android real-device Appium execution, capability validation, connection/session retry, optional video evidence, the initial Android/iOS compatibility matrix, maintained E2E smoke coverage, and real-device WebDriverAgent/Xcode documentation are working and documented.
+**Current checkpoint:** M1 real-device reliability is complete. M2 headless execution is operational with CLI flow selection, machine-readable exit codes, JUnit XML reporting, and a reusable GitHub Actions CI template; CI device/Appium setup and broader execution-artifact publishing remain.
 
 **Current AI checkpoint:** Generic locator self-healing is operational. The next AI work is governance, traceability, approval, and measurement rather than locator-specific special cases.
 
