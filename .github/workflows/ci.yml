@@ -33,6 +33,7 @@ jobs:
           mkdir -p artifacts/test-results
 
           npx vitest run \
+            --config vitest.unit.config.ts \
             --reporter=default \
             --reporter=junit \
             --outputFile.junit=artifacts/test-results/junit.xml
