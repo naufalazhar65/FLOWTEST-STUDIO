@@ -128,8 +128,8 @@ These capabilities form the current baseline and should be preserved as future w
 - [x] Export JUnit XML alongside the existing HTML/JSON reports
 - [x] Support configuration through environment variables
 - [x] Add reusable CI templates for GitHub Actions first
-- [ ] Document Appium, emulator/simulator, and secret setup for CI
-- [ ] Publish execution artifacts: logs, screenshots, page source, and reports
+- [x] Document Appium, emulator/simulator, and secret setup for CI
+- [x] Publish execution artifacts: logs, screenshots, page source, and reports
 
 ### Exit criteria
 
@@ -266,7 +266,7 @@ M6 Collaboration + versioning
 
 This ordering is deliberate: CI adoption should not precede dependable runtime behavior, and autonomous AI or collaboration should not precede traceable project changes.
 
-**Current checkpoint:** M1 real-device reliability is complete. M2 headless execution is operational with CLI flow selection, machine-readable exit codes, JUnit XML reporting, and a reusable GitHub Actions CI template; CI device/Appium setup and broader execution-artifact publishing remain.
+**Current checkpoint:** M1 real-device reliability is complete. M2 headless execution is operational with CLI flow selection, machine-readable exit codes, JUnit XML reporting, environment-based flow selection, a reusable GitHub Actions CI template, CI device/Appium setup documentation, and redacted execution-artifact publishing; device-backed CI execution and the final Android CI evidence workflow remain.
 
 **Current AI checkpoint:** Generic locator self-healing is operational. The next AI work is governance, traceability, approval, and measurement rather than locator-specific special cases.
 

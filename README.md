@@ -384,7 +384,7 @@ The validated iOS real-device setup is documented in [docs/IOS-REAL-DEVICE.md](d
 - **AI self-healing:** Generic locator resolution is working across supported strategies, including `tap` with `accessibilityId`. Verified locator candidates and rerun behavior are working.
 - **Reports:** Project-scoped active-project report loading is working.
 - **Milestone 2 — CI-ready suite runner:** Headless flow execution, machine-readable exit codes, JUnit XML reporting, environment-based flow selection, and a reusable GitHub Actions CI template are operational; CI device/Appium setup and broader execution-artifact publishing remain.
-- **Next priorities:** Complete CI device/Appium setup and execution-artifact publishing, then move toward data-driven resilient suites and trustworthy AI governance.
+- **Next priorities:** Add device-backed CI execution and a reference Android CI evidence workflow, then move toward data-driven resilient suites and trustworthy AI governance.
 
 ## 🤝 Contributing
 
