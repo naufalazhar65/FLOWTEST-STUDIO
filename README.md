@@ -376,10 +376,10 @@ The detailed, phased product plan is available in [docs/ROADMAP.md](docs/ROADMAP
 
 ### Current progress
 
-- **Milestone 1 — Real-device reliability:** iOS simulator and physical-device execution, Android device/emulator discovery, Android real-device execution, capability validation, connection/session retry, and optional video evidence are working; compatibility coverage and maintained E2E smoke tests remain.
+- **Milestone 1 — Real-device reliability:** iOS simulator and physical-device execution, Android device/emulator discovery, Android real-device execution, capability validation, connection/session retry, optional video evidence, and the initial Android/iOS compatibility matrix are working; maintained E2E smoke tests and real-device WebDriverAgent/Xcode documentation remain.
 - **AI self-healing:** Generic locator resolution is working across supported strategies, including `tap` with `accessibilityId`. Verified locator candidates and rerun behavior are working.
 - **Reports:** Project-scoped active-project report loading is working.
-- **Next priorities:** Complete M1 reliability work with Android/iOS compatibility coverage, maintained E2E smoke tests, and real-device WebDriverAgent/Xcode documentation; then move toward the headless CI runner, JUnit reporting, data-driven resilient suites, and trustworthy AI governance.
+- **Next priorities:** Complete M1 reliability work with maintained E2E smoke tests and real-device WebDriverAgent/Xcode documentation; then move toward the headless CI runner, JUnit reporting, data-driven resilient suites, and trustworthy AI governance.
 
 ## 🤝 Contributing
 
