@@ -23,7 +23,8 @@ import {
     discoverDevices,
 } from "./device/deviceDiscovery.mjs";
 
-const app = express();
+export const app =
+    express();
 
 const port = Number(
     process.env.AI_SERVER_PORT ?? 8787,
@@ -350,8 +351,13 @@ app.get(
     },
 );
 
-app.listen(
-    port,
-    () => { 
-    },
-);
+export function startServer() {
+    return app.listen(
+        port,
+        () => {
+            console.log(
+                `FlowTest server listening on port ${port}`,
+            );
+        },
+    );
+}

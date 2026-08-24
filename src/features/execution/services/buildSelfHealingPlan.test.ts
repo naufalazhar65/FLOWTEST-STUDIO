@@ -582,9 +582,16 @@ describe(
 
                 expect(
                     resolveAILocatorFromApp,
-                ).toHaveBeenCalledWith(
-                    "Tap Login",
-                );
+                ).toHaveBeenCalledWith({
+                    action:
+                        "tap",
+
+                    targets: [
+                        "Login",
+                        "Tap Login",
+                        "Tap login",
+                    ],
+                });
 
                 expect(
                     result.canAutoApply,
