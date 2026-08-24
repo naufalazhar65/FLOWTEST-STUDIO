@@ -112,6 +112,7 @@ The execution engine traverses the graph, resolves variables, invokes node runne
 - Separate Android and iOS driver implementations
 - Appium session lifecycle and application-state recovery
 - iOS simulator and physical-device discovery through Xcode tooling
+- Android device and emulator discovery through ADB
 - WebDriverAgent/XCUITest workflow for real iOS devices
 - Real-device iOS flow execution validated through Appium
 - Execution timeline, node result history, and structured execution logs
@@ -257,7 +258,9 @@ src/
 └── themes/              # Design tokens
 
 server/
-├── index.mjs            # Express API for local AI workflows
+├── index.mjs            # Express API and route definitions
+├── start.mjs            # Local server entry point
+├── device/              # Android/iOS device discovery
 ├── ai/                  # Prompts and schemas
 └── services/            # Ollama, QA intelligence, and target resolution
 ```
@@ -331,7 +334,7 @@ The default model can be set through `OLLAMA_MODEL`; the server port can be set 
 
 To set clear expectations, these areas are intentionally not represented as complete functionality:
 
-- iOS simulator and physical-device discovery are integrated; Android automatic device discovery through ADB remains future work.
+- iOS simulator, iOS physical-device, and Android device/emulator discovery are integrated; broader device compatibility coverage and maintained E2E smoke coverage are still future work.
 - iOS real-device execution has been validated through Appium/XCUITest, but broader device compatibility coverage and maintained E2E smoke coverage are still future work.
 - Connection/session retry for transient Appium failures is still future work.
 - Test suites run enabled test cases sequentially. Parallel execution and data-driven suites are future work.
@@ -341,7 +344,7 @@ To set clear expectations, these areas are intentionally not represented as comp
 
 ## ✅ Testing
 
-The project uses Vitest for unit and integration-style tests across the flow editor, graph traversal, execution engine, node runners, variables, validation, generators, reports, project lifecycle, AI planning, and self-healing behavior.
+The project uses Vitest for unit and integration-style tests across the flow editor, graph traversal, execution engine, node runners, variables, validation, generators, reports, project lifecycle, AI planning, self-healing behavior, device discovery, device management, and server APIs.
 
 ```bash
 npm run test:run
@@ -365,7 +368,7 @@ The detailed, phased product plan is available in [docs/ROADMAP.md](docs/ROADMAP
 
 ### Current progress
 
-- **Milestone 1 — Real-device reliability:** iOS simulator and physical-device execution are working; Android discovery, session retry, compatibility coverage, and maintained E2E smoke tests remain.
+- **Milestone 1 — Real-device reliability:** iOS simulator and physical-device execution, plus Android device/emulator discovery, are working; session retry, compatibility coverage, and maintained E2E smoke tests remain.
 - **AI self-healing:** Generic locator resolution is working across supported strategies, including `tap` with `accessibilityId`. Verified locator candidates and rerun behavior are working.
 - **Reports:** Project-scoped active-project report loading is working.
 - **Next priorities:** Complete M1 reliability work, then move toward the headless CI runner, JUnit reporting, data-driven resilient suites, and trustworthy AI governance.

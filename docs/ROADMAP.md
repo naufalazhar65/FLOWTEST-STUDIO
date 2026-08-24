@@ -93,7 +93,7 @@ These capabilities form the current baseline and should be preserved as future w
 
 ### Remaining scope
 
-- [ ] Discover Android devices/emulators through ADB
+- [x] Discover Android devices/emulators through ADB
 - [ ] Validate capabilities before session creation with actionable errors
 - [ ] Add connection/session retry for transient Appium failures
 - [ ] Capture optional video evidence where the driver supports it
@@ -261,7 +261,7 @@ M6 Collaboration + versioning
 
 This ordering is deliberate: CI adoption should not precede dependable runtime behavior, and autonomous AI or collaboration should not precede traceable project changes.
 
-**Current checkpoint:** M1 is in active validation. iOS simulator and physical-device execution are working; Android discovery, retry resilience, compatibility documentation, and maintained E2E smoke coverage remain.
+**Current checkpoint:** M1 is in active validation. iOS simulator, iOS physical-device discovery, Android device/emulator discovery, and the device-management test coverage are working; retry resilience, compatibility documentation, and maintained E2E smoke coverage remain.
 
 **Current AI checkpoint:** Generic locator self-healing is operational. The next AI work is governance, traceability, approval, and measurement rather than locator-specific special cases.
 
