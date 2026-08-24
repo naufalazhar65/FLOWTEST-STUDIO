@@ -2,6 +2,31 @@ import {
     useAppiumConfigStore,
 } from "../../store/useAppiumConfigStore";
 
+export class WebDriverError extends Error {
+    readonly status?: number;
+
+    readonly retryable: boolean;
+
+    constructor(
+        message: string,
+        options?: {
+            status?: number;
+            retryable?: boolean;
+        },
+    ) {
+        super(message);
+
+        this.name =
+            "WebDriverError";
+
+        this.status =
+            options?.status;
+
+        this.retryable =
+            options?.retryable ?? false;
+    }
+}
+
 export class WebDriverClient {
     private readonly baseUrl: string;
 
@@ -34,28 +59,47 @@ export class WebDriverClient {
     }
 
     private async request<T>(
-        method: "GET" | "POST" | "DELETE",
+        method:
+            | "GET"
+            | "POST"
+            | "DELETE",
         path: string,
         body?: unknown,
     ): Promise<T> {
-        const response = await fetch(
-            `${this.baseUrl}${path}`,
-            {
-                method,
+        let response: Response;
 
-                headers: {
-                    "Content-Type":
-                        "application/json",
+        try {
+            response = await fetch(
+                `${this.baseUrl}${path}`,
+                {
+                    method,
+
+                    headers: {
+                        "Content-Type":
+                            "application/json",
+                    },
+
+                    body:
+                        body === undefined
+                            ? undefined
+                            : JSON.stringify(
+                                body,
+                            ),
                 },
+            );
+        } catch (error) {
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : "Failed to connect to Appium server.";
 
-                body:
-                    body === undefined
-                        ? undefined
-                        : JSON.stringify(
-                            body,
-                        ),
-            },
-        );
+            throw new WebDriverError(
+                message,
+                {
+                    retryable: true,
+                },
+            );
+        }
 
         const text =
             await response.text();
@@ -65,13 +109,13 @@ export class WebDriverClient {
                 ? undefined
                 : JSON.parse(text);
 
-        if (
-            !response.ok
-        ) {
+        if (!response.ok) {
+            let message =
+                response.statusText;
+
             if (
                 payload &&
-                typeof payload ===
-                "object" &&
+                typeof payload === "object" &&
                 "value" in payload
             ) {
                 const value =
@@ -79,21 +123,27 @@ export class WebDriverClient {
                         payload as {
                             value?: {
                                 error?: string;
-
                                 message?: string;
                             };
                         }
                     ).value;
 
-                throw new Error(
+                message =
                     value?.message ??
                     value?.error ??
-                    response.statusText,
-                );
+                    response.statusText;
             }
 
-            throw new Error(
-                response.statusText,
+            throw new WebDriverError(
+                message,
+                {
+                    status:
+                        response.status,
+
+                    retryable:
+                        response.status >= 500 &&
+                        response.status < 600,
+                },
             );
         }
 
@@ -104,8 +154,7 @@ export class WebDriverClient {
          */
         if (
             payload &&
-            typeof payload ===
-            "object" &&
+            typeof payload === "object" &&
             "value" in payload
         ) {
             const value =
@@ -113,7 +162,6 @@ export class WebDriverClient {
                     payload as {
                         value?: {
                             error?: string;
-
                             message?: string;
                         };
                     }
@@ -121,14 +169,16 @@ export class WebDriverClient {
 
             if (
                 value &&
-                typeof value ===
-                "object" &&
+                typeof value === "object" &&
                 typeof value.error ===
                 "string"
             ) {
-                throw new Error(
+                throw new WebDriverError(
                     value.message ??
                     value.error,
+                    {
+                        retryable: false,
+                    },
                 );
             }
         }
@@ -136,6 +186,7 @@ export class WebDriverClient {
         return payload as T;
     }
 }
+
 export const webDriverClient =
     new WebDriverClient(
         useAppiumConfigStore

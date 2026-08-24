@@ -9,6 +9,18 @@ import {
   type Rect,
 } from "./ElementService";
 
+import {
+  assertValidCapabilities,
+} from "./validateCapabilities";
+
+import {
+  createAppiumSession,
+} from "./createAppiumSession";
+
+import {
+  videoRecordingService,
+} from "./VideoRecordingService";
+
 import type { LocatorStrategy } from "../../types/LocatorStrategy";
 import {
   appiumSession,
@@ -60,23 +72,21 @@ export class AppiumClient {
       return;
     }
 
+    assertValidCapabilities(
+      capabilities,
+    );
+
     const response =
-      await webDriverClient.post<{
-        value: {
-          sessionId: string;
-          capabilities: AppiumCapabilities;
-        };
-      }>("/session", {
-        capabilities: {
-          alwaysMatch: capabilities,
-        },
-      });
+      await createAppiumSession(
+        webDriverClient,
+        capabilities,
+      );
 
     const sessionId =
-      response.value.sessionId;
+      response.sessionId;
 
     const sessionCapabilities =
-      response.value.capabilities;
+      response.capabilities;
 
     appiumSession.setSessionId(
       sessionId,
@@ -90,6 +100,16 @@ export class AppiumClient {
       sessionCapabilities,
       sessionId,
     );
+
+    try {
+      await videoRecordingService
+        .startIfEnabled();
+    } catch (error) {
+      console.warn(
+        "[Video Recording] Failed to start recording.",
+        error,
+      );
+    }
   }
 
   private updateExecutionEnvironment(
@@ -251,33 +271,33 @@ export class AppiumClient {
 
   async refreshSession(): Promise<void> {
     if (!appiumSession.hasSession()) {
-        throw new Error(
-            "No active Appium session.",
-        );
+      throw new Error(
+        "No active Appium session.",
+      );
     }
 
     const sessionId =
-        appiumSession.getSessionId();
+      appiumSession.getSessionId();
 
     const response =
-        await webDriverClient.get<{
-            value: AppiumCapabilities;
-        }>(
-            `/session/${sessionId}`,
-        );
+      await webDriverClient.get<{
+        value: AppiumCapabilities;
+      }>(
+        `/session/${sessionId}`,
+      );
 
     const capabilities =
-        response.value;
+      response.value;
 
     appiumSession.setCapabilities(
-        capabilities,
+      capabilities,
     );
 
     this.updateExecutionEnvironment(
-        capabilities,
-        sessionId,
+      capabilities,
+      sessionId,
     );
-}
+  }
 
   async deleteSession(): Promise<void> {
     if (!appiumSession.hasSession()) {

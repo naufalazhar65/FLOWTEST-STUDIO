@@ -117,6 +117,8 @@ The execution engine traverses the graph, resolves variables, invokes node runne
 - Real-device Android flow execution validated through Appium
 - WebDriverAgent/XCUITest workflow for real iOS devices
 - Real-device iOS flow execution validated through Appium
+- Optional screen recording from the execution Toolbar for supported Appium targets
+- Screen recording validated on iOS Simulator, iOS physical device, and Android real device
 - Execution timeline, node result history, and structured execution logs
 - Screenshot and page-source capture for failed nodes when a session is available
 
@@ -147,7 +149,8 @@ Completed runs are stored per project and can be reviewed after execution.
 - Passed, failed, and stopped run tracking
 - Environment and Appium capability information
 - Node execution results, duration, and errors
-- Logs, screenshot evidence, and page-source evidence
+- Logs, screenshot evidence, page-source evidence, and optional video recording evidence
+- Video recording is opt-in and disabled by default to avoid unnecessary storage usage
 - Report analytics, execution trends, and comparison view
 - HTML and JSON download exports
 - Print-oriented PDF export through the browser print dialog
@@ -339,7 +342,9 @@ To set clear expectations, these areas are intentionally not represented as comp
 - iOS simulator, iOS physical-device, and Android device/emulator discovery are integrated.
 - Real-device Android execution has been validated through Appium/UiAutomator2, while broader device compatibility coverage and maintained E2E smoke coverage are still future work.
 - Real-device iOS execution has been validated through Appium/XCUITest, while broader device compatibility coverage and maintained E2E smoke coverage are still future work.
-- Connection/session retry for transient Appium failures is still future work.
+- Optional screen recording is available from the execution Toolbar and has been validated on iOS Simulator, iOS physical device, and Android real device.
+- Capability validation now runs before Appium session creation and returns actionable validation errors.
+- Connection/session retry now retries eligible transient Appium session failures without retrying permanent capability or client errors.
 - Test suites run enabled test cases sequentially. Parallel execution and data-driven suites are future work.
 - The Python generator is the available generator target; ZIP project export and other language targets are not currently included.
 - PDF export opens a printable report page, so the browser is responsible for saving it as a PDF.
@@ -371,10 +376,10 @@ The detailed, phased product plan is available in [docs/ROADMAP.md](docs/ROADMAP
 
 ### Current progress
 
-- **Milestone 1 — Real-device reliability:** iOS simulator and physical-device execution, Android device/emulator discovery, and Android real-device execution are working; session retry, compatibility coverage, and maintained E2E smoke tests remain.
+- **Milestone 1 — Real-device reliability:** iOS simulator and physical-device execution, Android device/emulator discovery, Android real-device execution, capability validation, connection/session retry, and optional video evidence are working; compatibility coverage and maintained E2E smoke tests remain.
 - **AI self-healing:** Generic locator resolution is working across supported strategies, including `tap` with `accessibilityId`. Verified locator candidates and rerun behavior are working.
 - **Reports:** Project-scoped active-project report loading is working.
-- **Next priorities:** Complete M1 reliability work with capability validation, session retry, compatibility coverage, and maintained E2E smoke tests; then move toward the headless CI runner, JUnit reporting, data-driven resilient suites, and trustworthy AI governance.
+- **Next priorities:** Complete M1 reliability work with Android/iOS compatibility coverage, maintained E2E smoke tests, and real-device WebDriverAgent/Xcode documentation; then move toward the headless CI runner, JUnit reporting, data-driven resilient suites, and trustworthy AI governance.
 
 ## 🤝 Contributing
 

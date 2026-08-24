@@ -4,6 +4,7 @@ import {
     Maximize,
     Redo2,
     Undo2,
+    Video,
 } from "lucide-react";
 
 import {
@@ -16,6 +17,10 @@ import {
 import { useReactFlow } from "reactflow";
 
 import { useFlowStore } from "../../store/useFlowStore";
+
+import {
+    useVideoRecordingStore,
+} from "../../../execution/store/useVideoRecordingStore";
 
 export function Toolbar() {
     const {
@@ -33,42 +38,99 @@ export function Toolbar() {
     const canRedo =
         future.length > 0;
 
+    const recordingEnabled =
+        useVideoRecordingStore(
+            (state) => state.enabled,
+        );
+
+    const toggleRecording =
+        useVideoRecordingStore(
+            (state) => state.toggle,
+        );
+
     return (
-        <div style={toolbar}>
-            <div style={group}>
-                <ToolbarButton
-                    title="Undo"
-                    disabled={!canUndo}
-                    onClick={undo}
-                >
-                    <Undo2 size={18} />
-                </ToolbarButton>
+        <>
+            <style>
+                {`
+                    @keyframes flowtest-recording-pulse {
+                        0%,
+                        100% {
+                            opacity: 1;
+                            box-shadow:
+                                0 0 0 0 rgba(239, 68, 68, 0.35);
+                        }
 
-                <ToolbarButton
-                    title="Redo"
-                    disabled={!canRedo}
-                    onClick={redo}
-                >
-                    <Redo2 size={18} />
-                </ToolbarButton>
-            </div>
+                        50% {
+                            opacity: 0.72;
+                            box-shadow:
+                                0 0 0 5px rgba(239, 68, 68, 0);
+                        }
+                    }
+                `}
+            </style>
 
-            <div style={divider} />
+            <div style={toolbar}>
+                {/* History */}
+                <div style={group}>
+                    <ToolbarButton
+                        title="Undo"
+                        disabled={!canUndo}
+                        onClick={undo}
+                    >
+                        <Undo2 size={18} />
+                    </ToolbarButton>
 
-            <div style={group}>
-                <ToolbarButton
-                    title="Fit View"
-                    onClick={() => {
-                        fitView({
-                            padding: 0.2,
-                            duration: 400,
-                        });
+                    <ToolbarButton
+                        title="Redo"
+                        disabled={!canRedo}
+                        onClick={redo}
+                    >
+                        <Redo2 size={18} />
+                    </ToolbarButton>
+                </div>
+
+                <div style={divider} />
+
+                {/* View */}
+                <div style={group}>
+                    <ToolbarButton
+                        title="Fit View"
+                        onClick={() => {
+                            fitView({
+                                padding: 0.2,
+                                duration: 400,
+                            });
+                        }}
+                    >
+                        <Maximize size={18} />
+                    </ToolbarButton>
+                </div>
+
+                {/* Screen Recording */}
+                <div
+                    style={{
+                        ...group,
+                        marginLeft: "auto",
                     }}
                 >
-                    <Maximize size={18} />
-                </ToolbarButton>
+                    <ToolbarButton
+                        title={
+                            recordingEnabled
+                                ? "Disable Screen Recording"
+                                : "Enable Screen Recording"
+                        }
+                        active={
+                            recordingEnabled
+                        }
+                        onClick={
+                            toggleRecording
+                        }
+                    >
+                        <Video size={18} />
+                    </ToolbarButton>
+                </div>
             </div>
-        </div>
+        </>
     );
 }
 
@@ -76,6 +138,8 @@ interface ToolbarButtonProps {
     title: string;
 
     disabled?: boolean;
+
+    active?: boolean;
 
     onClick: () => void;
 
@@ -85,9 +149,13 @@ interface ToolbarButtonProps {
 function ToolbarButton({
     title,
     disabled = false,
+    active = false,
     onClick,
     children,
 }: ToolbarButtonProps) {
+    const activeColor =
+        colors.danger;
+
     return (
         <button
             type="button"
@@ -98,51 +166,89 @@ function ToolbarButton({
             style={{
                 ...iconButton,
 
-                opacity: disabled
-                    ? 0.45
-                    : 1,
+                background:
+                    active
+                        ? `${activeColor}18`
+                        : colors.panel,
 
-                cursor: disabled
-                    ? "not-allowed"
-                    : "pointer",
+                borderColor:
+                    active
+                        ? activeColor
+                        : colors.border,
+
+                color:
+                    active
+                        ? activeColor
+                        : colors.textSecondary,
+
+                opacity:
+                    disabled
+                        ? 0.45
+                        : 1,
+
+                cursor:
+                    disabled
+                        ? "not-allowed"
+                        : "pointer",
+
+                animation:
+                    active
+                        ? "flowtest-recording-pulse 1.2s ease-in-out infinite"
+                        : "none",
             }}
-            onMouseEnter={(event) => {
+            onMouseEnter={(
+                event,
+            ) => {
                 if (disabled) {
                     return;
                 }
 
                 event.currentTarget.style
                     .background =
-                    colors.panelHover;
+                    active
+                        ? `${activeColor}25`
+                        : colors.panelHover;
 
                 event.currentTarget.style
                     .borderColor =
-                    colors.borderLight;
+                    active
+                        ? activeColor
+                        : colors.borderLight;
 
                 event.currentTarget.style
                     .color =
-                    colors.text;
+                    active
+                        ? activeColor
+                        : colors.text;
 
                 event.currentTarget.style
                     .transform =
                     "translateY(-1px)";
             }}
-            onMouseLeave={(event) => {
+            onMouseLeave={(
+                event,
+            ) => {
                 if (disabled) {
                     return;
                 }
 
                 event.currentTarget.style
                     .background =
-                    colors.panel;
+                    active
+                        ? `${activeColor}18`
+                        : colors.panel;
 
                 event.currentTarget.style
                     .borderColor =
-                    colors.border;
+                    active
+                        ? activeColor
+                        : colors.border;
 
                 event.currentTarget.style
                     .color =
-                    colors.textSecondary;
+                    active
+                        ? activeColor
+                        : colors.textSecondary;
 
                 event.currentTarget.style
                     .transform =

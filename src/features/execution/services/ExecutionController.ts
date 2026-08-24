@@ -59,6 +59,14 @@ import {
     executeNode,
 } from "../engine/executeNode";
 
+import {
+    videoRecordingService,
+} from "../services/appium/VideoRecordingService";
+
+import {
+    useVideoRecordingStore,
+} from "../store/useVideoRecordingStore";
+
 interface ExecutionControllerOptions {
     reuseExistingAppiumSession?:
     boolean;
@@ -674,6 +682,86 @@ export class ExecutionController {
             throw new Error(
                 `Execution failed: ${originalMessage}. Self-healing failed: ${healingError}`,
             );
+        } finally {
+            if (
+                videoRecordingService
+                    .isRecording()
+            ) {
+                try {
+                    const artifact =
+                        await videoRecordingService
+                            .stop();
+
+                    if (artifact) {
+                        const byteCharacters =
+                            atob(
+                                artifact.base64,
+                            );
+
+                        const byteNumbers =
+                            new Array(
+                                byteCharacters.length,
+                            );
+
+                        for (
+                            let index = 0;
+                            index <
+                            byteCharacters.length;
+                            index += 1
+                        ) {
+                            byteNumbers[index] =
+                                byteCharacters.charCodeAt(
+                                    index,
+                                );
+                        }
+
+                        const byteArray =
+                            new Uint8Array(
+                                byteNumbers,
+                            );
+
+                        const blob =
+                            new Blob(
+                                [byteArray],
+                                {
+                                    type:
+                                        artifact.mimeType,
+                                },
+                            );
+
+                        const url =
+                            URL.createObjectURL(
+                                blob,
+                            );
+
+                        const link =
+                            document.createElement(
+                                "a",
+                            );
+
+                        link.href =
+                            url;
+
+                        link.download =
+                            artifact.fileName;
+
+                        link.click();
+
+                        URL.revokeObjectURL(
+                            url,
+                        );
+                    }
+                } catch (error) {
+                    console.warn(
+                        "[Video Recording] Failed to stop or save recording.",
+                        error,
+                    );
+                }
+            }
+
+            useVideoRecordingStore
+                .getState()
+                .reset();
         }
     }
 
