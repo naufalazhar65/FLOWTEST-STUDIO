@@ -1,0 +1,283 @@
+{
+  "id": "c03a654f-8aa8-4406-b1c9-24809f7f50b9",
+  "name": "androidTest",
+  "createdAt": "2026-08-24T04:43:04.038Z",
+  "updatedAt": "2026-08-24T13:12:24.531Z",
+  "nodes": [
+    {
+      "id": "8c9a016d-df2f-4bd4-9fee-9d2747b8edff",
+      "type": "flow",
+      "position": {
+        "x": -236.71631587746458,
+        "y": 232.22989155100709
+      },
+      "data": {
+        "action": "launchApp",
+        "platform": "Android",
+        "appPackage": "com.saucelabs.mydemoapp.android",
+        "appActivity": "com.saucelabs.mydemoapp.android.view.activities.SplashActivity",
+        "bundleId": "com.saucelabs.mydemo.app.ios",
+        "app": "",
+        "noReset": false,
+        "title": "Launch App",
+        "subtitle": "Launch the application.",
+        "debug": {
+          "breakpoint": false
+        },
+        "semanticTarget": "Launch App"
+      },
+      "width": 240,
+      "height": 324,
+      "selected": false,
+      "positionAbsolute": {
+        "x": -236.71631587746458,
+        "y": 232.22989155100709
+      },
+      "dragging": false
+    },
+    {
+      "id": "d56427fc-1657-44bb-a852-fe0f83a563da",
+      "type": "flow",
+      "position": {
+        "x": 103.06550921502503,
+        "y": 324.73035643634
+      },
+      "data": {
+        "action": "tap",
+        "locatorStrategy": "accessibilityId",
+        "locator": "View menu",
+        "title": "Tap",
+        "subtitle": "Tap an element",
+        "debug": {
+          "breakpoint": false
+        }
+      },
+      "width": 240,
+      "height": 163,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 103.06550921502503,
+        "y": 324.73035643634
+      },
+      "dragging": false
+    },
+    {
+      "id": "b40b1c37-d6b6-4782-9b5b-91be79859969",
+      "type": "flow",
+      "position": {
+        "x": 417.7980833966243,
+        "y": 320.5907739928085
+      },
+      "data": {
+        "action": "tap",
+        "locatorStrategy": "androidUiAutomator",
+        "locator": "new UiSelector().text(\"Log In\")",
+        "title": "Tap",
+        "subtitle": "Tap an element",
+        "debug": {
+          "breakpoint": false
+        }
+      },
+      "width": 240,
+      "height": 182,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 417.7980833966243,
+        "y": 320.5907739928085
+      },
+      "dragging": false
+    },
+    {
+      "id": "bf7adba3-5ad9-47bf-9748-ef5c466a1b35",
+      "type": "flow",
+      "position": {
+        "x": -242.33165357581044,
+        "y": 602.8157382880199
+      },
+      "data": {
+        "action": "input",
+        "locatorStrategy": "id",
+        "locator": "com.saucelabs.mydemoapp.android:id/nameET",
+        "text": "visal@example.com",
+        "title": "Input",
+        "subtitle": "Input text",
+        "debug": {
+          "breakpoint": false
+        }
+      },
+      "width": 240,
+      "height": 212,
+      "selected": false,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": -242.33165357581044,
+        "y": 602.8157382880199
+      }
+    },
+    {
+      "id": "a4ce024d-59ee-43a3-9d4e-a6d5df28145e",
+      "type": "flow",
+      "position": {
+        "x": 68.23427806716381,
+        "y": 608.1011412421234
+      },
+      "data": {
+        "action": "input",
+        "locatorStrategy": "id",
+        "locator": "com.saucelabs.mydemoapp.android:id/passwordET",
+        "text": "10203040",
+        "title": "Input",
+        "subtitle": "Input text",
+        "debug": {
+          "breakpoint": false
+        }
+      },
+      "width": 240,
+      "height": 212,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 68.23427806716381,
+        "y": 608.1011412421234
+      },
+      "dragging": false
+    },
+    {
+      "id": "e6099b91-a0b3-4350-98f8-8bc34451bd76",
+      "type": "flow",
+      "position": {
+        "x": 411.7279193820714,
+        "y": 612.4047694252919
+      },
+      "data": {
+        "action": "tap",
+        "locatorStrategy": "accessibilityId",
+        "locator": "Tap to login with given credentials",
+        "title": "Tap",
+        "subtitle": "Tap an element",
+        "debug": {
+          "breakpoint": false
+        }
+      },
+      "width": 240,
+      "height": 182,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 411.7279193820714,
+        "y": 612.4047694252919
+      },
+      "dragging": false
+    },
+    {
+      "id": "d7992868-de60-419f-bae0-c3042b03e599",
+      "type": "flow",
+      "position": {
+        "x": -97.51257188065199,
+        "y": 869.2698619376617
+      },
+      "data": {
+        "action": "getText",
+        "locatorStrategy": "accessibilityId",
+        "locator": "title",
+        "variableName": "title",
+        "title": "Get Text",
+        "subtitle": "Read text from element",
+        "debug": {
+          "breakpoint": false
+        }
+      },
+      "width": 240,
+      "height": 191,
+      "selected": false,
+      "positionAbsolute": {
+        "x": -97.51257188065199,
+        "y": 869.2698619376617
+      },
+      "dragging": false
+    },
+    {
+      "id": "14b23659-d9ac-4de4-a8f4-fc90270a1eac",
+      "type": "flow",
+      "position": {
+        "x": 290.2168474206618,
+        "y": 872.1020253321335
+      },
+      "data": {
+        "action": "assert",
+        "actual": "${title}",
+        "operator": "equals",
+        "expected": "Products",
+        "title": "Assert",
+        "subtitle": "Verify value",
+        "debug": {
+          "breakpoint": false
+        }
+      },
+      "width": 240,
+      "height": 239,
+      "selected": false,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": 290.2168474206618,
+        "y": 872.1020253321335
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "0ca72ac3-f020-4ffc-859c-e54dfeb73c54",
+      "source": "8c9a016d-df2f-4bd4-9fee-9d2747b8edff",
+      "target": "d56427fc-1657-44bb-a852-fe0f83a563da",
+      "sourceHandle": "next",
+      "type": "flow",
+      "animated": false
+    },
+    {
+      "id": "d6dcbcad-4de1-4a50-9751-bb9f1b282279",
+      "source": "d56427fc-1657-44bb-a852-fe0f83a563da",
+      "target": "b40b1c37-d6b6-4782-9b5b-91be79859969",
+      "sourceHandle": "next",
+      "type": "flow",
+      "animated": false
+    },
+    {
+      "id": "009b300c-2f95-4150-b849-cd20670c7e26",
+      "source": "b40b1c37-d6b6-4782-9b5b-91be79859969",
+      "target": "bf7adba3-5ad9-47bf-9748-ef5c466a1b35",
+      "sourceHandle": "next",
+      "type": "flow",
+      "animated": false
+    },
+    {
+      "id": "067ef089-d0e6-478b-8c1f-75c10d6b22ab",
+      "source": "bf7adba3-5ad9-47bf-9748-ef5c466a1b35",
+      "target": "a4ce024d-59ee-43a3-9d4e-a6d5df28145e",
+      "sourceHandle": "next",
+      "type": "flow",
+      "animated": false
+    },
+    {
+      "id": "b9bca551-c3bd-438a-b68a-3a8a53861fa0",
+      "source": "a4ce024d-59ee-43a3-9d4e-a6d5df28145e",
+      "target": "e6099b91-a0b3-4350-98f8-8bc34451bd76",
+      "sourceHandle": "next",
+      "type": "flow",
+      "animated": false
+    },
+    {
+      "id": "8dcbe5c1-d9c0-445c-84d9-5ccfaec5b8f8",
+      "source": "e6099b91-a0b3-4350-98f8-8bc34451bd76",
+      "target": "d7992868-de60-419f-bae0-c3042b03e599",
+      "sourceHandle": "next",
+      "type": "flow",
+      "animated": false
+    },
+    {
+      "id": "c60f2479-c07d-4059-b8ea-df22ebbac04f",
+      "source": "d7992868-de60-419f-bae0-c3042b03e599",
+      "target": "14b23659-d9ac-4de4-a8f4-fc90270a1eac",
+      "sourceHandle": "next",
+      "type": "flow",
+      "animated": false
+    }
+  ]
+}

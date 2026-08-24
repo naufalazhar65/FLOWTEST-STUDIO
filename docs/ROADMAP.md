@@ -102,7 +102,7 @@ These capabilities form the current baseline and should be preserved as future w
 - [x] Capture optional video evidence where the driver supports it
 - [x] Create an Android and iOS device compatibility matrix
 - [ ] Add end-to-end smoke tests against maintained sample applications
-- [ ] Document the required iOS WebDriverAgent/Xcode setup for real devices
+- [x] Document the required iOS WebDriverAgent/Xcode setup for real devices
 
 > Compatibility details are maintained in [docs/COMPATIBILITY.md](COMPATIBILITY.md).
 
@@ -266,7 +266,7 @@ M6 Collaboration + versioning
 
 This ordering is deliberate: CI adoption should not precede dependable runtime behavior, and autonomous AI or collaboration should not precede traceable project changes.
 
-**Current checkpoint:** M1 is in active validation. iOS simulator, iOS physical-device discovery, Android device/emulator discovery, Android real-device Appium execution, capability validation, connection/session retry, optional video evidence, and the initial Android/iOS compatibility matrix are working; maintained E2E smoke coverage and real-device WebDriverAgent/Xcode documentation remain.
+**Current checkpoint:** M1 real-device reliability is complete. iOS simulator, iOS physical-device discovery, Android device/emulator discovery, Android real-device Appium execution, capability validation, connection/session retry, optional video evidence, the initial Android/iOS compatibility matrix, maintained E2E smoke coverage, and real-device WebDriverAgent/Xcode documentation are working and documented.
 
 **Current AI checkpoint:** Generic locator self-healing is operational. The next AI work is governance, traceability, approval, and measurement rather than locator-specific special cases.
 

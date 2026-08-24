@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "test": "vitest",
     "test:run": "vitest run",
+    "test:e2e": "vitest run tests/e2e",
     "test:coverage": "vitest run --coverage",
     "dev:ai": "node server/start.mjs"
   },
