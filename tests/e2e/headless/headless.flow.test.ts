@@ -25,6 +25,10 @@ import {
     exportHeadlessArtifacts,
 } from "./exportHeadlessArtifacts";
 
+import {
+    useFlowStore,
+} from "../../../src/features/flow/store/useFlowStore";
+
 const flowPath =
     process.env.FLOWTEST_FLOW;
 
@@ -44,6 +48,13 @@ describe(
                     await loadFlowProjectFile(
                         flowPath,
                     );
+
+                useFlowStore
+                    .getState()
+                    .loadProject(
+                        project,
+                    );
+
 
                 expect(
                     project.nodes.length,
