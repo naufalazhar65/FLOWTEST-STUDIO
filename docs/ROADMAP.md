@@ -145,14 +145,14 @@ These capabilities form the current baseline and should be preserved as future w
 
 ### Scope
 
-- [ ] Define named environments: local, development, staging, and production
-- [ ] Add environment-specific variables and capability profiles
-- [ ] Load test data from JSON and CSV
-- [ ] Add parameterized suite runs and data-set selection
+- [x] Define named environments: local, development, staging, and production
+- [x] Add environment-specific variables and capability profiles
+- [x] Load test data from JSON and CSV
+- [x] Add parameterized suite runs and data-set selection
 - [ ] Implement retry policies at node and test-case level
 - [ ] Retry only eligible transient failures; do not mask assertion failures
 - [ ] Identify and report flaky tests separately from deterministic failures
-- [ ] Redact secrets and personally identifiable data in logs, reports, and AI context
+- [x] Redact secrets and personally identifiable data in logs, reports, and AI context
 
 ### Exit criteria
 
@@ -266,7 +266,7 @@ M6 Collaboration + versioning
 
 This ordering is deliberate: CI adoption should not precede dependable runtime behavior, and autonomous AI or collaboration should not precede traceable project changes.
 
-**Current checkpoint:** M1 real-device reliability and M2 CI-ready suite execution are complete. FlowTest Studio now supports headless flow execution, machine-readable exit codes, JUnit XML reporting, redacted execution artifacts, reusable GitHub Actions CI, and validated Android physical-device execution through a self-hosted macOS ARM64 runner. M3 test data and execution resilience are next.
+**Current checkpoint:** M1 real-device reliability and M2 CI-ready suite execution are complete. M3.1 environment configuration and M3.2 data-driven execution are now operational, including named environments, environment-specific variables and device profiles, JSON/CSV datasets, dataset import and selection, parameterized flow execution, variable substitution, row isolation, and per-row PASS/FAIL results. M3.3 execution resilience, retry policies, and flaky-test reporting are next.
 
 **Current AI checkpoint:** Generic locator self-healing is operational. The next AI work is governance, traceability, approval, and measurement rather than locator-specific special cases.
 
