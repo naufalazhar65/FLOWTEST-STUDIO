@@ -266,7 +266,7 @@ M6 Collaboration + versioning
 
 This ordering is deliberate: CI adoption should not precede dependable runtime behavior, and autonomous AI or collaboration should not precede traceable project changes.
 
-**Current checkpoint:** M1 real-device reliability is complete. M2 headless execution is operational with CLI flow selection, machine-readable exit codes, JUnit XML reporting, environment-based flow selection, a reusable GitHub Actions CI template, CI device/Appium setup documentation, and redacted execution-artifact publishing; device-backed CI execution and the final Android CI evidence workflow remain.
+**Current checkpoint:** M1 real-device reliability and M2 CI-ready suite execution are complete. FlowTest Studio now supports headless flow execution, machine-readable exit codes, JUnit XML reporting, redacted execution artifacts, reusable GitHub Actions CI, and validated Android physical-device execution through a self-hosted macOS ARM64 runner. M3 test data and execution resilience are next.
 
 **Current AI checkpoint:** Generic locator self-healing is operational. The next AI work is governance, traceability, approval, and measurement rather than locator-specific special cases.
 

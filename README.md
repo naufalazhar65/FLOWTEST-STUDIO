@@ -383,8 +383,8 @@ The validated iOS real-device setup is documented in [docs/IOS-REAL-DEVICE.md](d
 - **Milestone 1 — Real-device reliability:** Complete. iOS simulator and physical-device execution, Android device/emulator discovery, Android real-device execution, capability validation, connection/session retry, optional video evidence, the initial Android/iOS compatibility matrix, maintained E2E smoke tests, and real-device WebDriverAgent/Xcode documentation are validated and documented.
 - **AI self-healing:** Generic locator resolution is working across supported strategies, including `tap` with `accessibilityId`. Verified locator candidates and rerun behavior are working.
 - **Reports:** Project-scoped active-project report loading is working.
-- **Milestone 2 — CI-ready suite runner:** Headless flow execution, machine-readable exit codes, JUnit XML reporting, environment-based flow selection, and a reusable GitHub Actions CI template are operational; CI device/Appium setup and broader execution-artifact publishing remain.
-- **Next priorities:** Add device-backed CI execution and a reference Android CI evidence workflow, then move toward data-driven resilient suites and trustworthy AI governance.
+- **Milestone 2 — CI-ready suite runner:** Complete. Headless flow execution, machine-readable exit codes, JUnit XML reporting, environment-based flow selection, reusable GitHub Actions CI, redacted execution artifacts, CI device/Appium documentation, and validated Android physical-device execution through a self-hosted macOS ARM64 runner are operational.
+- **Next priorities:** Move toward data-driven test execution, environment-specific variables and capability profiles, resilient retry policies, and flaky-test reporting.
 
 ## 🤝 Contributing
 
