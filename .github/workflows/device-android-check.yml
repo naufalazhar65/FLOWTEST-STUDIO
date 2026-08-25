@@ -1,0 +1,30 @@
+name: Android Runner Check
+
+on:
+  workflow_dispatch:
+
+jobs:
+  runner-check:
+    name: Verify Android Self-Hosted Runner
+
+    runs-on:
+      - self-hosted
+      - macOS
+      - ARM64
+      - android
+
+    steps:
+      - name: Show runner environment
+        run: |
+          uname -m
+          node --version
+          adb version | head -1
+          appium --version
+
+      - name: Verify Android device
+        run: |
+          adb devices -l
+
+      - name: Verify Appium server
+        run: |
+          curl -s http://127.0.0.1:4723/status
