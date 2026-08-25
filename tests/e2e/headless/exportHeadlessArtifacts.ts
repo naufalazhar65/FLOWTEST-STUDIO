@@ -104,7 +104,7 @@ function redactSensitiveValue(
     if (
         value &&
         typeof value ===
-            "object"
+        "object"
     ) {
         return Object.fromEntries(
             Object.entries(
@@ -117,12 +117,12 @@ function redactSensitiveValue(
                     entryKey,
                     entryValue,
                 ]) => [
-                    entryKey,
-                    redactSensitiveValue(
-                        entryValue,
                         entryKey,
-                    ),
-                ],
+                        redactSensitiveValue(
+                            entryValue,
+                            entryKey,
+                        ),
+                    ],
             ),
         );
     }
@@ -248,6 +248,15 @@ export async function exportHeadlessArtifacts({
 
                     duration:
                         node.duration,
+
+                    attempts:
+                        node.attempts,
+
+                    retries:
+                        node.retries,
+
+                    retryReason:
+                        node.retryReason,
 
                     error:
                         node.error,

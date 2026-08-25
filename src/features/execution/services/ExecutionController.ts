@@ -87,6 +87,10 @@ import {
     clearVariables,
 } from "../variables/VariableStore";
 
+import {
+    useExecutionRetryStore,
+} from "../store/useExecutionRetryStore";
+
 export interface ExecutionControllerOptions {
     reuseExistingAppiumSession?:
     boolean;
@@ -137,6 +141,35 @@ function buildVariableExecutionOptions(
     return {
         preserveVariables:
             true,
+    };
+}
+
+function buildRetryExecutionContext(
+    context: ExecutionContext,
+    edges?: ExecutionContext["edges"],
+): ExecutionContext {
+    const retry =
+        useExecutionRetryStore.getState();
+
+    return {
+        ...context,
+
+        ...(edges
+            ? {
+                edges,
+            }
+            : {}),
+
+        retry: {
+            enabled:
+                retry.enabled,
+
+            maxAttempts:
+                retry.maxAttempts,
+
+            retryDelayMs:
+                retry.retryDelayMs,
+        },
     };
 }
 
@@ -216,6 +249,11 @@ export class ExecutionController {
                     {}),
             };
 
+            const executionContext =
+                buildRetryExecutionContext(
+                    context,
+                );
+
             if (
                 Object.keys(
                     executionOptions,
@@ -223,13 +261,13 @@ export class ExecutionController {
             ) {
                 await executeFlow(
                     nodes,
-                    context,
+                    executionContext,
                     executionOptions,
                 );
             } else {
                 await executeFlow(
                     nodes,
-                    context,
+                    executionContext,
                 );
             }
 
@@ -467,6 +505,12 @@ export class ExecutionController {
                                 const latestEdges =
                                     latestFlow.edges;
 
+                                const retryExecutionContext =
+                                    buildRetryExecutionContext(
+                                        context,
+                                        latestEdges,
+                                    );
+
                                 if (
                                     selfHealingPlan.strategy ===
                                     "runtimeRecovery"
@@ -511,12 +555,10 @@ export class ExecutionController {
                                     try {
                                         await executeNode(
                                             failedNode,
-                                            {
-                                                ...context,
-
-                                                edges:
-                                                    latestEdges,
-                                            },
+                                            buildRetryExecutionContext(
+                                                context,
+                                                latestEdges,
+                                            ),
                                         );
 
                                         useExecutionStore
@@ -540,12 +582,7 @@ export class ExecutionController {
                                     ) {
                                         await executeFlow(
                                             latestNodes,
-                                            {
-                                                ...context,
-
-                                                edges:
-                                                    latestEdges,
-                                            },
+                                            retryExecutionContext,
                                             {
                                                 ...(executeOptions ?? {}),
                                                 ...(options?.testDataRow
@@ -557,15 +594,12 @@ export class ExecutionController {
 
                                                 preserveExecutionHistory:
                                                     true,
-                                            });
+                                            },
+                                        );
                                     } else {
                                         await executeFlow(
                                             latestNodes,
-                                            {
-                                                ...context,
-                                                edges:
-                                                    latestEdges,
-                                            },
+                                            retryExecutionContext,
                                             {
                                                 ...(options?.testDataRow
                                                     ? {
@@ -706,12 +740,10 @@ export class ExecutionController {
                                             try {
                                                 await executeNode(
                                                     failedNode,
-                                                    {
-                                                        ...context,
-
-                                                        edges:
-                                                            latestFlow.edges,
-                                                    },
+                                                    buildRetryExecutionContext(
+                                                        context,
+                                                        latestFlow.edges,
+                                                    ),
                                                 );
 
                                                 return true;

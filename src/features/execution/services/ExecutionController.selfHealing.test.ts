@@ -222,7 +222,21 @@ describe(
                 ).toHaveBeenNthCalledWith(
                     1,
                     executionNodes,
-                    executionContext,
+                    expect.objectContaining({
+                        edges:
+                            executionContext.edges,
+
+                        retry: {
+                            enabled:
+                                false,
+
+                            maxAttempts:
+                                2,
+
+                            retryDelayMs:
+                                500,
+                        },
+                    }),
                 );
 
                 const secondCall =

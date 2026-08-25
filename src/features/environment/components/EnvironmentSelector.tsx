@@ -66,24 +66,9 @@ export function EnvironmentSelector() {
                         "center",
 
                     gap:
-                        6,
+                        5,
                 }}
             >
-                <span
-                    style={{
-                        fontSize:
-                            12,
-
-                        color:
-                            "#8B949E",
-
-                        whiteSpace:
-                            "nowrap",
-                    }}
-                >
-                    Environment
-                </span>
-
                 <select
                     value={
                         activeEnvironment
@@ -91,15 +76,16 @@ export function EnvironmentSelector() {
                     onChange={
                         handleChange
                     }
+                    title={`Environment: ${activeEnvironment}`}
                     style={{
-                        width:
-                            110,
-
                         height:
                             30,
 
+                        minWidth:
+                            96,
+
                         padding:
-                            "0 8px",
+                            "0 26px 0 9px",
 
                         border:
                             "1px solid #30363D",
@@ -178,13 +164,16 @@ export function EnvironmentSelector() {
                             6,
 
                         background:
-                            "#161B22",
+                            "#21262D",
 
                         color:
                             "#8B949E",
 
                         cursor:
                             "pointer",
+
+                        flexShrink:
+                            0,
                     }}
                 >
                     <Settings2

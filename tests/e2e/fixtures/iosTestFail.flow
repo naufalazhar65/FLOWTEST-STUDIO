@@ -1,0 +1,410 @@
+{
+  "id": "309ac23b-0ee6-4322-94e6-d6554f97c97c",
+  "name": "iosTestFail",
+  "createdAt": "2026-08-25T13:05:25.470Z",
+  "updatedAt": "2026-08-25T13:05:35.293Z",
+  "nodes": [
+    {
+      "id": "060dd2f6-5379-4cb5-b2c2-4cafc254f7d6",
+      "type": "flow",
+      "position": {
+        "x": -415.52343110068927,
+        "y": 277.32946426106685
+      },
+      "data": {
+        "action": "launchApp",
+        "platform": "iOS",
+        "appPackage": "com.saucelabs.mydemoapp.android",
+        "appActivity": "com.saucelabs.mydemoapp.android.view.activities.SplashActivity",
+        "bundleId": "com.saucelabs.mydemo.app.ios",
+        "app": "",
+        "noReset": false,
+        "title": "Launch App",
+        "subtitle": "Launch an application on the device",
+        "debug": {
+          "breakpoint": false
+        }
+      },
+      "width": 240,
+      "height": 324,
+      "selected": false,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": -415.52343110068927,
+        "y": 277.32946426106685
+      }
+    },
+    {
+      "id": "9fab1edd-1cdb-41cc-a79a-5bb394040f1c",
+      "type": "flow",
+      "position": {
+        "x": -111.25159179473292,
+        "y": 380.1544223480106
+      },
+      "data": {
+        "action": "getDisplayed",
+        "locatorStrategy": "xpath",
+        "locator": "//XCUIElementTypeOther[@name=\"Catalog-screen\"]/XCUIElementTypeOther[3]",
+        "variableName": "catalogScreen",
+        "title": "Get Displayed",
+        "subtitle": "Check if element is displayed",
+        "debug": {
+          "breakpoint": false
+        }
+      },
+      "width": 240,
+      "height": 210,
+      "selected": false,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": -111.25159179473292,
+        "y": 380.1544223480106
+      }
+    },
+    {
+      "id": "36595b37-7747-4716-ba6e-e6f11af0061b",
+      "type": "flow",
+      "position": {
+        "x": 262.31118547690596,
+        "y": 366.3276347269018
+      },
+      "data": {
+        "action": "assert",
+        "actual": "${catalogScreen}",
+        "operator": "isNotEmpty",
+        "expected": "Product",
+        "title": "Assert",
+        "subtitle": "Verify value",
+        "debug": {
+          "breakpoint": false
+        }
+      },
+      "width": 240,
+      "height": 239,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 262.31118547690596,
+        "y": 366.3276347269018
+      },
+      "dragging": true
+    },
+    {
+      "id": "b2520474-52d1-4a18-a05d-1a8c65f6c18e",
+      "type": "flow",
+      "position": {
+        "x": 614.172638448451,
+        "y": 409.7558123563847
+      },
+      "data": {
+        "action": "tap",
+        "locatorStrategy": "accessibilityId",
+        "locator": "Menu IconsFAIL",
+        "title": "Tap",
+        "subtitle": "Tap an element",
+        "debug": {
+          "breakpoint": false
+        }
+      },
+      "width": 240,
+      "height": 163,
+      "selected": true,
+      "positionAbsolute": {
+        "x": 614.172638448451,
+        "y": 409.7558123563847
+      },
+      "dragging": false
+    },
+    {
+      "id": "0ca1de76-01fd-4905-ad9f-41afb5fa2c6d",
+      "type": "flow",
+      "position": {
+        "x": -405.8729956438326,
+        "y": 646.7654712363468
+      },
+      "data": {
+        "action": "wait",
+        "locatorStrategy": "xpath",
+        "locator": "//XCUIElementTypeButton[@name=\"LogOut-menu-item\"]",
+        "timeout": 10000,
+        "pollingInterval": 500,
+        "title": "Wait Until Element",
+        "subtitle": "Wait until an element is visible",
+        "debug": {
+          "breakpoint": false
+        }
+      },
+      "width": 240,
+      "height": 260,
+      "selected": false,
+      "positionAbsolute": {
+        "x": -405.8729956438326,
+        "y": 646.7654712363468
+      },
+      "dragging": false
+    },
+    {
+      "id": "da015fa2-cf59-4895-8856-cec87fe30c24",
+      "type": "flow",
+      "position": {
+        "x": -88.78470966416194,
+        "y": 697.1330178594992
+      },
+      "data": {
+        "action": "tap",
+        "locatorStrategy": "xpath",
+        "locator": "//XCUIElementTypeButton[@name=\"LogOut-menu-item\"]",
+        "title": "Tap",
+        "subtitle": "Tap an element",
+        "debug": {
+          "breakpoint": false
+        }
+      },
+      "width": 240,
+      "height": 182,
+      "selected": false,
+      "positionAbsolute": {
+        "x": -88.78470966416194,
+        "y": 697.1330178594992
+      },
+      "dragging": false
+    },
+    {
+      "id": "4415fd1f-356d-4345-beeb-cd4cc0050a59",
+      "type": "flow",
+      "position": {
+        "x": 232.5268115644036,
+        "y": 711.9849873808124
+      },
+      "data": {
+        "action": "getText",
+        "locatorStrategy": "xpath",
+        "locator": "//XCUIElementTypeStaticText[@name=\"Select a username from the list below\"]",
+        "variableName": "usernameText",
+        "title": "Get Text",
+        "subtitle": "Read text from element",
+        "debug": {
+          "breakpoint": false
+        }
+      },
+      "width": 240,
+      "height": 210,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 232.5268115644036,
+        "y": 711.9849873808124
+      },
+      "dragging": false
+    },
+    {
+      "id": "594c6f5b-dbc5-4bec-b4b5-92f8f1788125",
+      "type": "flow",
+      "position": {
+        "x": 589.0562878282894,
+        "y": 704.5997629034356
+      },
+      "data": {
+        "action": "assert",
+        "actual": "${usernameText}",
+        "operator": "equals",
+        "expected": "Select a username from the list below",
+        "title": "Assert",
+        "subtitle": "Verify value",
+        "debug": {
+          "breakpoint": false
+        }
+      },
+      "width": 240,
+      "height": 278,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 589.0562878282894,
+        "y": 704.5997629034356
+      },
+      "dragging": false
+    },
+    {
+      "id": "36769f00-c158-414e-b161-4dda51e093b6",
+      "type": "flow",
+      "position": {
+        "x": -402.32931642610566,
+        "y": 990.5012148211108
+      },
+      "data": {
+        "action": "input",
+        "locatorStrategy": "className",
+        "locator": "XCUIElementTypeTextField",
+        "text": "${username}",
+        "title": "Input",
+        "subtitle": "Input text",
+        "debug": {
+          "breakpoint": false
+        }
+      },
+      "width": 240,
+      "height": 212,
+      "selected": false,
+      "positionAbsolute": {
+        "x": -402.32931642610566,
+        "y": 990.5012148211108
+      },
+      "dragging": false
+    },
+    {
+      "id": "ec00b381-11b3-48bf-9479-812b264e8ba4",
+      "type": "flow",
+      "position": {
+        "x": -60.9035452448818,
+        "y": 1016.4340854305101
+      },
+      "data": {
+        "action": "input",
+        "locatorStrategy": "className",
+        "locator": "XCUIElementTypeSecureTextField",
+        "text": "${password}",
+        "title": "Input",
+        "subtitle": "Input text",
+        "debug": {
+          "breakpoint": false
+        }
+      },
+      "width": 240,
+      "height": 212,
+      "selected": false,
+      "positionAbsolute": {
+        "x": -60.9035452448818,
+        "y": 1016.4340854305101
+      },
+      "dragging": false
+    },
+    {
+      "id": "b761d539-02dd-45bd-8fbd-bb9e60730bc6",
+      "type": "flow",
+      "position": {
+        "x": 253.91611248530398,
+        "y": 1070.7893640729346
+      },
+      "data": {
+        "action": "pressReturn",
+        "title": "Press Return",
+        "subtitle": "Press keyboard return key",
+        "debug": {
+          "breakpoint": false
+        }
+      },
+      "width": 240,
+      "height": 133,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 253.91611248530398,
+        "y": 1070.7893640729346
+      },
+      "dragging": false
+    },
+    {
+      "id": "c40c21ad-59f5-415a-838d-83921219f765",
+      "type": "flow",
+      "position": {
+        "x": 683.8734032942518,
+        "y": 1045.3932770434396
+      },
+      "data": {
+        "action": "tap",
+        "locatorStrategy": "iOSClassChain",
+        "locator": "**/XCUIElementTypeButton[`name == \"Login\"`]",
+        "title": "Tap",
+        "subtitle": "Tap an element",
+        "debug": {
+          "breakpoint": false
+        }
+      },
+      "width": 240,
+      "height": 182,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 683.8734032942518,
+        "y": 1045.3932770434396
+      },
+      "dragging": false
+    }
+  ],
+  "edges": [
+    {
+      "id": "3b8446cc-d7f7-4f6b-9333-46b01dc629f8",
+      "source": "060dd2f6-5379-4cb5-b2c2-4cafc254f7d6",
+      "target": "9fab1edd-1cdb-41cc-a79a-5bb394040f1c",
+      "type": "flow",
+      "animated": false
+    },
+    {
+      "id": "93df36c0-3086-4d38-b04d-08b074fcb1a2",
+      "source": "9fab1edd-1cdb-41cc-a79a-5bb394040f1c",
+      "target": "36595b37-7747-4716-ba6e-e6f11af0061b",
+      "type": "flow",
+      "animated": false
+    },
+    {
+      "id": "373a13b7-2be8-447e-80ab-171a01f37114",
+      "source": "36595b37-7747-4716-ba6e-e6f11af0061b",
+      "target": "b2520474-52d1-4a18-a05d-1a8c65f6c18e",
+      "type": "flow",
+      "animated": false
+    },
+    {
+      "id": "e760be66-3adc-4249-a30f-ddd5030586db",
+      "source": "b2520474-52d1-4a18-a05d-1a8c65f6c18e",
+      "target": "0ca1de76-01fd-4905-ad9f-41afb5fa2c6d",
+      "type": "flow",
+      "animated": false
+    },
+    {
+      "id": "4833d89f-da50-415c-9700-cd4cca96bbc8",
+      "source": "0ca1de76-01fd-4905-ad9f-41afb5fa2c6d",
+      "target": "da015fa2-cf59-4895-8856-cec87fe30c24",
+      "type": "flow",
+      "animated": false
+    },
+    {
+      "id": "6c29ac85-9499-4558-9b0c-b74f5013c853",
+      "source": "da015fa2-cf59-4895-8856-cec87fe30c24",
+      "target": "4415fd1f-356d-4345-beeb-cd4cc0050a59",
+      "type": "flow",
+      "animated": false
+    },
+    {
+      "id": "4c49e2d2-0dc7-4364-8476-9b6bd9f8a267",
+      "source": "4415fd1f-356d-4345-beeb-cd4cc0050a59",
+      "target": "594c6f5b-dbc5-4bec-b4b5-92f8f1788125",
+      "type": "flow",
+      "animated": false,
+      "selected": false
+    },
+    {
+      "id": "2711c800-0b41-4e38-b965-fed7062c05c1",
+      "source": "594c6f5b-dbc5-4bec-b4b5-92f8f1788125",
+      "target": "36769f00-c158-414e-b161-4dda51e093b6",
+      "type": "flow",
+      "animated": false
+    },
+    {
+      "id": "605b2d1f-db80-4e3d-b3be-b7f771467ee6",
+      "source": "36769f00-c158-414e-b161-4dda51e093b6",
+      "target": "ec00b381-11b3-48bf-9479-812b264e8ba4",
+      "type": "flow",
+      "animated": false
+    },
+    {
+      "id": "4838e381-eaaf-4752-8632-f4e7d4145249",
+      "source": "ec00b381-11b3-48bf-9479-812b264e8ba4",
+      "target": "b761d539-02dd-45bd-8fbd-bb9e60730bc6",
+      "type": "flow",
+      "animated": false
+    },
+    {
+      "id": "8abdbae5-90ed-49b2-a95f-28f50246f1b9",
+      "source": "b761d539-02dd-45bd-8fbd-bb9e60730bc6",
+      "target": "c40c21ad-59f5-415a-838d-83921219f765",
+      "type": "flow",
+      "animated": false
+    }
+  ]
+}

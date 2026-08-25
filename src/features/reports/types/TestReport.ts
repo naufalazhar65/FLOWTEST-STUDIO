@@ -44,6 +44,12 @@ export interface ReportNode {
 
     duration: number;
 
+    attempts?: number;
+
+    retries?: number;
+
+    retryReason?: string;
+
     error?: string;
 
     screenshot?: string;

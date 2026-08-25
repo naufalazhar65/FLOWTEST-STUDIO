@@ -82,6 +82,46 @@ function createNode(): FlowNode & {
     };
 }
 
+function createAssertNode(): FlowNode {
+    return {
+        id: "assert-1",
+
+        type: "default",
+
+        position: {
+            x: 0,
+            y: 0,
+        },
+
+        data: {
+            action: "assert",
+
+            title: "Assert",
+
+            subtitle: "",
+
+            debug: {
+                breakpoint: false,
+            },
+
+            locatorStrategy:
+                "id",
+
+            locator:
+                "dashboard",
+
+            actual:
+                "actual",
+
+            expected:
+                "expected",
+
+            operator:
+                "equals",
+        },
+    } as FlowNode;
+}
+
 describe("executeNode", () => {
     beforeEach(() => {
         vi.clearAllMocks();
@@ -276,4 +316,154 @@ describe("executeNode", () => {
             null,
         );
     });
+
+    it(
+        "retries a transient node failure when enabled",
+        async () => {
+            const run =
+                vi.fn()
+                    .mockRejectedValueOnce(
+                        new Error(
+                            "Operation timed out",
+                        ),
+                    )
+                    .mockResolvedValueOnce({
+                        outputs: [
+                            "next",
+                        ],
+                    });
+
+            vi.mocked(
+                getRunner,
+            ).mockReturnValue({
+                run,
+            } as never);
+
+            const result =
+                await executeNode(
+                    createNode(),
+                    {
+                        ...context,
+
+                        retry: {
+                            enabled: true,
+
+                            maxAttempts: 2,
+
+                            retryDelayMs: 0,
+                        },
+                    },
+                );
+
+            expect(
+                run,
+            ).toHaveBeenCalledTimes(
+                2,
+            );
+
+            expect(
+                result,
+            ).toEqual({
+                outputs: [
+                    "next",
+                ],
+            });
+
+            expect(
+                executionStore.setNodeStatus,
+            ).toHaveBeenNthCalledWith(
+                1,
+                "tap-1",
+                "running",
+            );
+
+            expect(
+                executionStore.setNodeStatus,
+            ).toHaveBeenNthCalledWith(
+                2,
+                "tap-1",
+                "passed",
+            );
+
+            expect(
+                executionStore.setNodeResult,
+            ).toHaveBeenCalledTimes(
+                1,
+            );
+
+            expect(
+                executionStore.setNodeResult,
+            ).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    status:
+                        "passed",
+
+                    attempts:
+                        2,
+
+                    retries:
+                        1,
+
+                    retryReason:
+                        expect.any(String),
+                }),
+            );
+
+            expect(
+                executionStore.completeNode,
+            ).toHaveBeenCalledWith(
+                true,
+            );
+        },
+    );
+
+    it(
+        "does not retry assertion failures",
+        async () => {
+            const run =
+                vi.fn()
+                    .mockRejectedValue(
+                        new Error(
+                            "Expected Dashboard but received Login",
+                        ),
+                    );
+
+            vi.mocked(
+                getRunner,
+            ).mockReturnValue({
+                run,
+            } as never);
+
+            await expect(
+                executeNode(
+                    createAssertNode(),
+                    {
+                        ...context,
+
+                        retry: {
+                            enabled: true,
+
+                            maxAttempts: 3,
+
+                            retryDelayMs: 0,
+                        },
+                    },
+                ),
+            ).rejects.toThrow(
+                "Expected Dashboard but received Login",
+            );
+
+            expect(
+                run,
+            ).toHaveBeenCalledTimes(
+                1,
+            );
+
+            expect(
+                executionStore.completeNode,
+            ).toHaveBeenCalledWith(
+                false,
+            );
+        },
+    );
 });

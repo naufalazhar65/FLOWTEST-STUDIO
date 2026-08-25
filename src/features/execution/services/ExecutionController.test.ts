@@ -424,7 +424,20 @@ describe(
                             executeFlowMock,
                         ).toHaveBeenCalledWith(
                             nodes,
-                            context,
+                            expect.objectContaining({
+                                ...context,
+
+                                retry: {
+                                    enabled:
+                                        false,
+
+                                    maxAttempts:
+                                        2,
+
+                                    retryDelayMs:
+                                        500,
+                                },
+                            }),
                         );
                     },
                 );
@@ -495,7 +508,21 @@ describe(
                             executeFlowMock,
                         ).toHaveBeenCalledWith(
                             nodes,
-                            customContext,
+                            expect.objectContaining({
+                                edges:
+                                    customContext.edges,
+
+                                retry: {
+                                    enabled:
+                                        false,
+
+                                    maxAttempts:
+                                        2,
+
+                                    retryDelayMs:
+                                        500,
+                                },
+                            }),
                         );
                     },
                 );
@@ -984,7 +1011,21 @@ describe(
                         ).toHaveBeenNthCalledWith(
                             2,
                             nodes,
-                            context,
+                            expect.objectContaining({
+                                edges:
+                                    context.edges,
+
+                                retry: {
+                                    enabled:
+                                        false,
+
+                                    maxAttempts:
+                                        2,
+
+                                    retryDelayMs:
+                                        500,
+                                },
+                            }),
                             {
                                 preserveExecutionHistory:
                                     true,
@@ -1209,10 +1250,21 @@ describe(
                         ).toHaveBeenNthCalledWith(
                             2,
                             repairedNodes,
-                            {
+                            expect.objectContaining({
                                 edges:
                                     originalEdges,
-                            },
+
+                                retry: {
+                                    enabled:
+                                        false,
+
+                                    maxAttempts:
+                                        2,
+
+                                    retryDelayMs:
+                                        500,
+                                },
+                            }),
                             {
                                 preserveExecutionHistory:
                                     true,
@@ -1224,10 +1276,21 @@ describe(
                         ).toHaveBeenNthCalledWith(
                             1,
                             originalNodes,
-                            {
+                            expect.objectContaining({
                                 edges:
                                     originalEdges,
-                            },
+
+                                retry: {
+                                    enabled:
+                                        false,
+
+                                    maxAttempts:
+                                        2,
+
+                                    retryDelayMs:
+                                        500,
+                                },
+                            }),
                         );
 
 

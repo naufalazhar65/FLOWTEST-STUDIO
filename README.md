@@ -384,8 +384,8 @@ The validated iOS real-device setup is documented in [docs/IOS-REAL-DEVICE.md](d
 - **AI self-healing:** Generic locator resolution is working across supported strategies, including `tap` with `accessibilityId`. Verified locator candidates and rerun behavior are working.
 - **Reports:** Project-scoped active-project report loading is working.
 - **Milestone 2 — CI-ready suite runner:** Complete. Headless flow execution, machine-readable exit codes, JUnit XML reporting, environment-based flow selection, reusable GitHub Actions CI, redacted execution artifacts, CI device/Appium documentation, and validated Android physical-device execution through a self-hosted macOS ARM64 runner are operational.
-- **Milestone 3 — Test data and execution resilience:** M3.1 and M3.2 are operational. Named environments, environment-specific variables and device profiles, secret-aware environment configuration, JSON/CSV dataset loading, dataset import and selection, parameterized flow execution, environment-to-dataset variable overlay, variable substitution, row isolation, and per-row PASS/FAIL results are validated.
-- **Next priorities:** Add execution retry policies, transient-failure eligibility, failure classification, and flaky-test reporting.
+- **Milestone 3 — Test data and execution resilience:** M3.1, M3.2, and M3.3 are operational. Named environments, environment-specific variables and device profiles, secret-aware environment configuration, JSON/CSV dataset loading, dataset import and selection, parameterized flow execution, environment-to-dataset variable overlay, variable substitution, row isolation, per-row PASS/FAIL results, configurable node-level retry policies, transient-failure classification, retry attempt limits, self-healing-compatible retries, and retry evidence in execution logs and headless artifacts are validated.
+- **Next priorities:** Identify and report flaky tests separately from deterministic failures, then continue toward faster regression execution at scale.
 
 ## 🤝 Contributing
 

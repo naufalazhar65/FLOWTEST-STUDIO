@@ -159,15 +159,15 @@ export function DatasetSelector() {
                     result.rows,
                 );
         } catch (
-            importError
+        importError
         ) {
             setError(
                 importError instanceof
                     Error
                     ? importError.message
                     : String(
-                          importError,
-                      ),
+                        importError,
+                    ),
             );
         } finally {
             setImporting(false);
@@ -192,9 +192,9 @@ export function DatasetSelector() {
 
         if (
             executionStatus ===
-                "running" ||
+            "running" ||
             executionStatus ===
-                "paused"
+            "paused"
         ) {
             return;
         }
@@ -242,15 +242,15 @@ export function DatasetSelector() {
                 results,
             );
         } catch (
-            runError
+        runError
         ) {
             setError(
                 runError instanceof
                     Error
                     ? runError.message
                     : String(
-                          runError,
-                      ),
+                        runError,
+                    ),
             );
         } finally {
             setRunning(false);
@@ -275,11 +275,11 @@ export function DatasetSelector() {
         rows.length > 0 &&
         !running &&
         executionStatus !==
-            "running" &&
+        "running" &&
         executionStatus !==
-            "paused" &&
+        "paused" &&
         appiumConnection ===
-            "connected" &&
+        "connected" &&
         nodes.length > 0;
 
     const datasetLabel =
@@ -295,12 +295,14 @@ export function DatasetSelector() {
                     setOpen(true)
                 }
                 style={{
-                    height: 30,
+                    height:
+                        30,
 
-                    maxWidth: 210,
+                    maxWidth:
+                        180,
 
                     padding:
-                        "0 10px",
+                        "0 9px",
 
                     border:
                         "1px solid #30363D",
@@ -332,12 +334,14 @@ export function DatasetSelector() {
                         "nowrap",
                 }}
                 title={
-                    fileName ??
-                    "No dataset loaded"
+                    fileName
+                        ? `Dataset: ${datasetLabel}`
+                        : "No dataset loaded"
                 }
             >
-                Dataset:{" "}
-                {datasetLabel}
+                {fileName
+                    ? datasetLabel
+                    : "Dataset: None"}
             </button>
 
             <Modal
@@ -511,176 +515,176 @@ export function DatasetSelector() {
                                     }}
                                 >
                                     {appiumConnection !==
-                                    "connected"
+                                        "connected"
                                         ? "Start Appium Server before running the dataset."
                                         : nodes.length ===
-                                          0
-                                          ? "Add at least one node to the current flow."
-                                          : executionStatus ===
+                                            0
+                                            ? "Add at least one node to the current flow."
+                                            : executionStatus ===
                                                 "running" ||
-                                            executionStatus ===
+                                                executionStatus ===
                                                 "paused"
-                                            ? "Wait for the current execution to finish."
-                                            : null}
+                                                ? "Wait for the current execution to finish."
+                                                : null}
                                 </div>
                             )}
                     </section>
 
                     {runResults.length >
                         0 && (
-                        <section>
-                            <Label>
-                                Execution Results
-                            </Label>
+                            <section>
+                                <Label>
+                                    Execution Results
+                                </Label>
 
-                            <div
-                                style={{
-                                    display:
-                                        "flex",
-
-                                    gap:
-                                        12,
-
-                                    marginBottom:
-                                        10,
-
-                                    fontSize:
-                                        12,
-                                }}
-                            >
-                                <span
+                                <div
                                     style={{
-                                        color:
-                                            "#3FB950",
+                                        display:
+                                            "flex",
+
+                                        gap:
+                                            12,
+
+                                        marginBottom:
+                                            10,
+
+                                        fontSize:
+                                            12,
                                     }}
                                 >
-                                    Passed:{" "}
-                                    {
-                                        passedRows
-                                    }
-                                </span>
+                                    <span
+                                        style={{
+                                            color:
+                                                "#3FB950",
+                                        }}
+                                    >
+                                        Passed:{" "}
+                                        {
+                                            passedRows
+                                        }
+                                    </span>
 
-                                <span
+                                    <span
+                                        style={{
+                                            color:
+                                                "#F85149",
+                                        }}
+                                    >
+                                        Failed:{" "}
+                                        {
+                                            failedRows
+                                        }
+                                    </span>
+                                </div>
+
+                                <div
                                     style={{
-                                        color:
-                                            "#F85149",
+                                        display:
+                                            "flex",
+
+                                        flexDirection:
+                                            "column",
+
+                                        gap:
+                                            6,
                                     }}
                                 >
-                                    Failed:{" "}
-                                    {
-                                        failedRows
-                                    }
-                                </span>
-                            </div>
-
-                            <div
-                                style={{
-                                    display:
-                                        "flex",
-
-                                    flexDirection:
-                                        "column",
-
-                                    gap:
-                                        6,
-                                }}
-                            >
-                                {runResults.map(
-                                    (
-                                        result,
-                                    ) => (
-                                        <div
-                                            key={
-                                                result.rowIndex
-                                            }
-                                            style={{
-                                                display:
-                                                    "flex",
-
-                                                justifyContent:
-                                                    "space-between",
-
-                                                gap:
-                                                    12,
-
-                                                padding:
-                                                    "8px 10px",
-
-                                                border:
-                                                    "1px solid #30363D",
-
-                                                borderRadius:
-                                                    6,
-
-                                                background:
-                                                    "#0D1117",
-                                            }}
-                                        >
-                                            <div>
-                                                <span
-                                                    style={{
-                                                        color:
-                                                            "#E6EDF3",
-
-                                                        fontSize:
-                                                            12,
-                                                    }}
-                                                >
-                                                    Row{" "}
-                                                    {
-                                                        result.rowIndex +
-                                                        1
-                                                    }
-                                                </span>
-
-                                                {result.error && (
-                                                    <div
-                                                        style={{
-                                                            marginTop:
-                                                                4,
-
-                                                            maxWidth:
-                                                                400,
-
-                                                            fontSize:
-                                                                11,
-
-                                                            color:
-                                                                "#F85149",
-                                                        }}
-                                                    >
-                                                        {
-                                                            result.error
-                                                        }
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            <span
+                                    {runResults.map(
+                                        (
+                                            result,
+                                        ) => (
+                                            <div
+                                                key={
+                                                    result.rowIndex
+                                                }
                                                 style={{
-                                                    fontSize:
+                                                    display:
+                                                        "flex",
+
+                                                    justifyContent:
+                                                        "space-between",
+
+                                                    gap:
                                                         12,
 
-                                                    color:
-                                                        result.status ===
-                                                        "passed"
-                                                            ? "#3FB950"
-                                                            : "#F85149",
+                                                    padding:
+                                                        "8px 10px",
+
+                                                    border:
+                                                        "1px solid #30363D",
+
+                                                    borderRadius:
+                                                        6,
+
+                                                    background:
+                                                        "#0D1117",
                                                 }}
                                             >
-                                                {
-                                                    result.status ===
-                                                    "passed"
-                                                        ? "PASS"
-                                                        : "FAIL"
-                                                }
-                                            </span>
-                                        </div>
-                                    ),
-                                )}
-                            </div>
-                        </section>
-                    )}
+                                                <div>
+                                                    <span
+                                                        style={{
+                                                            color:
+                                                                "#E6EDF3",
+
+                                                            fontSize:
+                                                                12,
+                                                        }}
+                                                    >
+                                                        Row{" "}
+                                                        {
+                                                            result.rowIndex +
+                                                            1
+                                                        }
+                                                    </span>
+
+                                                    {result.error && (
+                                                        <div
+                                                            style={{
+                                                                marginTop:
+                                                                    4,
+
+                                                                maxWidth:
+                                                                    400,
+
+                                                                fontSize:
+                                                                    11,
+
+                                                                color:
+                                                                    "#F85149",
+                                                            }}
+                                                        >
+                                                            {
+                                                                result.error
+                                                            }
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                <span
+                                                    style={{
+                                                        fontSize:
+                                                            12,
+
+                                                        color:
+                                                            result.status ===
+                                                                "passed"
+                                                                ? "#3FB950"
+                                                                : "#F85149",
+                                                    }}
+                                                >
+                                                    {
+                                                        result.status ===
+                                                            "passed"
+                                                            ? "PASS"
+                                                            : "FAIL"
+                                                    }
+                                                </span>
+                                            </div>
+                                        ),
+                                    )}
+                                </div>
+                            </section>
+                        )}
 
                     {error && (
                         <div

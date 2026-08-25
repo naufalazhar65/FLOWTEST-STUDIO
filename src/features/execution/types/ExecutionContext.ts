@@ -1,5 +1,15 @@
-import type { Edge } from "reactflow";
+import type {
+    Edge,
+} from "reactflow";
 
 export interface ExecutionContext {
-  edges: Edge[];
+    edges: Edge[];
+
+    retry?: {
+        enabled?: boolean;
+
+        maxAttempts?: number;
+
+        retryDelayMs?: number;
+    };
 }
