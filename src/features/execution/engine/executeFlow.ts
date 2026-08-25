@@ -53,6 +53,9 @@ interface ExecuteFlowOptions {
 
     preserveExecutionHistory?:
     boolean;
+
+    preserveVariables?:
+    boolean;
 }
 
 export async function executeFlow(
@@ -86,7 +89,11 @@ export async function executeFlow(
             context.edges,
         );
 
-    clearVariables();
+    if (
+        !options?.preserveVariables
+    ) {
+        clearVariables();
+    }
 
     execution.startExecution(
         nodes.length,

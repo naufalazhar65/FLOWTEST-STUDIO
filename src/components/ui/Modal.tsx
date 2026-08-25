@@ -51,9 +51,11 @@ export function Modal({
                 justifyContent:
                     "center",
 
-                padding: spacing.lg,
+                padding:
+                    spacing.lg,
 
-                boxSizing: "border-box",
+                boxSizing:
+                    "border-box",
 
                 background:
                     colors.overlay,
@@ -72,10 +74,19 @@ export function Modal({
                 style={{
                     width: "100%",
 
-                    maxWidth: width,
+                    maxWidth:
+                        width,
 
                     maxHeight:
                         "calc(100vh - 48px)",
+
+                    display:
+                        "flex",
+
+                    flexDirection:
+                        "column",
+
+                    minHeight: 0,
 
                     background:
                         colors.panel,
@@ -89,7 +100,8 @@ export function Modal({
                     boxShadow:
                         shadow.floating,
 
-                    overflow: "hidden",
+                    overflow:
+                        "hidden",
 
                     ...style,
                 }}

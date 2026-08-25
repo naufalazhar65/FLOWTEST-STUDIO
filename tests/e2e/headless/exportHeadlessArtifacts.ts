@@ -104,7 +104,7 @@ function redactSensitiveValue(
     if (
         value &&
         typeof value ===
-        "object"
+            "object"
     ) {
         return Object.fromEntries(
             Object.entries(
@@ -117,12 +117,12 @@ function redactSensitiveValue(
                     entryKey,
                     entryValue,
                 ]) => [
+                    entryKey,
+                    redactSensitiveValue(
+                        entryValue,
                         entryKey,
-                        redactSensitiveValue(
-                            entryValue,
-                            entryKey,
-                        ),
-                    ],
+                    ),
+                ],
             ),
         );
     }
@@ -132,29 +132,20 @@ function redactSensitiveValue(
 
 function sanitizeLog(
     log: ExecutionLog,
-): ExecutionLog {
-    const sanitized =
-    {
-        ...log,
-    };
-
-    if (
-        sanitized.nodeType ===
-        "input" &&
-        sanitized.details &&
-        typeof sanitized.details ===
-        "object"
-    ) {
-        sanitized.details = {
-            ...sanitized.details,
-            value:
-                "[REDACTED]",
-        };
-    }
-
+): Record<
+    string,
+    unknown
+> {
     return redactSensitiveValue(
-        sanitized,
-    ) as ExecutionLog;
+        Object.fromEntries(
+            Object.entries(
+                log,
+            ),
+        ),
+    ) as Record<
+        string,
+        unknown
+    >;
 }
 
 export async function exportHeadlessArtifacts({
@@ -274,7 +265,10 @@ export async function exportHeadlessArtifacts({
 
     const sanitizedLogs =
         logs.map(
-            sanitizeLog,
+            (log) =>
+                sanitizeLog(
+                    log,
+                ),
         );
 
     await writeFile(

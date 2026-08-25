@@ -19,16 +19,22 @@ export function DialogBody({
                 padding:
                     spacing.xl,
 
-                display: "flex",
+                display:
+                    "flex",
 
                 flexDirection:
                     "column",
 
-                gap: spacing.lg,
+                gap:
+                    spacing.lg,
 
-                minHeight: 0,
+                flex: 1,
 
-                overflowY: "auto",
+                minHeight:
+                    0,
+
+                overflowY:
+                    "auto",
             }}
         >
             {children}

@@ -67,12 +67,38 @@ import {
     useVideoRecordingStore,
 } from "../store/useVideoRecordingStore";
 
-interface ExecutionControllerOptions {
+import type {
+    EnvironmentName,
+} from "../../environment/types/EnvironmentProfile";
+
+import {
+    loadEnvironmentByName,
+} from "../../environment/services/loadEnvironmentByName";
+
+import type {
+    TestDataRow,
+} from "../../testdata/types/TestDataSet";
+
+import {
+    loadTestDataRow,
+} from "../../testdata/services/loadTestDataRow";
+
+import {
+    clearVariables,
+} from "../variables/VariableStore";
+
+export interface ExecutionControllerOptions {
     reuseExistingAppiumSession?:
     boolean;
 
     skipNodeIds?:
     ReadonlySet<string>;
+
+    environmentName?:
+    EnvironmentName;
+
+    testDataRow?:
+    TestDataRow;
 
     onManualHealingPlan?:
     (
@@ -95,6 +121,22 @@ function buildExecuteFlowOptions(
     return {
         skipNodeIds:
             options.skipNodeIds,
+    };
+}
+
+function buildVariableExecutionOptions(
+    options?:
+        ExecutionControllerOptions,
+) {
+    if (
+        !options?.testDataRow
+    ) {
+        return undefined;
+    }
+
+    return {
+        preserveVariables:
+            true,
     };
 }
 
@@ -141,13 +183,48 @@ export class ExecutionController {
                     options,
                 );
 
+            const variableExecutionOptions =
+                buildVariableExecutionOptions(
+                    options,
+                );
+
+            clearVariables();
+
             if (
-                executeOptions
+                options?.environmentName
+            ) {
+                loadEnvironmentByName(
+                    options.environmentName,
+                );
+            }
+
+            if (
+                options?.testDataRow
+            ) {
+                loadTestDataRow(
+                    options.testDataRow,
+                    {
+                        replaceExisting:
+                            false,
+                    },
+                );
+            }
+
+            const executionOptions = {
+                ...(executeOptions ?? {}),
+                ...(variableExecutionOptions ??
+                    {}),
+            };
+
+            if (
+                Object.keys(
+                    executionOptions,
+                ).length > 0
             ) {
                 await executeFlow(
                     nodes,
                     context,
-                    executeOptions,
+                    executionOptions,
                 );
             } else {
                 await executeFlow(
@@ -471,21 +548,32 @@ export class ExecutionController {
                                             },
                                             {
                                                 ...(executeOptions ?? {}),
+                                                ...(options?.testDataRow
+                                                    ? {
+                                                        preserveVariables:
+                                                            true,
+                                                    }
+                                                    : {}),
 
                                                 preserveExecutionHistory:
                                                     true,
-                                            },
-                                        );
+                                            });
                                     } else {
                                         await executeFlow(
                                             latestNodes,
                                             {
                                                 ...context,
-
                                                 edges:
                                                     latestEdges,
                                             },
                                             {
+                                                ...(options?.testDataRow
+                                                    ? {
+                                                        preserveVariables:
+                                                            true,
+                                                    }
+                                                    : {}),
+
                                                 preserveExecutionHistory:
                                                     true,
                                             },
