@@ -1,0 +1,63 @@
+name: Android Real Device E2E
+
+on:
+  workflow_dispatch:
+
+jobs:
+  android-e2e:
+    name: Android Real Device Smoke
+
+    runs-on:
+      - self-hosted
+      - macOS
+      - ARM64
+      - android
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify Android device
+        run: |
+          adb devices -l
+          adb -s 8738d8d2 shell getprop ro.product.model
+          adb -s 8738d8d2 shell getprop ro.build.version.release
+          adb -s 8738d8d2 shell getprop ro.build.version.sdk
+
+      - name: Verify Appium
+        run: |
+          appium --version
+          curl -s http://127.0.0.1:4723/status
+
+      - name: Run Android headless smoke
+        run: |
+          mkdir -p artifacts/test-results
+          mkdir -p artifacts/execution
+
+          npm run test:headless -- \
+            --flow tests/e2e/fixtures/androidTest.flow
+
+      - name: Upload JUnit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-junit-report
+          path: artifacts/test-results/junit.xml
+          if-no-files-found: warn
+
+      - name: Upload execution artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-execution-artifacts
+          path: artifacts/execution
+          if-no-files-found: warn
