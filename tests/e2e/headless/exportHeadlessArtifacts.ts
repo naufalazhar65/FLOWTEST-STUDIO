@@ -15,6 +15,11 @@ import {
     useExecutionStore,
 } from "../../../src/features/execution/store/useExecutionStore";
 
+import {
+    classifyNodeOutcome,
+    summarizeFlakiness,
+} from "../../../src/features/execution/services/classifyNodeOutcome";
+
 import type {
     ExecutionLog,
 } from "../../../src/features/execution/store/useExecutionLogStore";
@@ -194,6 +199,11 @@ export async function exportHeadlessArtifacts({
                 b.startedAt,
         );
 
+    const flakiness =
+        summarizeFlakiness(
+            nodeResults,
+        );
+
     const executionReport = {
         status:
             execution.status,
@@ -212,6 +222,12 @@ export async function exportHeadlessArtifacts({
 
         failedNodes:
             execution.failedNodes,
+
+        flakyNodes:
+            flakiness.flaky,
+
+        flakyRate:
+            flakiness.flakyRate,
 
         progress:
             execution.progress,
@@ -239,6 +255,11 @@ export async function exportHeadlessArtifacts({
 
                     status:
                         node.status,
+
+                    outcome:
+                        classifyNodeOutcome(
+                            node,
+                        ),
 
                     startedAt:
                         node.startedAt,

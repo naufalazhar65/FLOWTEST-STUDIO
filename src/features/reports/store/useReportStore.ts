@@ -5,6 +5,10 @@ import type {
     TestReport,
 } from "../types/TestReport";
 
+import {
+    summarizeFlakiness,
+} from "../../execution/services/classifyNodeOutcome";
+
 interface ReportStore {
     reports: TestReport[];
 
@@ -66,6 +70,12 @@ function normalizeReport(
         failedNodes:
             report.failedNodes ??
             0,
+
+        flakyNodes:
+            report.flakyNodes ??
+            summarizeFlakiness(
+                report.nodes ?? [],
+            ).flaky,
 
         environment: {
             platform:

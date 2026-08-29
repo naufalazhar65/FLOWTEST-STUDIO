@@ -15,6 +15,11 @@ import type {
     TestReportStatus,
 } from "../types/TestReport";
 
+import {
+    classifyNodeOutcome,
+    summarizeFlakiness,
+} from "../../execution/services/classifyNodeOutcome";
+
 export interface CreateExecutionReportInput {
     status: TestReportStatus;
 
@@ -81,7 +86,17 @@ export function createExecutionReport({
             )
             .map((node) => ({
                 ...node,
+
+                outcome:
+                    classifyNodeOutcome(
+                        node,
+                    ),
             }));
+
+    const flakiness =
+        summarizeFlakiness(
+            nodes,
+        );
 
     return {
         id: crypto.randomUUID(),
@@ -107,6 +122,9 @@ export function createExecutionReport({
 
         failedNodes:
             execution.failedNodes,
+
+        flakyNodes:
+            flakiness.flaky,
 
         environment,
 

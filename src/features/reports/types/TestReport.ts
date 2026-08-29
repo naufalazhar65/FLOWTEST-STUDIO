@@ -6,6 +6,10 @@ import type {
     NodeExecutionStatus,
 } from "../../execution/types/NodeExecutionStatus";
 
+import type {
+    NodeOutcome,
+} from "../../execution/services/classifyNodeOutcome";
+
 export interface ExecutionReportLog {
     id: string;
 
@@ -37,6 +41,8 @@ export interface ReportNode {
     nodeTitle: string;
 
     status: NodeExecutionStatus;
+
+    outcome?: NodeOutcome;
 
     startedAt: number;
 
@@ -94,6 +100,8 @@ export interface TestReport {
     passedNodes: number;
 
     failedNodes: number;
+
+    flakyNodes?: number;
 
     environment: ReportEnvironment;
 

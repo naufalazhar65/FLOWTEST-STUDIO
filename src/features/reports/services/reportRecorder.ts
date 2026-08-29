@@ -15,6 +15,11 @@ import type {
 } from "../types/TestReport";
 
 import {
+    classifyNodeOutcome,
+    summarizeFlakiness,
+} from "../../execution/services/classifyNodeOutcome";
+
+import {
     getActiveProjectId,
 } from "../../project/storage/activeProject";
 
@@ -104,7 +109,17 @@ export function recordExecutionReport({
         )
         .map((node) => ({
             ...node,
+
+            outcome:
+                classifyNodeOutcome(
+                    node,
+                ),
         }));
+
+    const flakiness =
+        summarizeFlakiness(
+            nodes,
+        );
 
     const report = {
         id: crypto.randomUUID(),
@@ -130,6 +145,9 @@ export function recordExecutionReport({
 
         failedNodes:
             execution.failedNodes,
+
+        flakyNodes:
+            flakiness.flaky,
 
         environment,
 

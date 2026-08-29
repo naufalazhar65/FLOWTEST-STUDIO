@@ -98,6 +98,14 @@ function createPdfReportHtml(
                             node.status.toUpperCase(),
                         )}
                                 </span>
+
+                                ${node.outcome === "flaky"
+                            ? `
+                                    <span class="badge flaky">
+                                        FLAKY
+                                    </span>
+                                `
+                            : ""}
                             </td>
 
                             <td class="duration">
@@ -558,6 +566,12 @@ function createPdfReportHtml(
             color: #6e7681;
         }
 
+        .badge.flaky {
+            background: #3a2d0e;
+            color: #d29922;
+            margin-left: 5px;
+        }
+
         .duration {
             color: #8b949e;
             font-size: 9px;
@@ -810,6 +824,16 @@ function createPdfReportHtml(
         "Nodes",
         `${report.executedNodes}/${report.totalNodes}`,
     )}
+
+                ${(report.flakyNodes ?? 0) > 0
+        ? summaryItem(
+            "Flaky",
+            String(
+                report.flakyNodes ??
+                    0,
+            ),
+        )
+        : ""}
             </div>
         </section>
 

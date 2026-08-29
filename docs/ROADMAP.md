@@ -151,7 +151,7 @@ These capabilities form the current baseline and should be preserved as future w
 - [x] Add parameterized suite runs and data-set selection
 - [x] Implement retry policies at node and test-case level
 - [x] Retry only eligible transient failures; do not mask assertion failures
-- [ ] Identify and report flaky tests separately from deterministic failures
+- [x] Identify and report flaky tests separately from deterministic failures
 - [x] Redact secrets and personally identifiable data in logs, reports, and AI context
 
 ### Exit criteria
@@ -266,7 +266,7 @@ M6 Collaboration + versioning
 
 This ordering is deliberate: CI adoption should not precede dependable runtime behavior, and autonomous AI or collaboration should not precede traceable project changes.
 
-**Current checkpoint:** M1 real-device reliability and M2 CI-ready suite execution are complete. M3.1 environment configuration, M3.2 data-driven execution, and M3.3 retry-based execution resilience are now operational, including named environments, environment-specific variables and device profiles, JSON/CSV datasets, dataset import and selection, parameterized flow execution, variable substitution, row isolation, per-row PASS/FAIL results, configurable retry policies, transient-failure classification, retry attempt limits, self-healing-compatible retries, and retry evidence in execution logs and headless artifacts. M3.4 flaky-test identification and reporting is next.
+**Current checkpoint:** M1 real-device reliability and M2 CI-ready suite execution are complete. M3.1 environment configuration, M3.2 data-driven execution, and M3.3 retry-based execution resilience are now operational, including named environments, environment-specific variables and device profiles, JSON/CSV datasets, dataset import and selection, parameterized flow execution, variable substitution, row isolation, per-row PASS/FAIL results, configurable retry policies, transient-failure classification, retry attempt limits, self-healing-compatible retries, and retry evidence in execution logs and headless artifacts. M3.4 flaky-test identification and reporting is now operational: each executed node is classified as deterministic-pass, flaky (passed only after transient retries), transient-failure, or deterministic-failure, and reports (JSON, HTML, PDF) plus headless artifacts surface a flaky-node count and per-node outcome alongside a FLAKY badge.
 
 **Current AI checkpoint:** Generic locator self-healing is operational. The next AI work is governance, traceability, approval, and measurement rather than locator-specific special cases.
 

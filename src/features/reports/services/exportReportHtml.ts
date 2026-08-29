@@ -101,6 +101,14 @@ function createReportHtml(
                                 node.status.toUpperCase(),
                             )}
                                 </span>
+
+                                ${node.outcome === "flaky"
+                            ? `
+                                    <span class="badge flaky">
+                                        FLAKY
+                                    </span>
+                                `
+                            : ""}
                             </td>
 
                             <td class="duration">
@@ -584,6 +592,16 @@ function createReportHtml(
             color: #6e7681;
         }
 
+        .badge.flaky {
+            border:
+                1px solid
+                rgba(210, 153, 34, 0.45);
+            background:
+                rgba(210, 153, 34, 0.12);
+            color: #d29922;
+            margin-left: 6px;
+        }
+
         .duration {
             color: #8b949e;
             font-size: 11px;
@@ -841,6 +859,16 @@ function createReportHtml(
         "Nodes",
         `${report.executedNodes}/${report.totalNodes}`,
     )}
+
+                ${(report.flakyNodes ?? 0) > 0
+        ? summaryItem(
+            "Flaky",
+            String(
+                report.flakyNodes ??
+                    0,
+            ),
+        )
+        : ""}
             </div>
         </section>
 
