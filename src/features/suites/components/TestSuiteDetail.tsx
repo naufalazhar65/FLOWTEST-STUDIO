@@ -2,6 +2,7 @@ import {
     Square,
     CheckCircle2,
     Download,
+    FileUp,
     FileSpreadsheet,
     Printer,
     Circle,
@@ -43,7 +44,11 @@ import {
 import {
     useEffect,
     useState,
-    useRef
+    useRef,
+} from "react";
+
+import type {
+    ChangeEvent,
 } from "react";
 
 import {
@@ -56,6 +61,14 @@ import {
     runSuite,
     stopSuite,
 } from "../services/runSuite";
+
+import {
+    buildSuiteRunResultFromParallel,
+} from "../services/parallel/importParallelResults";
+
+import type {
+    ParallelTestCaseRecord,
+} from "../services/parallel/importParallelResults";
 
 import {
     ExecutionController,
@@ -844,6 +857,11 @@ export function TestSuiteDetail({
             null,
         );
 
+    const importFileRef =
+        useRef<HTMLInputElement | null>(
+            null,
+        );
+
     const [suiteResult, setSuiteResult] =
         useState<SuiteRunResult | null>(
             suite.lastRun ?? null,
@@ -1093,6 +1111,104 @@ export function TestSuiteDetail({
         }
     };
 
+    const handleImportParallelRun = (
+        event: ChangeEvent<HTMLInputElement>,
+    ) => {
+        const file =
+            event.target.files?.[0];
+
+        event.target.value = "";
+
+        if (!file) {
+            return;
+        }
+
+        void file
+            .text()
+            .then((text) => {
+                const parsed =
+                    JSON.parse(
+                        text,
+                    ) as {
+                        suiteId?: string;
+
+                        suiteName?: string;
+
+                        concurrency?: number;
+
+                        startedAt?: number;
+
+                        finishedAt?: number;
+
+                        records?: ParallelTestCaseRecord[];
+                    };
+
+                if (
+                    !Array.isArray(
+                        parsed.records,
+                    )
+                ) {
+                    throw new Error(
+                        "Invalid parallel run file: missing records array.",
+                    );
+                }
+
+                const finishedAt =
+                    parsed.finishedAt ??
+                    Date.now();
+
+                const startedAt =
+                    parsed.startedAt ??
+                    finishedAt;
+
+                const result =
+                    buildSuiteRunResultFromParallel(
+                        {
+                            suiteId:
+                                parsed.suiteId ??
+                                suite.id,
+
+                            suiteName:
+                                parsed.suiteName ??
+                                suite.name,
+
+                            concurrency:
+                                parsed.concurrency ??
+                                (suite.concurrency ??
+                                    1),
+
+                            startedAt,
+
+                            finishedAt,
+
+                            records:
+                                parsed.records,
+                        },
+                    );
+
+                setSuiteResult(result);
+
+                updateSuite(
+                    suite.id,
+                    {
+                        lastRun: result,
+
+                        runHistory: [
+                            result,
+                            ...(suite.runHistory ??
+                                []),
+                        ].slice(0, 20),
+                    },
+                );
+            })
+            .catch((error) => {
+                console.error(
+                    "Failed to import parallel run:",
+                    error,
+                );
+            });
+    };
+
     const handlePauseSuite = () => {
         if (
             !isRunning ||
@@ -1313,6 +1429,18 @@ export function TestSuiteDetail({
                             flexShrink: 0,
                         }}
                     >
+                        <input
+                            ref={importFileRef}
+                            type="file"
+                            accept="application/json,.json"
+                            style={{
+                                display: "none",
+                            }}
+                            onChange={
+                                handleImportParallelRun
+                            }
+                        />
+
                         <div
                             data-suite-menu="true"
                             style={{
@@ -1385,6 +1513,17 @@ export function TestSuiteDetail({
                                                 false,
                                             );
                                             onEdit?.();
+                                        }}
+                                    />
+
+                                    <MenuButton
+                                        icon={FileUp}
+                                        label="Import parallel run"
+                                        onClick={() => {
+                                            setSuiteMenuOpen(
+                                                false,
+                                            );
+                                            importFileRef.current?.click();
                                         }}
                                     />
 

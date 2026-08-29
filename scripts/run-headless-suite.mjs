@@ -4,10 +4,12 @@ import {
 
 import {
     mkdir,
+    readFile,
     writeFile,
 } from "node:fs/promises";
 
 import {
+    join,
     resolve,
 } from "node:path";
 
@@ -25,15 +27,23 @@ import {
     runFlowsPool,
 } from "./lib/suite-runner.mjs";
 
+import {
+    planSuiteTestFlows,
+    readExecutionRecord,
+    writeSuiteFlows,
+} from "./lib/suite-flow.mjs";
+
 function printUsage() {
     console.error(`
 Usage:
   node scripts/run-headless-suite.mjs --flow <path> [--flow <path> ...] [--concurrency <n>] [--artifacts <dir>]
+  node scripts/run-headless-suite.mjs --suite <suite.json> [--concurrency <n>] [--artifacts <dir>]
 
 Examples:
   node scripts/run-headless-suite.mjs --flow ./androidTest.flow --flow ./iosTest.flow --concurrency 2
-  node scripts/run-headless-suite.mjs --flow ./a.flow --flow ./b.flow --concurrency 1
+  node scripts/run-headless-suite.mjs --suite ./suite.json --concurrency 2
 `);
+
 }
 
 function parseArguments() {
@@ -41,6 +51,8 @@ function parseArguments() {
         process.argv.slice(2);
 
     const flows = [];
+
+    let suite = null;
 
     let concurrency = 1;
 
@@ -79,6 +91,28 @@ function parseArguments() {
             );
 
             continue;
+        }
+
+        if (
+            arg === "--suite"
+        ) {
+            suite =
+                args[index + 1];
+
+            index += 1;
+
+            continue;
+        }
+
+        if (
+            arg.startsWith(
+                "--suite=",
+            )
+        ) {
+            suite =
+                arg.slice(
+                    "--suite=".length,
+                );
         }
 
         if (
@@ -136,84 +170,37 @@ function parseArguments() {
 
     return {
         flows,
+        suite,
         concurrency,
         artifacts,
     };
 }
 
-const {
-    flows: providedFlows,
-    concurrency,
-    artifacts: artifactsOption,
-} = parseArguments();
-
-if (
-    providedFlows.length === 0
+async function loadSuite(
+    suitePath,
 ) {
-    printUsage();
-
-    process.exit(2);
-}
-
-const flowPaths =
-    providedFlows.map(
-        (path) =>
-            resolve(
-                path,
-            ),
-    );
-
-for (
-    const flowPath
-        of flowPaths
-) {
-    if (
-        !existsSync(
-            flowPath,
-        )
-    ) {
-        console.error(
-            `[Suite] Flow file not found: ${flowPath}`,
+    const text =
+        await readFile(
+            suitePath,
+            "utf8",
         );
 
-        process.exit(2);
-    }
+    return JSON.parse(
+        text,
+    );
 }
 
-const outputDirectory =
-    resolve(
-        artifactsOption,
-    );
+function buildRunnerCommand() {
+    const vitestOverride =
+        process.env
+            .FLOWTEST_SUITE_VITEST;
 
-await mkdir(
-    outputDirectory,
-    {
-        recursive: true,
-    },
-);
+    const vitestCommand =
+        process.platform === "win32"
+            ? "npx.cmd"
+            : "npx";
 
-const planned =
-    planSuiteBatches({
-        flowCount:
-            flowPaths.length,
-        concurrency,
-    });
-
-console.info(
-    `[Suite] Flows: ${flowPaths.length}, concurrency: ${planned.batches[0]?.batchSize ?? 1} in ${planned.batches.length} batch(es)`,
-);
-
-const vitestOverride =
-    process.env
-        .FLOWTEST_SUITE_VITEST;
-
-const vitestCommand =
-    process.platform === "win32"
-        ? "npx.cmd"
-        : "npx";
-
-const runnerCommand =
-    vitestOverride
+    return vitestOverride
         ? vitestOverride.split(
               /\s+/,
           )
@@ -223,21 +210,20 @@ const runnerCommand =
               "run",
               "tests/e2e/headless/headless.flow.test.ts",
           ];
+}
 
-function spawnFlow(
+const runnerCommand =
+    buildRunnerCommand();
+
+function spawnFlow({
+    label,
     flowPath,
-) {
-    const {
-        label,
-        artifactDir,
-        reportPath,
-    } = flowOutputPaths({
-        outputDirectory,
-        flowPath,
-    });
-
+    artifactDir,
+    reportPath,
+}) {
     const reportArgs =
-        vitestOverride
+        process.env
+            .FLOWTEST_SUITE_VITEST
             ? [
                   `--outputFile.junit=${reportPath}`,
               ]
@@ -340,6 +326,7 @@ function spawnFlow(
 
                     resolvePromise({
                         label,
+                        artifactDir,
                         reportPath,
                         exitCode: 1,
                     });
@@ -362,6 +349,7 @@ function spawnFlow(
 
                     resolvePromise({
                         label,
+                        artifactDir,
                         reportPath,
                         exitCode,
                     });
@@ -371,16 +359,194 @@ function spawnFlow(
     );
 }
 
+const {
+    flows: providedFlows,
+    suite: suiteOption,
+    concurrency,
+    artifacts: artifactsOption,
+} = parseArguments();
+
+if (
+    providedFlows.length === 0 &&
+    !suiteOption
+) {
+    printUsage();
+
+    process.exit(2);
+}
+
+const outputDirectory =
+    resolve(
+        artifactsOption,
+    );
+
+await mkdir(
+    outputDirectory,
+    {
+        recursive: true,
+    },
+);
+
+const suiteStartedAt =
+    Date.now();
+
+let flowEntries = [];
+
+let suiteResult = null;
+
+if (suiteOption) {
+    const suitePath =
+        resolve(
+            suiteOption,
+        );
+
+    if (
+        !existsSync(
+            suitePath,
+        )
+    ) {
+        console.error(
+            `[Suite] Suite file not found: ${suitePath}`,
+        );
+
+        process.exit(2);
+    }
+
+    const suite =
+        await loadSuite(
+            suitePath,
+        );
+
+    const descriptors =
+        planSuiteTestFlows(
+            suite,
+        );
+
+    if (
+        descriptors.length === 0
+    ) {
+        console.error(
+            `[Suite] Suite has no enabled test cases.`,
+        );
+
+        process.exit(2);
+    }
+
+    const written =
+        await writeSuiteFlows({
+            outputDirectory,
+
+            flows:
+                descriptors,
+        });
+
+    flowEntries =
+        written.map(
+            (flow) => ({
+                label:
+                    flow.projectName,
+
+                flowPath:
+                    flow.flowPath,
+
+                artifactDir:
+                    flow.artifactDir,
+
+                reportPath:
+                    resolve(
+                        join(
+                            outputDirectory,
+                            `${flow.id}.junit.xml`,
+                        ),
+                    ),
+
+                testCaseId:
+                    flow.testCaseId,
+
+                projectId:
+                    flow.projectId,
+
+                projectName:
+                    flow.projectName,
+            }),
+        );
+
+    suiteResult = {
+        suiteId:
+            suite.id,
+
+        suiteName:
+            suite.name,
+    };
+} else {
+    const flowPaths =
+        providedFlows.map(
+            (path) =>
+                resolve(
+                    path,
+                ),
+        );
+
+    for (
+        const flowPath
+            of flowPaths
+    ) {
+        if (
+            !existsSync(
+                flowPath,
+            )
+        ) {
+            console.error(
+                `[Suite] Flow file not found: ${flowPath}`,
+            );
+
+            process.exit(2);
+        }
+    }
+
+    flowEntries =
+        flowPaths.map(
+            (flowPath) => {
+                const {
+                    label,
+                    artifactDir,
+                    reportPath,
+                } = flowOutputPaths({
+                    outputDirectory,
+                    flowPath,
+                });
+
+                return {
+                    label,
+                    flowPath,
+                    artifactDir,
+                    reportPath,
+                };
+            },
+        );
+}
+
+const planned =
+    planSuiteBatches({
+        flowCount:
+            flowEntries.length,
+        concurrency,
+    });
+
+console.info(
+    `[Suite] Flows: ${flowEntries.length}, concurrency: ${planned.batches[0]?.batchSize ?? 1} in ${planned.batches.length} batch(es)`,
+);
+
 const results =
     await runFlowsPool({
         flowCount:
-            flowPaths.length,
+            flowEntries.length,
         concurrency,
         runOne: (
             index,
         ) =>
             spawnFlow(
-                flowPaths[
+                flowEntries[
                     index
                 ],
             ),
@@ -406,6 +572,89 @@ await writeFile(
     ),
     "utf8",
 );
+
+if (suiteResult) {
+    const suiteFinishedAt =
+        Date.now();
+
+    const records = [];
+
+    for (
+        const entry
+            of flowEntries
+    ) {
+        const result =
+            results.find(
+                (item) =>
+                    item.label ===
+                    entry.label,
+            );
+
+        if (!result) {
+            continue;
+        }
+
+        const record =
+            await readExecutionRecord({
+                artifactDir:
+                    result.artifactDir,
+
+                testCaseId:
+                    entry.testCaseId,
+
+                projectId:
+                    entry.projectId,
+
+                projectName:
+                    entry.projectName,
+
+                exitCode:
+                    result.exitCode,
+
+                startedAt:
+                    suiteStartedAt,
+
+                finishedAt:
+                    suiteFinishedAt,
+            });
+
+        records.push(
+            record,
+        );
+    }
+
+    const suiteResultPath =
+        resolve(
+            outputDirectory,
+            "suite-result.json",
+        );
+
+    await writeFile(
+        suiteResultPath,
+        JSON.stringify(
+            {
+                ...suiteResult,
+
+                concurrency,
+
+                startedAt:
+                    suiteStartedAt,
+
+                finishedAt:
+                    suiteFinishedAt,
+
+                records,
+            },
+            null,
+            4,
+        ),
+        "utf8",
+    );
+
+    console.info(
+        `[Suite] Suite result: ${suiteResultPath}`,
+    );
+}
 
 console.info(
     `[Suite] ${summary.passed}/${summary.total} flows passed`,

@@ -185,11 +185,20 @@ These capabilities form the current baseline and should be preserved as future w
 > UI suite menampilkan durasi per-proyek dengan penanda "slowest".
 >
 > Eksekusi paralel sebenarnya lewat **headless CLI**:
-> `scripts/run-headless-suite.mjs` menjalankan beberapa flow `.flow` lintas-proses
-> (satu proses vitest per flow → isolasi global-singleton tiap worker), memakai
-> pool paralel ber-concurrency (`scripts/lib/suite-runner.mjs`) dan batching
-> deterministik (`scripts/lib/suite-batches.mjs`). Setiap flow menulis JUnit +
-> artefak ke folder unik sendiri, lalu hasil diagregasi ke `summary.json`.
+> `scripts/run-headless-suite.mjs` mendukung dua mode. Mode `--flow` menjalankan
+> beberapa flow `.flow` lintas-proses (satu proses vitest per flow → isolasi
+> global-singleton tiap worker), memakai pool paralel ber-concurrency
+> (`scripts/lib/suite-runner.mjs`) dan batching deterministik
+> (`scripts/lib/suite-batches.mjs`). Setiap flow menulis JUnit + artefak ke
+> folder unik sendiri, lalu hasil diagregasi ke `summary.json`. Mode `--suite`
+> menerima satu file suite JSON, menulis tiap test case (yang enabled) ke file
+> `.flow` sendiri di bawah folder artefaknya, menjalankannya paralel lintas-proses
+> via env `FLOWTEST_FLOW` + `FLOWTEST_ARTIFACT_DIR`, dan menghasilkan
+> `suite-result.json` berisi per-test-case `records` (status, durasi, error,
+> artifactDir). UI suite menyediakan **"Import parallel run"**: memilih
+> `suite-result.json` lalu membangun ulang `SuiteRunResult` (via modul murni
+> `buildSuiteRunResultFromParallel`) untuk mengisi `lastRun`/`runHistory` dari
+> eksekusi paralel berbasis CLI tanpa harus berjalan in-process.
 > Eksekusi paralel **in-process** (banyak sesi/device dalam satu proses) tetap
 > belum diaktifkan: `ExecutionController`, `VariableStore`, dan sesi Appium
 > tunggal bersifat global dan bertabrakan bila dijalankan paralel in-process.
