@@ -1759,6 +1759,93 @@ export function TestSuiteDetail({
                         )}
                     </div>
 
+                    {suiteResult?.durationTrends &&
+                        suiteResult.durationTrends
+                            .length > 0 && (
+                        <div
+                            style={{
+                                display:
+                                    "flex",
+                                flexDirection:
+                                    "column",
+                                gap: 4,
+                                padding:
+                                    "6px 0",
+                                marginBottom: 8,
+                                borderBottom:
+                                    `1px solid ${colors.border}`,
+                            }}
+                        >
+                            <div
+                                style={{
+                                    color:
+                                        colors.textMuted,
+                                    fontSize: 10,
+                                    fontWeight: 650,
+                                    marginBottom: 4,
+                                }}
+                            >
+                                Per-Project Duration
+                            </div>
+
+                            {suiteResult.durationTrends.map(
+                                (trend) => (
+                                    <div
+                                        key={
+                                            trend.label
+                                        }
+                                        style={{
+                                            display:
+                                                "flex",
+                                            alignItems:
+                                                "center",
+                                            justifyContent:
+                                                "space-between",
+                                            gap: 12,
+                                        }}
+                                    >
+                                        <span
+                                            style={{
+                                                color:
+                                                    colors.text,
+                                                fontSize: 10,
+                                                minWidth: 0,
+                                                overflow:
+                                                    "hidden",
+                                                textOverflow:
+                                                    "ellipsis",
+                                                whiteSpace:
+                                                    "nowrap",
+                                            }}
+                                        >
+                                            {
+                                                trend.label
+                                            }
+                                        </span>
+
+                                        <span
+                                            style={{
+                                                color:
+                                                    trend.slowest
+                                                        ? "#D29922"
+                                                        : colors.textMuted,
+                                                fontSize: 10,
+                                                flexShrink: 0,
+                                            }}
+                                        >
+                                            {trend.slowest
+                                                ? "slowest · "
+                                                : ""}
+                                            {formatDuration(
+                                                trend.average,
+                                            )}
+                                        </span>
+                                    </div>
+                                ),
+                            )}
+                        </div>
+                    )}
+
                     {runHistory.length ===
                     0 ? (
                         <div

@@ -21,6 +21,24 @@ export interface SuiteTestCaseResult {
     error?: string;
 }
 
+export interface DurationTrendData {
+    label: string;
+
+    samples: number;
+
+    average: number;
+
+    min: number;
+
+    max: number;
+
+    median: number;
+
+    total: number;
+
+    slowest: boolean;
+}
+
 export interface SuiteRunResult {
     suiteId: string;
 
@@ -41,6 +59,12 @@ export interface SuiteRunResult {
     failed: number;
 
     stopped: number;
+
+    concurrency?: number;
+
+    batchCount?: number;
+
+    durationTrends?: DurationTrendData[];
 
     results: SuiteTestCaseResult[];
 }

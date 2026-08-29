@@ -166,18 +166,32 @@ These capabilities form the current baseline and should be preserved as future w
 
 **Objective:** Reduce regression duration without compromising evidence or result isolation.
 
-### Scope
+### Progress
 
+- [x] Add resource-aware scheduling and concurrency limits
+- [x] Add queue visibility and cancellation controls
+- [x] Introduce cloud-device provider adapters behind a provider interface
+- [x] Track duration trends to identify slow scenarios
 - [ ] Parallelize independent suite test cases across isolated devices/sessions
-- [ ] Add resource-aware scheduling and concurrency limits
 - [ ] Keep reports, artifacts, variables, and Appium sessions isolated per worker
-- [ ] Add queue visibility and cancellation controls
-- [ ] Introduce cloud-device provider adapters behind a provider interface
-- [ ] Track duration trends to identify slow scenarios
+
+> **Status (fondasi bertahap-aman):** ada modul murni teruji di
+> `src/features/suites/services/parallel/` — `ConcurrencyPool` (limiter +
+> antrean prioritas + `getSnapshot()` + `cancelPending()`, default
+> `SAFE_DEFAULT_CONCURRENCY = 1`), `planParallelBatches` (batch deterministik),
+> `computeDurationTrends` (identifikasi skenario lambat/km dari `runHistory`),
+> dan interface `DeviceProvider` + adapters. `runSuite` kini menerima
+> `concurrency` dan mengembalikan `concurrency`/`batchCount`/`durationTrends`;
+> UI suite menampilkan durasi per-proyek dengan penanda "slowest".
+>
+> Eksekusi paralel sebenarnya (banyak sesi/device) sengaja **belum** diaktifkan:
+> arsitektur saat ini memakai global-singleton `ExecutionController`,
+> `VariableStore`, dan sesi Appium tunggal yang bertabrakan bila dijalankan
+> paralel in-process. Paralel lintas-proses direncanakan lewat jalur headless CLI.
 
 ### Exit criteria
 
-- Users can configure parallelism with a safe default.
+- Users can configure parallelism with a safe default. (sebagian: `concurrency` + default aman tersedia di `runSuite`; kontrol UI konfigurasi pada jalur headless menyusul)
 - Parallel results remain deterministic and project-scoped.
 - A suite report clearly identifies the target device and artifacts for every test case.
 

@@ -21,8 +21,26 @@ import {
     getActiveProjectId,
 } from "../../project/storage/activeProject";
 
+import {
+    SAFE_DEFAULT_CONCURRENCY,
+} from "./parallel/ConcurrencyPool";
+
+import {
+    planParallelBatches,
+} from "./parallel/planParallelBatches";
+
+import {
+    computeDurationTrends,
+} from "./parallel/computeDurationTrends";
+
+import type {
+    DurationTrendData,
+} from "../types/SuiteRunResult";
+
 export interface RunSuiteOptions {
     signal?: AbortSignal;
+
+    concurrency?: number;
 
     onTestCaseStart?: (
         testCaseId: string,
@@ -90,12 +108,58 @@ export async function runSuite(
         signal,
         onTestCaseStart,
         onTestCaseComplete,
+        concurrency =
+            SAFE_DEFAULT_CONCURRENCY,
     } = options;
 
     const enabledTestCases =
         suite.testCases.filter(
             (testCase) =>
                 testCase.enabled,
+        );
+
+    const executionPlan =
+        planParallelBatches(
+            enabledTestCases.map(
+                (testCase) => ({
+                    id: testCase.id,
+                }),
+            ),
+            concurrency,
+        );
+
+    const previousRuns =
+        suite.runHistory ?? [];
+
+    const durationTrends =
+        previousRuns.flatMap(
+            (run) =>
+                run.results.map(
+                    (result) => ({
+                        label:
+                            result.projectName,
+
+                        duration:
+                            result.duration,
+                    }),
+                ),
+        );
+
+    const trends =
+        computeDurationTrends(
+            durationTrends,
+        );
+
+    const trendData: DurationTrendData[] =
+        trends.trends.map(
+            (trend) => ({
+                ...trend,
+
+                slowest:
+                    trends.slowest
+                        ?.label ===
+                    trend.label,
+            }),
         );
 
     const suiteStartedAt =
@@ -327,6 +391,14 @@ export async function runSuite(
         failed,
 
         stopped,
+
+        concurrency,
+
+        batchCount:
+            executionPlan.batches.length,
+
+        durationTrends:
+            trendData,
 
         results,
     };
