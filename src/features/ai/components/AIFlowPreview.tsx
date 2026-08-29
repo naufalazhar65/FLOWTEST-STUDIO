@@ -1,5 +1,7 @@
 import type { AIFlowPlan } from "../types/AIFlowPlan";
 
+import { PlanDiffSummary } from "./PlanDiffSummary";
+
 interface AIFlowPreviewProps {
     plan: AIFlowPlan;
     onApply?: () => void;
@@ -44,6 +46,14 @@ export function AIFlowPreview({
             >
                 {plan.summary}
             </div>
+
+            <PlanDiffSummary
+                source={{
+                    kind: "flow",
+
+                    plan,
+                }}
+            />
 
             {plan.warnings &&
                 plan.warnings.length >

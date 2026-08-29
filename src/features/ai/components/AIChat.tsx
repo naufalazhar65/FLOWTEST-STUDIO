@@ -23,6 +23,10 @@ import {
     AIMessage,
 } from "./AIMessage";
 
+import {
+    PlanDiffSummary,
+} from "./PlanDiffSummary";
+
 import type {
     ModificationOperationData,
     ModificationPlan,
@@ -396,6 +400,14 @@ function ModificationPreview({
             >
                 {plan.summary}
             </div>
+
+            <PlanDiffSummary
+                source={{
+                    kind: "modification",
+
+                    plan,
+                }}
+            />
 
             {plan.warnings &&
                 plan.warnings.length >
