@@ -13,6 +13,7 @@ FlowTest Studio: a browser-based visual mobile automation studio. React/TypeScri
 - **Unit**: `npm run test:run`. Uses `vitest.unit.config.ts`, which **excludes `tests/e2e/**`**. This is the CI suite (`npx vitest run --config vitest.unit.config.ts`). Use this for quick, no-device verification.
 - **E2E (device)**: `npm run test:e2e` → `vitest run tests/e2e`. These hit Appium/real devices and are **not** in CI (CI is unit-only). Smoke fixtures are in `tests/e2e/fixtures/`.
 - **Headless**: `npm run test:headless -- --flow <path>` → `scripts/run-headless.mjs` spawns vitest on `tests/e2e/headless/headless.flow.test.ts` with `FLOWTEST_FLOW` set, requires a `.flow` JSON file path, writes JUnit to `artifacts/test-results/junit.xml` and artifacts to `artifacts/execution/`.
+- **Headless suite (parallel)**: `npm run test:headless:suite -- --flow <a.flow> --flow <b.flow> --concurrency <n>` → `scripts/run-headless-suite.mjs` spawns `--flow`-based vitest runs in parallel (one process per flow, isolating global singletons), relays output with a `[label]` prefix, writes `summary.json`, and exits 0 only if all flows pass.
 - Watch mode: `npm test`. Coverage: `npm run test:coverage`.
 
 Always run `npm run lint` and `npm run build` before pushing; CI runs unit tests then build.

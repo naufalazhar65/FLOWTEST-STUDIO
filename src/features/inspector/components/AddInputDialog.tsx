@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import {
     colors,
@@ -23,11 +23,16 @@ export function AddInputDialog({
     const [text, setText] =
         useState("");
 
-    useEffect(() => {
+    const [lastOpen, setLastOpen] =
+        useState(open);
+
+    if (open !== lastOpen) {
+        setLastOpen(open);
+
         if (open) {
             setText("");
         }
-    }, [open]);
+    }
 
     if (!open) {
         return null;

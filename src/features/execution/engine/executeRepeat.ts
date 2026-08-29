@@ -114,8 +114,6 @@ export async function executeRepeat(
              * iteration.
              */
             if (!transition) {
-                currentNode = null;
-
                 break;
             }
 
@@ -127,8 +125,6 @@ export async function executeRepeat(
                 transition.nextNode.id ===
                 exitNode.id
             ) {
-                currentNode = null;
-
                 break;
             }
 

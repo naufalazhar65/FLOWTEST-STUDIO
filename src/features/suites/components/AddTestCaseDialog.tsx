@@ -62,18 +62,23 @@ export function AddTestCaseDialog({
     const [error, setError] =
         useState("");
 
-    useEffect(() => {
-        if (!open) {
-            return;
-        }
+    const [lastResetKey, setLastResetKey] =
+        useState(`${open}:${suite.id}`);
 
-        setSearch("");
-        setSelectedProjectIds(
-            new Set(),
-        );
-        setLoading(false);
-        setError("");
-    }, [open, suite.id]);
+    const resetKey = `${open}:${suite.id}`;
+
+    if (resetKey !== lastResetKey) {
+        setLastResetKey(resetKey);
+
+        if (open) {
+            setSearch("");
+            setSelectedProjectIds(
+                new Set(),
+            );
+            setLoading(false);
+            setError("");
+        }
+    }
 
     useEffect(() => {
         if (!open) {

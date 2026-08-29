@@ -133,7 +133,7 @@ describe(
                 expect(code).toBe(
                     `zoom(
     AppiumBy.XPATH,
-    "//XCUIElementTypeImage[@name=\\\"Photo\\\"]",
+    "//XCUIElementTypeImage[@name=\\"Photo\\"]",
     1.25,
     1000,
 )`,

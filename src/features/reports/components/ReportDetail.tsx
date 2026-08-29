@@ -1800,7 +1800,7 @@ function highlightXmlAttributes(
     ) {
         result.push(
             <span
-                key={`attr-tail-${tokenIndex++}`}
+                key={`attr-tail-${tokenIndex}`}
             >
                 {value.slice(
                     lastIndex,

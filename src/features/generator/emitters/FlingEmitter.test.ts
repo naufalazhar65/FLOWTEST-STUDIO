@@ -133,7 +133,7 @@ describe(
                 expect(code).toBe(
                     `fling(
     AppiumBy.XPATH,
-    "//XCUIElementTypeScrollView[@name=\\\"Content\\\"]",
+    "//XCUIElementTypeScrollView[@name=\\"Content\\"]",
     "up",
     7500,
 )`,

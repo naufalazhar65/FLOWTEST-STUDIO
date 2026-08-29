@@ -34,4 +34,6 @@ export interface TestSuite {
     lastRun?: SuiteRunResult;
 
     runHistory?: SuiteRunResult[];
+
+    concurrency?: number;
 }

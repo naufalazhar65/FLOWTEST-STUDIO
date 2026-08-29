@@ -126,7 +126,7 @@ describe(
                 expect(code).toBe(
                     `long_press(
     AppiumBy.XPATH,
-    "//XCUIElementTypeButton[@name=\\\"Login\\\"]",
+    "//XCUIElementTypeButton[@name=\\"Login\\"]",
     2000,
 )`,
                 );

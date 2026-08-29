@@ -132,7 +132,7 @@ describe(
     "buttonExists",
     element_exists(
         AppiumBy.XPATH,
-        "//XCUIElementTypeButton[@name=\\\"Login\\\"]",
+        "//XCUIElementTypeButton[@name=\\"Login\\"]",
     ),
 )`,
                 );

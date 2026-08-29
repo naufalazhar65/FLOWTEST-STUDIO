@@ -949,6 +949,10 @@ export function TestSuiteDetail({
                         signal:
                             controller.signal,
 
+                        concurrency:
+                            suite.concurrency ??
+                            1,
+
                         onTestCaseStart: (
                             testCaseId,
                         ) => {
@@ -1188,17 +1192,26 @@ export function TestSuiteDetail({
         };
     }, [suiteMenuOpen]);
 
-    useEffect(() => {
+    const [lastSuiteId, setLastSuiteId] =
+        useState(suite.id);
+
+    const [lastRun, setLastRun] =
+        useState(suite.lastRun);
+
+    if (
+        lastSuiteId !== suite.id ||
+        lastRun !== suite.lastRun
+    ) {
+        setLastSuiteId(suite.id);
+        setLastRun(suite.lastRun);
+
         setSuiteMenuOpen(false);
         setShowRunHistory(false);
         setSelectedRunHistory(null);
         setSuiteResult(
             suite.lastRun ?? null,
         );
-    }, [
-        suite.id,
-        suite.lastRun,
-    ]);
+    }
 
     useEffect(() => {
         return () => {
@@ -1388,6 +1401,68 @@ export function TestSuiteDetail({
                                     />
                                 </div>
                             )}
+                        </div>
+
+                        <div
+                            title="Number of test cases to run in parallel"
+                            style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 5,
+                            }}
+                        >
+                            <label
+                                htmlFor={`suite-parallel-${suite.id}`}
+                                style={{
+                                    color:
+                                        colors.textSecondary,
+                                    fontSize: 11,
+                                    fontWeight: 600,
+                                }}
+                            >
+                                Parallel
+                            </label>
+
+                            <input
+                                id={`suite-parallel-${suite.id}`}
+                                type="number"
+                                min={1}
+                                max={8}
+                                value={suite.concurrency ?? 1}
+                                disabled={isRunning}
+                                onChange={(event) => {
+                                    const parsed =
+                                        Number.parseInt(
+                                            event.target.value,
+                                            10,
+                                        );
+
+                                    updateSuite(
+                                        suite.id,
+                                        {
+                                            concurrency: Number.isNaN(
+                                                parsed,
+                                            )
+                                                ? 1
+                                                : parsed,
+                                        },
+                                    );
+                                }}
+                                style={{
+                                    width: 46,
+                                    height: 28,
+                                    padding: "0 6px",
+                                    border:
+                                        `1px solid ${colors.border}`,
+                                    borderRadius:
+                                        radius.sm,
+                                    background:
+                                        colors.panel,
+                                    color: colors.text,
+                                    fontSize: 12,
+                                    textAlign: "center",
+                                }}
+                            />
                         </div>
 
                         {!isRunning ? (

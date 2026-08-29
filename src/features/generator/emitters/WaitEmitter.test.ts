@@ -201,7 +201,7 @@ describe(
                 expect(code).toBe(
                     `wait_until_visible(
     AppiumBy.XPATH,
-    "//XCUIElementTypeButton[@name=\\\"Login\\\"]",
+    "//XCUIElementTypeButton[@name=\\"Login\\"]",
     15,
     1,
 )`,

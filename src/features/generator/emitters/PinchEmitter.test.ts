@@ -133,7 +133,7 @@ describe(
                 expect(code).toBe(
                     `pinch(
     AppiumBy.XPATH,
-    "//XCUIElementTypeImage[@name=\\\"Photo\\\"]",
+    "//XCUIElementTypeImage[@name=\\"Photo\\"]",
     0.75,
     1000,
 )`,

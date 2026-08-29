@@ -1,5 +1,4 @@
 import {
-    useEffect,
     useState,
 } from "react";
 
@@ -95,7 +94,17 @@ export function DeviceConfiguration() {
         setSaved,
     ] = useState(false);
 
-    useEffect(() => {
+    const [lastResetKey, setLastResetKey] =
+        useState(
+            `${platform}|${deviceConfig.deviceName}|${deviceConfig.platformVersion}|${deviceConfig.udid}`,
+        );
+
+    const resetKey =
+        `${platform}|${deviceConfig.deviceName}|${deviceConfig.platformVersion}|${deviceConfig.udid}`;
+
+    if (resetKey !== lastResetKey) {
+        setLastResetKey(resetKey);
+
         setDeviceName(
             deviceConfig.deviceName,
         );
@@ -109,12 +118,7 @@ export function DeviceConfiguration() {
         );
 
         setSaved(false);
-    }, [
-        platform,
-        deviceConfig.deviceName,
-        deviceConfig.platformVersion,
-        deviceConfig.udid,
-    ]);
+    }
 
     const handleSave = () => {
         updateDevice(

@@ -60,17 +60,20 @@ export function CreateSuiteDialog({
     const [error, setError] =
         useState("");
 
-    useEffect(() => {
-        if (!open) {
-            return;
+    const [lastOpen, setLastOpen] =
+        useState(open);
+
+    if (open !== lastOpen) {
+        setLastOpen(open);
+
+        if (open) {
+            setName("");
+
+            setDescription("");
+
+            setError("");
         }
-
-        setName("");
-
-        setDescription("");
-
-        setError("");
-    }, [open]);
+    }
 
     useEffect(() => {
         if (!open) {

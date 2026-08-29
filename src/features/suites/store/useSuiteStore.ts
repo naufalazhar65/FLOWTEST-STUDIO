@@ -101,6 +101,17 @@ function normalizeSuite(
 
         runHistory:
             suite.runHistory ?? [],
+
+        concurrency:
+            suite.concurrency !==
+            undefined
+                ? Math.max(
+                    1,
+                    Math.floor(
+                        suite.concurrency,
+                    ),
+                )
+                : 1,
     };
 }
 

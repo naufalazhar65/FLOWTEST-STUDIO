@@ -140,7 +140,7 @@ describe(
                 expect(code).toBe(
                     `drag(
     AppiumBy.XPATH,
-    "//XCUIElementTypeSlider[@name=\\\"Volume\\\"]",
+    "//XCUIElementTypeSlider[@name=\\"Volume\\"]",
     "right",
     500,
     1000,

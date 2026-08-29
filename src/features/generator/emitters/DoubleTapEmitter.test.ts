@@ -119,7 +119,7 @@ describe(
                 expect(code).toBe(
                     `double_tap(
     AppiumBy.XPATH,
-    "//XCUIElementTypeButton[@name=\\\"Login\\\"]",
+    "//XCUIElementTypeButton[@name=\\"Login\\"]",
 )`,
                 );
             },

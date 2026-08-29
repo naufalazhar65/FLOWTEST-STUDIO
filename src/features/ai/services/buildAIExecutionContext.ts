@@ -58,6 +58,9 @@ export function buildAIExecutionContext(): AIExecutionContext {
                                     ...aiResult
                                 } = result;
 
+                                void screenshot;
+                                void pageSource;
+
                                 return aiResult;
                             },
                         ),

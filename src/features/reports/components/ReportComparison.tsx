@@ -450,7 +450,7 @@ function ComparisonRow({
     left: string | number;
     right: string | number;
     render?: (
-        value: any,
+        value: string | number,
     ) => string;
     change?: number;
     changeGoodWhenNegative?: boolean;
@@ -1241,8 +1241,13 @@ function formatDate(
 }
 
 function formatDuration(
-    duration: number,
+    value: string | number,
 ): string {
+    const duration =
+        typeof value === "number"
+            ? value
+            : Number(value);
+
     const sign =
         duration < 0
             ? "-"

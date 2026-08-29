@@ -119,7 +119,18 @@ export function DeviceManager() {
         );
 
     useEffect(() => {
-        void loadDevices();
+        const initialLoad = window.setTimeout(
+            () => {
+                void loadDevices();
+            },
+            0,
+        );
+
+        return () => {
+            window.clearTimeout(
+                initialLoad,
+            );
+        };
     }, [
         loadDevices,
     ]);

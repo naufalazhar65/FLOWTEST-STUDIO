@@ -1,5 +1,4 @@
 import {
-    useEffect,
     useState,
 } from "react";
 
@@ -14,16 +13,9 @@ import {
 export function useLastSession() {
     const [
         session,
-        setSession,
     ] = useState<LastSession | null>(
-        null,
+        () => getLastSession(),
     );
-
-    useEffect(() => {
-        setSession(
-            getLastSession(),
-        );
-    }, []);
 
     return session;
 }

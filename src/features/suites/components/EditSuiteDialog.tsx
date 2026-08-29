@@ -38,18 +38,20 @@ export function EditSuiteDialog({
         useState("");
     const [error, setError] = useState("");
 
-    useEffect(() => {
-        if (!open) return;
+    const [lastResetKey, setLastResetKey] =
+        useState(`${open}:${suite.id}`);
 
-        setName(suite.name);
-        setDescription(suite.description);
-        setError("");
-    }, [
-        open,
-        suite.id,
-        suite.name,
-        suite.description,
-    ]);
+    const resetKey = `${open}:${suite.id}`;
+
+    if (resetKey !== lastResetKey) {
+        setLastResetKey(resetKey);
+
+        if (open) {
+            setName(suite.name);
+            setDescription(suite.description);
+            setError("");
+        }
+    }
 
     useEffect(() => {
         if (!open) return;

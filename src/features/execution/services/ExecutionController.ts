@@ -851,6 +851,9 @@ export class ExecutionController {
 
             throw new Error(
                 `Execution failed: ${originalMessage}. Self-healing failed: ${healingError}`,
+                {
+                    cause: originalError,
+                },
             );
         } finally {
             if (

@@ -207,7 +207,7 @@ describe(
                 expect(code).toBe(
                     `input_text(
     AppiumBy.XPATH,
-    "//XCUIElementTypeTextField[@name=\\\"email\\\"]",
+    "//XCUIElementTypeTextField[@name=\\"email\\"]",
     resolve_variables("\${email}"),
 )`,
                 );

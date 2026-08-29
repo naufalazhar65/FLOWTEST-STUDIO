@@ -56,13 +56,27 @@ export function useRecentProjects() {
     );
 
     useEffect(() => {
-        void refresh();
+        const handleUpdated = () => {
+            void refresh();
+        };
 
-        return subscribeToRecentProjectsUpdated(
-            () => {
-                void refresh();
-            },
+        const initialLoad = window.setTimeout(
+            handleUpdated,
+            0,
         );
+
+        const unsubscribe =
+            subscribeToRecentProjectsUpdated(
+                handleUpdated,
+            );
+
+        return () => {
+            window.clearTimeout(
+                initialLoad,
+            );
+
+            unsubscribe();
+        };
     }, [refresh]);
 
     return projects;

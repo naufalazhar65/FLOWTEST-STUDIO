@@ -35,7 +35,7 @@ interface AppiumConfigState {
     ): void;
 }
 
-function useAppiumConfigStoreDefaults(): AppiumConfig {
+function appiumConfigStoreDefaults(): AppiumConfig {
     return {
         serverUrl: DEFAULT_SERVER_URL,
         platformName: "Android",
@@ -137,16 +137,16 @@ export const useAppiumConfigStore =
 
                     return {
                         config: {
-                            ...useAppiumConfigStoreDefaults(),
+                            ...appiumConfigStoreDefaults(),
                             ...persistedConfig,
                             serverUrl:
                                 normalizedServerUrl,
                             android: {
-                                ...useAppiumConfigStoreDefaults().android,
+                                ...appiumConfigStoreDefaults().android,
                                 ...persistedConfig?.android,
                             },
                             ios: {
-                                ...useAppiumConfigStoreDefaults().ios,
+                                ...appiumConfigStoreDefaults().ios,
                                 ...persistedConfig?.ios,
                             },
                         },

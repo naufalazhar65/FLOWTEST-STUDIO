@@ -1,5 +1,4 @@
 import {
-    useEffect,
     useState,
 } from "react";
 
@@ -124,74 +123,77 @@ export function EnvironmentConfiguration({
         setUdid,
     ] = useState("");
 
-    useEffect(() => {
-        if (!profile) {
-            return;
-        }
-
-        setVariables(
-            Object.entries(
-                profile.variables,
-            ).map(
-                ([
-                    key,
-                    variable,
-                ]) => ({
-                    key,
-
-                    value:
-                        variable.secret
-                            ? ""
-                            : typeof variable.value ===
-                                "string"
-                                ? variable.value
-                                : JSON.stringify(
-                                    variable.value,
-                                ),
-
-                    secret:
-                        variable.secret,
-                }),
-            ),
+    const [lastResetKey, setLastResetKey] =
+        useState(
+            `${open}:${profile?.name ?? ""}`,
         );
 
-        if (
-            !profile.deviceProfile
-        ) {
-            setPlatformName(
-                "Android",
+    const resetKey =
+        `${open}:${profile?.name ?? ""}`;
+
+    if (resetKey !== lastResetKey) {
+        setLastResetKey(resetKey);
+
+        if (profile) {
+            setVariables(
+                Object.entries(
+                    profile.variables,
+                ).map(
+                    ([
+                        key,
+                        variable,
+                    ]) => ({
+                        key,
+
+                        value:
+                            variable.secret
+                                ? ""
+                                : typeof variable.value ===
+                                    "string"
+                                    ? variable.value
+                                    : JSON.stringify(
+                                        variable.value,
+                                    ),
+
+                        secret:
+                            variable.secret,
+                    }),
+                ),
             );
 
-            setDeviceName("");
-            setPlatformVersion("");
-            setUdid("");
+            if (
+                !profile.deviceProfile
+            ) {
+                setPlatformName(
+                    "Android",
+                );
 
-            return;
+                setDeviceName("");
+                setPlatformVersion("");
+                setUdid("");
+            } else {
+                setPlatformName(
+                    profile.deviceProfile
+                        .platformName,
+                );
+
+                setDeviceName(
+                    profile.deviceProfile
+                        .deviceName,
+                );
+
+                setPlatformVersion(
+                    profile.deviceProfile
+                        .platformVersion,
+                );
+
+                setUdid(
+                    profile.deviceProfile
+                        .udid,
+                );
+            }
         }
-
-        setPlatformName(
-            profile.deviceProfile
-                .platformName,
-        );
-
-        setDeviceName(
-            profile.deviceProfile
-                .deviceName,
-        );
-
-        setPlatformVersion(
-            profile.deviceProfile
-                .platformVersion,
-        );
-
-        setUdid(
-            profile.deviceProfile
-                .udid,
-        );
-    }, [
-        profile,
-        open,
-    ]);
+    }
 
     if (!profile) {
         return null;

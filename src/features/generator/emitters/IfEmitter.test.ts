@@ -33,7 +33,7 @@ describe(
                             expected:
                                 "test",
                         },
-                    } as any;
+                    } as unknown as Parameters<typeof ifEmitter.emit>[0];
 
                 expect(
                     ifEmitter.emit(
@@ -67,7 +67,7 @@ describe(
                             expected:
                                 "test",
                         },
-                    } as any;
+                    } as unknown as Parameters<typeof ifEmitter.emit>[0];
 
                 expect(
                     ifEmitter.emit(
@@ -101,7 +101,7 @@ describe(
                             expected:
                                 "${expectedValue}",
                         },
-                    } as any;
+                    } as unknown as Parameters<typeof ifEmitter.emit>[0];
 
                 expect(
                     ifEmitter.emit(
@@ -135,7 +135,7 @@ describe(
                             expected:
                                 "Select a username from the list below",
                         },
-                    } as any;
+                    } as unknown as Parameters<typeof ifEmitter.emit>[0];
 
                 expect(
                     ifEmitter.emit(

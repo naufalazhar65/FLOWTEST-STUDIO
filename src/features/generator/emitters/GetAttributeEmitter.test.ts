@@ -140,7 +140,7 @@ describe(
     "emailValue",
     get_attribute(
         AppiumBy.XPATH,
-        "//XCUIElementTypeTextField[@name=\\\"email\\\"]",
+        "//XCUIElementTypeTextField[@name=\\"email\\"]",
         "value",
     ),
 )`,

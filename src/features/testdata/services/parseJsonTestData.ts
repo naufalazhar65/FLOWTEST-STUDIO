@@ -18,6 +18,9 @@ export function parseJsonTestData(
                     ? error.message
                     : String(error)
             }`,
+            {
+                cause: error,
+            },
         );
     }
 

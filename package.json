@@ -12,6 +12,7 @@
     "test:run": "vitest run --config vitest.unit.config.ts",
     "test:e2e": "vitest run tests/e2e",
     "test:headless": "node scripts/run-headless.mjs",
+    "test:headless:suite": "node scripts/run-headless-suite.mjs",
     "test:coverage": "vitest run --coverage",
     "dev:ai": "node server/start.mjs"
   },

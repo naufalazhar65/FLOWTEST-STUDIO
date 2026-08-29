@@ -16,8 +16,8 @@ import {
     validateModificationPlan,
 } from "./validateModificationPlan";
 
-export interface ModificationApplyResult
-    extends AIFlowApplyResult { }
+export type ModificationApplyResult =
+    AIFlowApplyResult;
 
 /*
  * --------------------------------------------------

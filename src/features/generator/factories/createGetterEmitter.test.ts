@@ -177,7 +177,7 @@ describe(
     "isDisplayed",
     get_displayed(
         AppiumBy.XPATH,
-        "//XCUIElementTypeButton[@name=\\\"Login\\\"]",
+        "//XCUIElementTypeButton[@name=\\"Login\\"]",
     ),
 )`,
                 );
