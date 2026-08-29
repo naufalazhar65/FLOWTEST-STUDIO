@@ -184,10 +184,15 @@ These capabilities form the current baseline and should be preserved as future w
 > `concurrency` dan mengembalikan `concurrency`/`batchCount`/`durationTrends`;
 > UI suite menampilkan durasi per-proyek dengan penanda "slowest".
 >
-> Eksekusi paralel sebenarnya (banyak sesi/device) sengaja **belum** diaktifkan:
-> arsitektur saat ini memakai global-singleton `ExecutionController`,
-> `VariableStore`, dan sesi Appium tunggal yang bertabrakan bila dijalankan
-> paralel in-process. Paralel lintas-proses direncanakan lewat jalur headless CLI.
+> Eksekusi paralel sebenarnya lewat **headless CLI**:
+> `scripts/run-headless-suite.mjs` menjalankan beberapa flow `.flow` lintas-proses
+> (satu proses vitest per flow → isolasi global-singleton tiap worker), memakai
+> pool paralel ber-concurrency (`scripts/lib/suite-runner.mjs`) dan batching
+> deterministik (`scripts/lib/suite-batches.mjs`). Setiap flow menulis JUnit +
+> artefak ke folder unik sendiri, lalu hasil diagregasi ke `summary.json`.
+> Eksekusi paralel **in-process** (banyak sesi/device dalam satu proses) tetap
+> belum diaktifkan: `ExecutionController`, `VariableStore`, dan sesi Appium
+> tunggal bersifat global dan bertabrakan bila dijalankan paralel in-process.
 
 ### Exit criteria
 
