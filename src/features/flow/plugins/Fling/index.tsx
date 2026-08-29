@@ -2,6 +2,7 @@ import { Move } from "lucide-react";
 
 import type { NodePlugin } from "../../types/NodePlugin";
 import type { FlingNodeData } from "../../types/flowNode";
+import { LOCATOR_STRATEGIES } from "../shared/locatorStrategies";
 
 export const flingPlugin: NodePlugin = {
     type: "fling",
@@ -38,15 +39,7 @@ export const flingPlugin: NodePlugin = {
             key: "locatorStrategy",
             label: "Locator Strategy",
             type: "select",
-            options: [
-                "id",
-                "xpath",
-                "accessibilityId",
-                "className",
-                "androidUiAutomator",
-                "iOSPredicateString",
-                "iOSClassChain",
-            ],
+            options: LOCATOR_STRATEGIES,
         },
         {
             key: "locator",

@@ -12,25 +12,25 @@ export function Logo() {
             "
         >
             <div
-    className="
-        flex
-        h-10
-        w-10
-        items-center
-        justify-center
-        rounded-xl
-        bg-gradient-to-br
-        from-blue-500
-        to-indigo-600
-        text-lg
-        font-black
-        text-white
-        shadow-md
-        shadow-blue-500/20
-    "
->
-    F
-</div>
+                className="
+                    flex
+                    h-10
+                    w-10
+                    items-center
+                    justify-center
+                    rounded-xl
+                    bg-gradient-to-br
+                    from-blue-500
+                    to-indigo-600
+                    text-lg
+                    font-black
+                    text-white
+                    shadow-md
+                    shadow-blue-500/20
+                "
+            >
+                F
+            </div>
 
             <div className="leading-tight">
 

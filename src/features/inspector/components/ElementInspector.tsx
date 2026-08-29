@@ -1,8 +1,15 @@
+import { useState } from "react";
+
 import {
     RefreshCw,
 } from "lucide-react";
 
-import { useState } from "react";
+import {
+    colors,
+    radius,
+    spacing,
+    typography,
+} from "../../../themes";
 
 import { ElementProperties } from "./ElementProperties";
 import { ElementHighlight } from "./ElementHighlight";
@@ -64,8 +71,9 @@ export function ElementInspector() {
                 flexDirection:
                     "column",
                 minHeight: 0,
-                background: "#0D1117",
-                color: "#F0F6FC",
+                background:
+                    colors.background,
+                color: colors.text,
             }}
         >
             {/* Header */}
@@ -77,17 +85,24 @@ export function ElementInspector() {
                     justifyContent:
                         "space-between",
                     padding:
-                        "12px 14px",
+                        `${spacing.lg}px ${spacing.lg}px`,
                     flexShrink: 0,
                     borderBottom:
-                        "1px solid #30363D",
+                        `1px solid ${colors.border}`,
+                    background:
+                        colors.panel,
                 }}
             >
                 <div>
                     <div
                         style={{
-                            fontSize: 14,
-                            fontWeight: 600,
+                            fontSize:
+                                typography.subtitle
+                                    .fontSize,
+                            fontWeight:
+                                typography.subtitle
+                                    .fontWeight,
+                            letterSpacing: 0.2,
                         }}
                     >
                         Element Inspector
@@ -95,10 +110,13 @@ export function ElementInspector() {
 
                     <div
                         style={{
-                            marginTop: 3,
+                            marginTop:
+                                spacing.xs,
                             color:
-                                "#8B949E",
-                            fontSize: 11,
+                                colors.textSecondary,
+                            fontSize:
+                                typography.tiny
+                                    .fontSize,
                         }}
                     >
                         Inspect elements
@@ -116,27 +134,37 @@ export function ElementInspector() {
                         display: "flex",
                         alignItems:
                             "center",
-                        gap: 6,
+                        gap: spacing.sm - 2,
                         padding:
-                            "7px 10px",
+                            `${spacing.sm - 1}px ${spacing.md}px`,
                         border:
-                            "1px solid #30363D",
-                        borderRadius: 6,
+                            `1px solid ${colors.borderLight}`,
+                        borderRadius:
+                            radius.sm,
                         background:
-                            "#161B22",
+                            colors.background,
                         color:
-                            "#C9D1D9",
+                            colors.text,
                         cursor: loading
                             ? "default"
                             : "pointer",
                         opacity: loading
                             ? 0.6
                             : 1,
+                        fontSize:
+                            typography.tiny
+                                .fontSize,
+                        fontWeight: 500,
+                        transition:
+                            "all .18s",
                     }}
                 >
                     <RefreshCw
                         size={13}
                         style={{
+                            color:
+                                colors
+                                    .textSecondary,
                             animation:
                                 loading
                                     ? "spin 1s linear infinite"
@@ -154,16 +182,21 @@ export function ElementInspector() {
             {error && (
                 <div
                     style={{
-                        margin: 10,
-                        padding: 10,
+                        margin:
+                            spacing.md,
+                        padding:
+                            spacing.md,
                         border:
-                            "1px solid rgba(248,81,73,.3)",
-                        borderRadius: 6,
+                            `1px solid ${colors.danger}59`,
+                        borderRadius:
+                            radius.sm,
                         background:
-                            "rgba(248,81,73,.08)",
+                            `${colors.danger}14`,
                         color:
-                            "#F85149",
-                        fontSize: 11,
+                            colors.danger,
+                        fontSize:
+                            typography.tiny
+                                .fontSize,
                         lineHeight: 1.5,
                     }}
                 >
@@ -178,23 +211,28 @@ export function ElementInspector() {
                     minHeight: 0,
                     overflowY: "auto",
                     borderBottom:
-                        "1px solid #30363D",
+                        `1px solid ${colors.border}`,
                 }}
             >
                 <div
                     style={{
                         padding:
-                            "10px 12px",
+                            `${spacing.sm + 2}px ${spacing.md}px`,
                         color:
-                            "#8B949E",
-                        fontSize: 11,
+                            colors.textSecondary,
+                        fontSize:
+                            typography.tiny
+                                .fontSize,
                         fontWeight: 600,
                         textTransform:
                             "uppercase",
                         letterSpacing:
-                            ".04em",
+                            "0.06em",
                         borderBottom:
-                            "1px solid #21262D",
+                            `1px solid ${colors.border}`,
+                        background:
+                            colors
+                                .background,
                     }}
                 >
                     Element Tree
@@ -221,10 +259,13 @@ export function ElementInspector() {
                     style={{
                         display: "flex",
                         flexShrink: 0,
+                        gap: spacing.xs,
+                        padding:
+                            `${spacing.xs}px ${spacing.xs}px 0`,
                         borderBottom:
-                            "1px solid #30363D",
+                            `1px solid ${colors.border}`,
                         background:
-                            "#161B22",
+                            colors.panel,
                     }}
                 >
                     <InspectorTabButton
@@ -270,15 +311,18 @@ export function ElementInspector() {
                                         justifyContent:
                                             "center",
                                         padding:
-                                            "0 4px",
+                                            "0 6px",
                                         borderRadius:
                                             8,
                                         background:
-                                            "rgba(124,92,252,.15)",
+                                            `${colors.accent}29`,
                                         color:
-                                            "#A78BFA",
+                                            colors
+                                                .accentHover,
                                         fontSize:
                                             9,
+                                        fontWeight:
+                                            600,
                                     }}
                                 >
                                     {
@@ -346,19 +390,29 @@ function InspectorTabButton({
                 justifyContent:
                     "center",
                 padding:
-                    "9px 12px",
+                    `${spacing.sm}px ${spacing.xs}px`,
                 border: "none",
                 borderBottom: active
-                    ? "2px solid #7C5CFC"
+                    ? `2px solid ${colors.accent}`
                     : "2px solid transparent",
+                borderTopLeftRadius:
+                    radius.sm,
+                borderTopRightRadius:
+                    radius.sm,
                 background:
-                    "transparent",
+                    active
+                        ? colors.background
+                        : "transparent",
                 color: active
-                    ? "#F0F6FC"
-                    : "#8B949E",
+                    ? colors.text
+                    : colors.textSecondary,
                 cursor: "pointer",
-                fontSize: 11,
+                fontSize:
+                    typography.tiny
+                        .fontSize,
                 fontWeight: 600,
+                transition:
+                    "all .18s",
             }}
         >
             {children}

@@ -11,9 +11,24 @@ import type {
     EnvironmentProfile,
 } from "../types/EnvironmentProfile";
 
+export interface LoadEnvironmentOptions {
+    /*
+     * When true, the device configuration
+     * currently set in the Appium config
+     * store (e.g. the device selected and
+     * connected in the Device Manager) is
+     * preserved even if the environment
+     * declares a device profile.
+     */
+    preserveDeviceConfig?:
+    boolean;
+}
+
 export function loadEnvironment(
     environment:
         EnvironmentProfile,
+    options?:
+        LoadEnvironmentOptions,
 ): void {
     /*
      * An environment represents the complete
@@ -36,6 +51,18 @@ export function loadEnvironment(
             name,
             variable.value,
         );
+    }
+
+    /*
+     * A device selected in the Device Manager
+     * wins over the environment's device
+     * profile so a connected device is never
+     * silently replaced by a stale profile.
+     */
+    if (
+        options?.preserveDeviceConfig
+    ) {
+        return;
     }
 
     /*

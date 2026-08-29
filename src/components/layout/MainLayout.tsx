@@ -21,90 +21,32 @@ import { TestSuitesPage } from "../../features/suites/components/TestSuitesPage"
 export function MainLayout() {
     useEffect(() => {
         appiumConnectionService.start();
-
         return () => {
             appiumConnectionService.stop();
         };
     }, []);
 
-    const [consoleExpanded, setConsoleExpanded] =
-        useState(false);
-
-    const view = useWorkspaceStore(
-        (state) => state.view,
-    );
+    const [consoleExpanded, setConsoleExpanded] = useState(false);
+    const view = useWorkspaceStore((state) => state.view);
 
     const isFlowView = view === "flow";
-
-    const isFullWorkspaceView =
-        view === "reports" ||
-        view === "devices" ||
-        view === "suites";
+    const isFullWorkspaceView = view === "reports" || view === "devices" || view === "suites";
 
     return (
-        <div
-            style={{
-                height: "100vh",
-
-                display: "grid",
-
-                gridTemplateRows: `auto 1fr ${
-                    consoleExpanded
-                        ? "220px"
-                        : "48px"
-                } 32px`,
-
-                background: "#0D1117",
-
-                overflow: "hidden",
-            }}
-        >
+        <div className="h-screen grid bg-[#0D1117] overflow-hidden"
+            style={{ gridTemplateRows: `auto 1fr ${consoleExpanded ? "220px" : "48px"} 32px` }}>
             <TopBar />
 
             {/* Main Area */}
-            <div
-                style={{
-                    display: "grid",
-
-                    gridTemplateColumns:
-                        isFullWorkspaceView
-                            ? "300px minmax(0, 1fr)"
-                            : "300px minmax(0, 1fr) 420px",
-
-                    minHeight: 0,
-
-                    overflow: "hidden",
-                }}
-            >
+            <div className={`grid min-h-0 overflow-hidden ${isFullWorkspaceView ? "grid-cols-[300px_1fr]" : "grid-cols-[300px_1fr_420px]"
+                }`}>
                 {/* Sidebar */}
-                <div
-                    style={{
-                        minHeight: 0,
-
-                        display: "flex",
-
-                        flexDirection: "column",
-
-                        overflow: "hidden",
-                    }}
-                >
+                <div className="min-h-0 flex flex-col overflow-hidden">
                     <Sidebar />
                 </div>
 
                 {/* Workspace Content */}
-                <div
-                    style={{
-                        display: "flex",
-
-                        flexDirection: "column",
-
-                        minHeight: 0,
-
-                        overflow: "hidden",
-
-                        background: "#0D1117",
-                    }}
-                >
+                <div className="flex flex-col min-h-0 overflow-hidden bg-[#0D1117]">
                     {view === "suites" ? (
                         <TestSuitesPage />
                     ) : view === "reports" ? (
@@ -114,18 +56,8 @@ export function MainLayout() {
                     ) : (
                         <>
                             <ExecutionBar />
-
                             <Toolbar />
-
-                            <div
-                                style={{
-                                    flex: 1,
-
-                                    minHeight: 0,
-
-                                    overflow: "hidden",
-                                }}
-                            >
+                            <div className="flex-1 min-h-0 overflow-hidden">
                                 <FlowCanvas />
                             </div>
                         </>
@@ -134,36 +66,13 @@ export function MainLayout() {
 
                 {/* Inspector */}
                 {isFlowView && (
-                    <div
-                        style={{
-                            display: "flex",
-
-                            flexDirection: "column",
-
-                            minHeight: 0,
-
-                            overflow: "hidden",
-
-                            borderLeft:
-                                "1px solid #30363D",
-
-                            background: "#0D1117",
-                        }}
-                    >
+                    <div className="flex flex-col min-h-0 overflow-hidden border-l border-[#30363D] bg-[#0D1117]">
                         <RightPanel />
                     </div>
                 )}
             </div>
 
-            <ConsolePanel
-                expanded={consoleExpanded}
-                onToggle={() =>
-                    setConsoleExpanded(
-                        (value) => !value,
-                    )
-                }
-            />
-
+            <ConsolePanel expanded={consoleExpanded} onToggle={() => setConsoleExpanded((v) => !v)} />
             <StatusBar />
         </div>
     );

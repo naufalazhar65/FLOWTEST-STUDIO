@@ -96,7 +96,7 @@ export interface NodeField {
 
   placeholder?: string;
 
-  options?: string[];
+  options?: readonly string[];
 
   min?: number;
 

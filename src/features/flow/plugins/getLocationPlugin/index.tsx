@@ -2,6 +2,7 @@ import { MapPin } from "lucide-react";
 
 import type { NodePlugin } from "../../types/NodePlugin";
 import { createElementGetterPreview } from "../shared/createElementGetterPreview";
+import { LOCATOR_STRATEGIES } from "../shared/locatorStrategies";
 
 export const getLocationPlugin: NodePlugin = {
     type: "getLocation",
@@ -40,14 +41,7 @@ export const getLocationPlugin: NodePlugin = {
             key: "locatorStrategy",
             label: "Locator Strategy",
             type: "select",
-            options: [
-                "id",
-                "accessibilityId",
-                "xpath",
-                "className",
-                "androidUiAutomator",
-                "iosPredicateString",
-            ],
+            options: LOCATOR_STRATEGIES,
         },
         {
             key: "locator",

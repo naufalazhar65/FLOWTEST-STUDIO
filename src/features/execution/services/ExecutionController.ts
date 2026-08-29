@@ -20,6 +20,14 @@ import {
 } from "../services/appium/AppiumClient";
 
 import {
+    appiumSession,
+} from "../services/appium/AppiumSession";
+
+import {
+    useAppiumConfigStore,
+} from "../store/useAppiumConfigStore";
+
+import {
     recoverApplicationState,
 } from "../services/appium/recoverApplicationState";
 
@@ -144,6 +152,44 @@ function buildVariableExecutionOptions(
     };
 }
 
+function shouldPreserveDeviceConfig(): boolean {
+    /*
+     * A connected device (active Appium
+     * session) always wins over the
+     * environment's device profile.
+     */
+    if (
+        appiumSession.hasSession()
+    ) {
+        return true;
+    }
+
+    /*
+     * A device that was already selected in
+     * the Device Manager wins as well so the
+     * run does not silently swap to a stale
+     * profile-specified UDID.
+     */
+    const config =
+        useAppiumConfigStore
+            .getState()
+            .config;
+
+    const platformKey =
+        config.platformName ===
+        "Android"
+            ? "android"
+            : "ios";
+
+    const device =
+        config[platformKey];
+
+    return Boolean(
+        device.udid ||
+            device.deviceName,
+    );
+}
+
 function buildRetryExecutionContext(
     context: ExecutionContext,
     edges?: ExecutionContext["edges"],
@@ -228,6 +274,10 @@ export class ExecutionController {
             ) {
                 loadEnvironmentByName(
                     options.environmentName,
+                    {
+                        preserveDeviceConfig:
+                            shouldPreserveDeviceConfig(),
+                    },
                 );
             }
 

@@ -2,6 +2,7 @@ import { Shrink } from "lucide-react";
 
 import type { NodePlugin } from "../../types/NodePlugin";
 import type { PinchNodeData } from "../../types/flowNode";
+import { LOCATOR_STRATEGIES } from "../shared/locatorStrategies";
 
 export const pinchPlugin: NodePlugin = {
     type: "pinch",
@@ -38,15 +39,7 @@ export const pinchPlugin: NodePlugin = {
             key: "locatorStrategy",
             label: "Locator Strategy",
             type: "select",
-            options: [
-                "id",
-                "xpath",
-                "accessibilityId",
-                "className",
-                "androidUiAutomator",
-                "iOSPredicateString",
-                "iOSClassChain",
-            ],
+            options: LOCATOR_STRATEGIES,
         },
         {
             key: "locator",

@@ -2,6 +2,7 @@ import { Eye } from "lucide-react";
 
 import type { NodePlugin } from "../../types/NodePlugin";
 import { createElementGetterPreview } from "../shared/createElementGetterPreview";
+import { LOCATOR_STRATEGIES } from "../shared/locatorStrategies";
 
 export const getDisplayedPlugin: NodePlugin = {
     type: "getDisplayed",
@@ -33,7 +34,7 @@ export const getDisplayedPlugin: NodePlugin = {
             key: "locatorStrategy",
             label: "Locator Strategy",
             type: "select",
-            options: ["id", "xpath", "accessibilityId"],
+            options: LOCATOR_STRATEGIES,
         },
         {
             key: "locator",

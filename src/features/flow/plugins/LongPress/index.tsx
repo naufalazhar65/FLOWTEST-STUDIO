@@ -2,6 +2,7 @@ import { Pointer } from "lucide-react";
 
 import type { NodePlugin } from "../../types/NodePlugin";
 import type { FlowNodeData } from "../../types/flowNode";
+import { LOCATOR_STRATEGIES } from "../shared/locatorStrategies";
 
 export const longPressPlugin: NodePlugin = {
     type: "longPress",
@@ -36,11 +37,7 @@ export const longPressPlugin: NodePlugin = {
             key: "locatorStrategy",
             label: "Locator Strategy",
             type: "select",
-            options: [
-                "id",
-                "xpath",
-                "accessibilityId",
-            ],
+            options: LOCATOR_STRATEGIES,
         },
 
         {

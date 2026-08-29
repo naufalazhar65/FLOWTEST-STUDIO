@@ -2,6 +2,7 @@ import { Keyboard } from "lucide-react";
 
 import type { NodePlugin } from "../../types/NodePlugin";
 import type { FlowNodeData } from "../../types/flowNode";
+import { LOCATOR_STRATEGIES } from "../shared/locatorStrategies";
 
 export const inputNode: NodePlugin = {
   type: "input",
@@ -33,15 +34,7 @@ export const inputNode: NodePlugin = {
       key: "locatorStrategy",
       label: "Locator Strategy",
       type: "select",
-      options: [
-        "id",
-        "xpath",
-        "accessibilityId",
-        "className",
-        "androidUiAutomator",
-        "iOSPredicateString",
-        "iOSClassChain",
-      ],
+      options: LOCATOR_STRATEGIES,
     },
     {
       key: "locator",

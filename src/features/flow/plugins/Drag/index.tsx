@@ -2,6 +2,7 @@ import { Move } from "lucide-react";
 
 import type { NodePlugin } from "../../types/NodePlugin";
 import type { FlowNodeData } from "../../types/flowNode";
+import { LOCATOR_STRATEGIES } from "../shared/locatorStrategies";
 
 export const dragPlugin: NodePlugin = {
     type: "drag",
@@ -40,11 +41,7 @@ export const dragPlugin: NodePlugin = {
             key: "locatorStrategy",
             label: "Locator Strategy",
             type: "select",
-            options: [
-                "id",
-                "xpath",
-                "accessibilityId",
-            ],
+            options: LOCATOR_STRATEGIES,
         },
 
         {

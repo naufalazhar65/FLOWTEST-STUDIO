@@ -10,6 +10,12 @@ import {
 
 import { useEffect, useState } from "react";
 
+import {
+    colors,
+    radius,
+    spacing,
+} from "../../../themes";
+
 import type { LocatorCandidate } from "../types/LocatorCandidate";
 
 import { testLocator } from "../services/testLocator";
@@ -135,7 +141,8 @@ export function LocatorList({
             <div
                 style={{
                     padding: 16,
-                    color: "#8B949E",
+                    color:
+                        colors.textSecondary,
                     fontSize: 12,
                 }}
             >
@@ -203,12 +210,13 @@ export function LocatorList({
                             key={key}
                             style={{
                                 border:
-                                    "1px solid #30363D",
-                                borderRadius: 8,
+                                    `1px solid ${colors.border}`,
+                                borderRadius:
+                                    radius.sm,
                                 overflow:
                                     "hidden",
                                 background:
-                                    "#161B22",
+                                    colors.panel,
                             }}
                         >
                             {/* Header */}
@@ -221,9 +229,9 @@ export function LocatorList({
                                     justifyContent:
                                         "space-between",
                                     padding:
-                                        "8px 10px",
+                                        `${spacing.sm}px ${spacing.sm + 2}px`,
                                     borderBottom:
-                                        "1px solid #21262D",
+                                        `1px solid ${colors.border}`,
                                 }}
                             >
                                 <div
@@ -242,7 +250,10 @@ export function LocatorList({
                                                 12
                                             }
                                             fill="currentColor"
-                                            color="#F59E0B"
+                                            color={
+                                                colors
+                                                    .warning
+                                            }
                                             style={{
                                                 flexShrink: 0,
                                             }}
@@ -252,7 +263,8 @@ export function LocatorList({
                                     <span
                                         style={{
                                             color:
-                                                "#F0F6FC",
+                                                colors
+                                                    .text,
                                             fontSize:
                                                 12,
                                             fontWeight:
@@ -270,15 +282,19 @@ export function LocatorList({
                                                 padding:
                                                     "2px 6px",
                                                 borderRadius:
-                                                    4,
+                                                    radius
+                                                        .xs,
                                                 background:
-                                                    "rgba(245,158,11,.12)",
+                                                    `${colors.warning}1F`,
                                                 color:
-                                                    "#F59E0B",
+                                                    colors
+                                                        .warning,
                                                 fontSize:
                                                     9,
                                                 fontWeight:
                                                     700,
+                                                letterSpacing:
+                                                    "0.05em",
                                             }}
                                         >
                                             RECOMMENDED
@@ -297,48 +313,30 @@ export function LocatorList({
                                         flexShrink: 0,
                                     }}
                                 >
-                                    <button
-                                        type="button"
+                                    <LocatorActionButton
+                                        title="Test locator"
                                         disabled={
                                             testing !==
                                             null
+                                        }
+                                        opacity={
+                                            testing !==
+                                                null &&
+                                                !isTesting
+                                                ? 0.5
+                                                : 1
+                                        }
+                                        color={
+                                            isTesting
+                                                ? colors
+                                                      .accentHover
+                                                : ""
                                         }
                                         onClick={() =>
                                             void handleTestLocator(
                                                 locator,
                                             )
                                         }
-                                        title="Test locator"
-                                        style={{
-                                            display:
-                                                "grid",
-                                            placeItems:
-                                                "center",
-                                            width: 28,
-                                            height: 28,
-                                            padding: 0,
-                                            border:
-                                                "none",
-                                            borderRadius:
-                                                6,
-                                            background:
-                                                "transparent",
-                                            color:
-                                                isTesting
-                                                    ? "#A78BFA"
-                                                    : "#8B949E",
-                                            cursor:
-                                                testing !==
-                                                    null
-                                                    ? "default"
-                                                    : "pointer",
-                                            opacity:
-                                                testing !==
-                                                    null &&
-                                                    !isTesting
-                                                    ? 0.5
-                                                    : 1,
-                                        }}
                                     >
                                         {isTesting ? (
                                             <Loader2
@@ -357,35 +355,15 @@ export function LocatorList({
                                                 }
                                             />
                                         )}
-                                    </button>
+                                    </LocatorActionButton>
 
-                                    <button
-                                        type="button"
+                                    <LocatorActionButton
+                                        title="Copy locator"
                                         onClick={() =>
                                             void copyLocator(
                                                 locator,
                                             )
                                         }
-                                        title="Copy locator"
-                                        style={{
-                                            display:
-                                                "grid",
-                                            placeItems:
-                                                "center",
-                                            width: 28,
-                                            height: 28,
-                                            padding: 0,
-                                            border:
-                                                "none",
-                                            borderRadius:
-                                                6,
-                                            background:
-                                                "transparent",
-                                            color:
-                                                "#8B949E",
-                                            cursor:
-                                                "pointer",
-                                        }}
                                     >
                                         {copied ===
                                             locator.strategy ? (
@@ -393,7 +371,10 @@ export function LocatorList({
                                                 size={
                                                     14
                                                 }
-                                                color="#3FB950"
+                                                color={
+                                                    colors
+                                                        .success
+                                                }
                                             />
                                         ) : (
                                             <Copy
@@ -402,58 +383,36 @@ export function LocatorList({
                                                 }
                                             />
                                         )}
-                                    </button>
+                                    </LocatorActionButton>
 
-                                    <button
-                                        type="button"
+                                    <LocatorActionButton
+                                        title="Add Tap node"
                                         onClick={() =>
                                             handleAddTap(
                                                 locator,
                                             )
                                         }
-                                        title="Add Tap node"
-                                        style={{
-                                            display: "grid",
-                                            placeItems: "center",
-                                            width: 28,
-                                            height: 28,
-                                            padding: 0,
-                                            border: "none",
-                                            borderRadius: 6,
-                                            background:
-                                                "transparent",
-                                            color: "#8B949E",
-                                            cursor: "pointer",
-                                        }}
                                     >
                                         <Plus
                                             size={14}
                                         />
-                                    </button>
-                                    <button
-                                        type="button"
+                                    </LocatorActionButton>
+
+                                    <LocatorActionButton
+                                        title="Add Input node"
                                         onClick={() =>
                                             handleAddInput(locator)
                                         }
-                                        title="Add Input node"
-                                        style={{
-                                            display: "grid",
-                                            placeItems: "center",
-                                            width: 28,
-                                            height: 28,
-                                            padding: 0,
-                                            border: "none",
-                                            borderRadius: 6,
-                                            background:
-                                                "transparent",
-                                            color: "#8B949E",
-                                            cursor: "pointer",
-                                            fontSize: 10,
-                                            fontWeight: 700,
-                                        }}
                                     >
-                                        IN
-                                    </button>
+                                        <span
+                                            style={{
+                                                fontSize: 10,
+                                                fontWeight: 700,
+                                            }}
+                                        >
+                                            IN
+                                        </span>
+                                    </LocatorActionButton>
                                 </div>
                             </div>
 
@@ -466,13 +425,15 @@ export function LocatorList({
                                 <div
                                     style={{
                                         padding:
-                                            "8px 10px",
+                                            `${spacing.sm}px ${spacing.sm + 2}px`,
                                         borderRadius:
-                                            6,
+                                            radius.xs,
                                         background:
-                                            "#0D1117",
+                                            colors
+                                                .background,
                                         color:
-                                            "#C9D1D9",
+                                            colors
+                                                .text,
                                         fontFamily:
                                             "monospace",
                                         fontSize:
@@ -495,7 +456,8 @@ export function LocatorList({
                                             marginTop:
                                                 7,
                                             color:
-                                                "#6E7681",
+                                                colors
+                                                    .textMuted,
                                             fontSize:
                                                 10,
                                             lineHeight:
@@ -522,15 +484,17 @@ export function LocatorList({
                                             padding:
                                                 "7px 8px",
                                             borderRadius:
-                                                6,
+                                                radius.xs,
                                             background:
                                                 result.found
-                                                    ? "rgba(63,185,80,.08)"
-                                                    : "rgba(248,81,73,.08)",
+                                                    ? `${colors.success}14`
+                                                    : `${colors.danger}14`,
                                             color:
                                                 result.found
-                                                    ? "#3FB950"
-                                                    : "#F85149",
+                                                    ? colors
+                                                          .success
+                                                    : colors
+                                                          .danger,
                                             fontSize:
                                                 10,
                                             lineHeight:
@@ -597,6 +561,59 @@ export function LocatorList({
 }
 
 
+
+interface LocatorActionButtonProps {
+    title: string;
+
+    children: React.ReactNode;
+
+    onClick(): void;
+
+    disabled?: boolean;
+
+    opacity?: number;
+
+    color?: string;
+}
+
+function LocatorActionButton({
+    title,
+    children,
+    onClick,
+    disabled = false,
+    opacity = 1,
+    color = colors.textSecondary,
+}: LocatorActionButtonProps) {
+    return (
+        <button
+            type="button"
+            disabled={disabled}
+            onClick={onClick}
+            title={title}
+            style={{
+                display: "grid",
+                placeItems: "center",
+                width: 28,
+                height: 28,
+                padding: 0,
+                border: "none",
+                borderRadius:
+                    radius.xs,
+                background:
+                    "transparent",
+                color,
+                cursor: disabled
+                    ? "default"
+                    : "pointer",
+                opacity,
+                transition:
+                    "all .15s",
+            }}
+        >
+            {children}
+        </button>
+    );
+}
 
 function getLocatorKey(
     locator: LocatorCandidate,

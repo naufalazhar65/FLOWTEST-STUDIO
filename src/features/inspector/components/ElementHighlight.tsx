@@ -1,3 +1,8 @@
+import {
+    colors,
+    radius,
+} from "../../../themes";
+
 import type { ElementInfo } from "../types/ElementInfo";
 
 interface ElementHighlightProps {
@@ -51,11 +56,13 @@ export function ElementHighlight({
         return (
             <div
                 style={{
-                    padding: "10px 12px",
+                    padding:
+                        "10px 12px",
                     fontSize: 11,
-                    color: "#8B949E",
+                    color:
+                        colors.textSecondary,
                     borderTop:
-                        "1px solid #30363D",
+                        `1px solid ${colors.border}`,
                 }}
             >
                 Bounds are not available for
@@ -74,14 +81,21 @@ export function ElementHighlight({
         <div
             style={{
                 borderTop:
-                    "1px solid #30363D",
-                padding: "10px 12px",
+                    `1px solid ${colors.border}`,
+                padding:
+                    "10px 12px",
             }}
         >
             <div
                 style={{
                     fontSize: 11,
-                    color: "#8B949E",
+                    fontWeight: 600,
+                    textTransform:
+                        "uppercase",
+                    letterSpacing:
+                        "0.06em",
+                    color:
+                        colors.textSecondary,
                     marginBottom: 8,
                 }}
             >
@@ -120,10 +134,11 @@ export function ElementHighlight({
                     position: "relative",
                     height: 120,
                     border:
-                        "1px solid #30363D",
-                    borderRadius: 6,
+                        `1px solid ${colors.border}`,
+                    borderRadius:
+                        radius.sm,
                     background:
-                        "#161B22",
+                        colors.panel,
                     overflow: "hidden",
                 }}
             >
@@ -142,9 +157,9 @@ export function ElementHighlight({
                         maxWidth: "100%",
                         maxHeight: "100%",
                         border:
-                            "2px solid #58A6FF",
+                            `2px solid ${colors.accentHover}`,
                         background:
-                            "rgba(88,166,255,0.15)",
+                            `${colors.accentHover}26`,
                         boxSizing:
                             "border-box",
                     }}

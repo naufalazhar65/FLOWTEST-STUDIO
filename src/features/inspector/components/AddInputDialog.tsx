@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
 
+import {
+    colors,
+    radius,
+} from "../../../themes";
+
 interface Props {
     open: boolean;
     locatorStrategy: string;
@@ -50,7 +55,7 @@ export function AddInputDialog({
                 alignItems: "center",
                 justifyContent: "center",
                 background:
-                    "rgba(0, 0, 0, 0.55)",
+                    colors.overlay,
             }}
             onMouseDown={(event) => {
                 if (
@@ -69,17 +74,18 @@ export function AddInputDialog({
                         "calc(100vw - 32px)",
                     padding: 18,
                     border:
-                        "1px solid #30363D",
-                    borderRadius: 10,
+                        `1px solid ${colors.border}`,
+                    borderRadius:
+                        radius.md,
                     background:
-                        "#161B22",
+                        colors.panel,
                     boxShadow:
                         "0 20px 50px rgba(0,0,0,.4)",
                 }}
             >
                 <div
                     style={{
-                        color: "#F0F6FC",
+                        color: colors.text,
                         fontSize: 15,
                         fontWeight: 600,
                         marginBottom: 4,
@@ -90,7 +96,8 @@ export function AddInputDialog({
 
                 <div
                     style={{
-                        color: "#8B949E",
+                        color:
+                            colors.textSecondary,
                         fontSize: 11,
                         marginBottom: 16,
                     }}
@@ -107,7 +114,8 @@ export function AddInputDialog({
                     <div
                         style={{
                             marginBottom: 6,
-                            color: "#8B949E",
+                            color:
+                                colors.textSecondary,
                             fontSize: 11,
                             fontWeight: 600,
                         }}
@@ -119,10 +127,11 @@ export function AddInputDialog({
                         style={{
                             padding:
                                 "8px 10px",
-                            borderRadius: 6,
+                            borderRadius:
+                                radius.xs,
                             background:
-                                "#0D1117",
-                            color: "#C9D1D9",
+                                colors.background,
+                            color: colors.text,
                             fontFamily:
                                 "monospace",
                             fontSize: 11,
@@ -143,7 +152,7 @@ export function AddInputDialog({
                                 "block",
                             marginBottom: 6,
                             color:
-                                "#8B949E",
+                                colors.textSecondary,
                             fontSize: 11,
                             fontWeight:
                                 600,
@@ -170,13 +179,14 @@ export function AddInputDialog({
                             padding:
                                 "9px 10px",
                             border:
-                                "1px solid #30363D",
-                            borderRadius: 6,
+                                `1px solid ${colors.borderLight}`,
+                            borderRadius:
+                                radius.xs,
                             outline: "none",
                             background:
-                                "#0D1117",
+                                colors.background,
                             color:
-                                "#F0F6FC",
+                                colors.text,
                             fontSize: 12,
                         }}
                     />
@@ -199,12 +209,13 @@ export function AddInputDialog({
                             padding:
                                 "8px 12px",
                             border:
-                                "1px solid #30363D",
-                            borderRadius: 6,
+                                `1px solid ${colors.borderLight}`,
+                            borderRadius:
+                                radius.xs,
                             background:
                                 "transparent",
                             color:
-                                "#C9D1D9",
+                                colors.text,
                             cursor:
                                 "pointer",
                             fontSize: 12,
@@ -222,12 +233,13 @@ export function AddInputDialog({
                             padding:
                                 "8px 12px",
                             border:
-                                "1px solid #3B82F6",
-                            borderRadius: 6,
+                                `1px solid ${colors.accent}`,
+                            borderRadius:
+                                radius.xs,
                             background:
                                 text.trim()
-                                    ? "#2563EB"
-                                    : "#1F2937",
+                                    ? colors.accent
+                                    : colors.disabled,
                             color:
                                 "#FFFFFF",
                             cursor:
@@ -235,6 +247,7 @@ export function AddInputDialog({
                                     ? "pointer"
                                     : "default",
                             fontSize: 12,
+                            fontWeight: 600,
                             opacity:
                                 text.trim()
                                     ? 1

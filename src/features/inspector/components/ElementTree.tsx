@@ -4,6 +4,11 @@ import {
     ChevronRight,
 } from "lucide-react";
 
+import {
+    colors,
+    spacing,
+} from "../../../themes";
+
 import type { ElementInfo } from "../types/ElementInfo";
 
 import { useInspectorStore } from "../store/useInspectorStore";
@@ -20,7 +25,8 @@ export function ElementTree({
             <div
                 style={{
                     padding: 20,
-                    color: "#8B949E",
+                    color:
+                        colors.textSecondary,
                     fontSize: 13,
                 }}
             >
@@ -103,10 +109,11 @@ function ElementTreeNode({
                     display: "flex",
                     alignItems: "center",
                     minHeight: 32,
-                    paddingRight: 8,
+                    paddingRight:
+                        spacing.sm,
                     background:
                         selected
-                            ? "rgba(124, 92, 252, 0.15)"
+                            ? `${colors.accent}29`
                             : "transparent",
                 }}
             >
@@ -129,11 +136,12 @@ function ElementTreeNode({
                         display: "grid",
                         placeItems: "center",
                         padding: 0,
-                        marginLeft: depth * 12,
+                        marginLeft:
+                            depth * 12,
                         border: "none",
                         background: "transparent",
                         color: hasChildren
-                            ? "#8B949E"
+                            ? colors.textSecondary
                             : "transparent",
                         cursor: hasChildren
                             ? "pointer"
@@ -174,8 +182,8 @@ function ElementTreeNode({
                         background:
                             "transparent",
                         color: selected
-                            ? "#F0F6FC"
-                            : "#C9D1D9",
+                            ? colors.text
+                            : colors.text,
                         cursor:
                             "pointer",
                         textAlign:
@@ -189,12 +197,12 @@ function ElementTreeNode({
                             height: 8,
                             flexShrink: 0,
                             border:
-                                "1px solid #6E7681",
+                                `1px solid ${colors.textMuted}`,
                             borderRadius:
                                 "50%",
                             background:
                                 selected
-                                    ? "#7C5CFC"
+                                    ? colors.accent
                                     : "transparent",
                         }}
                     />
@@ -205,11 +213,14 @@ function ElementTreeNode({
                             minWidth: 68,
                             color:
                                 selected
-                                    ? "#A78BFA"
-                                    : "#7C5CFC",
+                                    ? colors
+                                          .accentHover
+                                    : colors
+                                          .accent,
                             fontFamily:
                                 "monospace",
                             fontSize: 11,
+                            fontWeight: 500,
                         }}
                     >
                         {getShortElementType(
@@ -227,9 +238,7 @@ function ElementTreeNode({
                                     textOverflow: "ellipsis",
                                     whiteSpace: "nowrap",
                                     color:
-                                        selected
-                                            ? "#F0F6FC"
-                                            : "#C9D1D9",
+                                        colors.text,
                                     fontSize: 12,
                                     fontWeight:
                                         displayName !==

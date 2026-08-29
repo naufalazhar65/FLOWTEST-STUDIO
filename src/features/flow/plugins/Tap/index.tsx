@@ -2,6 +2,7 @@ import { MousePointerClick } from "lucide-react";
 
 import type { NodePlugin } from "../../types/NodePlugin";
 import type { FlowNodeData } from "../../types/flowNode";
+import { LOCATOR_STRATEGIES } from "../shared/locatorStrategies";
 
 export const tapNode: NodePlugin = {
   type: "tap",
@@ -32,15 +33,7 @@ export const tapNode: NodePlugin = {
       key: "locatorStrategy",
       label: "Locator Strategy",
       type: "select",
-      options: [
-        "id",
-        "xpath",
-        "accessibilityId",
-        "className",
-        "androidUiAutomator",
-        "iOSPredicateString",
-        "iOSClassChain",
-      ],
+      options: LOCATOR_STRATEGIES,
     },
 
     {

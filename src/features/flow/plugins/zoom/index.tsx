@@ -2,6 +2,7 @@ import { Expand } from "lucide-react";
 
 import type { NodePlugin } from "../../types/NodePlugin";
 import type { ZoomNodeData } from "../../types/flowNode";
+import { LOCATOR_STRATEGIES } from "../shared/locatorStrategies";
 
 export const zoomPlugin: NodePlugin = {
     type: "zoom",
@@ -38,15 +39,7 @@ export const zoomPlugin: NodePlugin = {
             key: "locatorStrategy",
             label: "Locator Strategy",
             type: "select",
-            options: [
-                "id",
-                "xpath",
-                "accessibilityId",
-                "className",
-                "androidUiAutomator",
-                "iOSPredicateString",
-                "iOSClassChain",
-            ],
+            options: LOCATOR_STRATEGIES,
         },
         {
             key: "locator",

@@ -5,6 +5,13 @@ import {
 } from "lucide-react";
 
 import {
+    colors,
+    radius,
+    spacing,
+    typography,
+} from "../../themes";
+
+import {
     InspectorPanel,
 } from "../inspector/InspectorPanel";
 
@@ -41,7 +48,7 @@ export function RightPanel() {
                     "column",
                 minHeight: 0,
                 background:
-                    "#0D1117",
+                    colors.background,
             }}
         >
             {/* Tabs */}
@@ -49,10 +56,13 @@ export function RightPanel() {
                 style={{
                     display: "flex",
                     flexShrink: 0,
+                    gap: spacing.xs,
+                    padding:
+                        `${spacing.xs}px ${spacing.xs}px 0`,
                     borderBottom:
-                        "1px solid #30363D",
+                        `1px solid ${colors.border}`,
                     background:
-                        "#161B22",
+                        colors.panel,
                 }}
             >
                 <TabButton
@@ -214,22 +224,30 @@ function TabButton({
                 flex: 1,
                 minWidth: 0,
                 padding:
-                    "12px 10px",
+                    `${spacing.sm}px ${spacing.xs}px`,
                 cursor: "pointer",
                 border: "none",
-                background:
-                    "transparent",
                 borderBottom:
                     active
-                        ? "2px solid #3B82F6"
+                        ? `2px solid ${colors.accent}`
                         : "2px solid transparent",
+                borderTopLeftRadius:
+                    radius.sm,
+                borderTopRightRadius:
+                    radius.sm,
+                background:
+                    active
+                        ? colors.background
+                        : "transparent",
                 color: active
-                    ? "#FFFFFF"
-                    : "#8B949E",
+                    ? colors.text
+                    : colors.textSecondary,
                 fontWeight: 600,
-                fontSize: 12,
+                fontSize:
+                    typography.tiny
+                        .fontSize,
                 transition:
-                    "all .2s",
+                    "all .18s",
             }}
         >
             {children}

@@ -1,3 +1,9 @@
+import {
+    colors,
+    radius,
+    spacing,
+} from "../../../themes";
+
 import { useInspectorStore } from "../store/useInspectorStore";
 
 export function ElementProperties() {
@@ -16,7 +22,8 @@ export function ElementProperties() {
                     alignItems: "center",
                     justifyContent: "center",
                     padding: 24,
-                    color: "#8B949E",
+                    color:
+                        colors.textSecondary,
                     fontSize: 13,
                     textAlign: "center",
                 }}
@@ -32,22 +39,25 @@ export function ElementProperties() {
             style={{
                 height: "100%",
                 overflowY: "auto",
-                padding: 16,
+                padding: spacing.lg,
                 boxSizing: "border-box",
             }}
         >
             {/* Header */}
             <div
                 style={{
-                    paddingBottom: 16,
-                    marginBottom: 16,
+                    paddingBottom:
+                        spacing.lg,
+                    marginBottom:
+                        spacing.lg,
                     borderBottom:
-                        "1px solid #30363D",
+                        `1px solid ${colors.border}`,
                 }}
             >
                 <div
                     style={{
-                        color: "#A78BFA",
+                        color:
+                            colors.accent,
                         fontFamily:
                             "monospace",
                         fontSize: 12,
@@ -60,8 +70,10 @@ export function ElementProperties() {
                 {getElementName(element) && (
                     <div
                         style={{
-                            marginTop: 6,
-                            color: "#F0F6FC",
+                            marginTop:
+                                spacing.sm,
+                            color:
+                                colors.text,
                             fontSize: 15,
                             fontWeight: 600,
                             wordBreak:
@@ -179,13 +191,16 @@ function PropertySection({
         >
             <div
                 style={{
-                    marginBottom: 8,
-                    color: "#8B949E",
+                    marginBottom:
+                        spacing.sm,
+                    color:
+                        colors.textSecondary,
                     fontSize: 11,
                     fontWeight: 700,
                     textTransform:
                         "uppercase",
-                    letterSpacing: 0.6,
+                    letterSpacing:
+                        "0.08em",
                 }}
             >
                 {title}
@@ -197,8 +212,9 @@ function PropertySection({
                     flexDirection: "column",
                     gap: 1,
                     border:
-                        "1px solid #30363D",
-                    borderRadius: 8,
+                        `1px solid ${colors.border}`,
+                    borderRadius:
+                        radius.sm,
                     overflow: "hidden",
                 }}
             >
@@ -233,17 +249,18 @@ function PropertyRow({
                 display: "grid",
                 gridTemplateColumns:
                     "110px minmax(0, 1fr)",
-                gap: 12,
+                gap: spacing.md,
                 padding:
-                    "8px 10px",
+                    `${spacing.sm}px ${spacing.sm + 2}px`,
                 background:
-                    "rgba(255,255,255,0.015)",
+                    `${colors.text}04`,
                 fontSize: 12,
             }}
         >
             <span
                 style={{
-                    color: "#8B949E",
+                    color:
+                        colors.textSecondary,
                 }}
             >
                 {label}
@@ -252,7 +269,8 @@ function PropertyRow({
             <span
                 style={{
                     minWidth: 0,
-                    color: "#F0F6FC",
+                    color:
+                        colors.text,
                     fontFamily:
                         "monospace",
                     whiteSpace:

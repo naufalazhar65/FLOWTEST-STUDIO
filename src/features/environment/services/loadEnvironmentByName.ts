@@ -7,11 +7,17 @@ import {
 } from "./loadEnvironment";
 
 import type {
+    LoadEnvironmentOptions,
+} from "./loadEnvironment";
+
+import type {
     EnvironmentName,
 } from "../types/EnvironmentProfile";
 
 export function loadEnvironmentByName(
     name: EnvironmentName,
+    options?:
+        LoadEnvironmentOptions,
 ): void {
     const environment =
         useEnvironmentStore
@@ -32,5 +38,6 @@ export function loadEnvironmentByName(
 
     loadEnvironment(
         environment,
+        options,
     );
 }

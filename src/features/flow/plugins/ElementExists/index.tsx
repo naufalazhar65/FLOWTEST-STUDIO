@@ -1,6 +1,8 @@
+import { SearchCheck } from "lucide-react";
+
 import type { NodePlugin } from "../../types/NodePlugin";
 import type { FlowNodeData } from "../../types/flowNode";
-import { SearchCheck } from "lucide-react";
+import { LOCATOR_STRATEGIES } from "../shared/locatorStrategies";
 
 export const elementExistsNode: NodePlugin = {
     type: "elementExists",
@@ -32,7 +34,7 @@ export const elementExistsNode: NodePlugin = {
             key: "locatorStrategy",
             label: "Locator Strategy",
             type: "select",
-            options: ["id", "xpath", "accessibilityId"],
+            options: LOCATOR_STRATEGIES,
         },
         {
             key: "locator",

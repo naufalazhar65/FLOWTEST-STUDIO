@@ -1,236 +1,37 @@
-import {
-    ToolbarGroup,
-} from "../ui/ToolbarGroup";
+import { ToolbarGroup } from "../ui/ToolbarGroup";
+import { ProjectMenu } from "./ProjectMenu";
+import { RunButton } from "./RunButton";
+import { useProjectStore } from "../../features/project/store/useProjectStore";
+import { RetrySettings } from "../../features/execution/components/RetrySettings";
 
-import {
-    ProjectMenu,
-} from "./ProjectMenu";
-
-import {
-    RunButton,
-} from "./RunButton";
-
-import {
-    useProjectStore,
-} from "../../features/project/store/useProjectStore";
-
-import {
-    EnvironmentSelector,
-} from "../../features/environment/components/EnvironmentSelector";
-
-import {
-    DatasetSelector,
-} from "../../features/testdata/components/DatasetSelector";
-
-import {
-    RetrySettings,
-} from "../../features/execution/components/RetrySettings";
+function VerticalDivider() {
+  return <div className="h-[22px] w-px bg-[#30363D] flex-shrink-0" aria-hidden="true" />;
+}
 
 export function ActionSection() {
-    const name =
-        useProjectStore(
-            (state) =>
-                state.name,
-        );
+  const name = useProjectStore((state) => state.name);
+  const modified = useProjectStore((state) => state.isModified);
 
-    const modified =
-        useProjectStore(
-            (state) =>
-                state.isModified,
-        );
+  return (
+    <div className="flex items-center gap-3 min-w-0">
+      {/* Project menu - fleksibel tapi tidak memakan terlalu banyak ruang */}
+      <div className="flex-shrink min-w-0 overflow-hidden">
+        <ProjectMenu name={name} modified={modified} />
+      </div>
 
-    return (
-        <div
-            style={{
-                display:
-                    "grid",
+      {/* Divider */}
+      <VerticalDivider />
 
-                gridTemplateColumns:
-                    "minmax(0, 1fr) auto",
-
-                alignItems:
-                    "center",
-
-                columnGap:
-                    8,
-
-                width:
-                    "100%",
-
-                minWidth:
-                    0,
-
-                overflow:
-                    "visible",
-            }}
-        >
-            {/* Context controls */}
-            <div
-                style={{
-                    display:
-                        "flex",
-
-                    alignItems:
-                        "center",
-
-                    gap:
-                        6,
-
-                    minWidth:
-                        0,
-
-                    overflow:
-                        "hidden",
-                }}
-            >
-                {/* Project */}
-                <div
-                    style={{
-                        flexShrink:
-                            1,
-
-                        minWidth:
-                            0,
-
-                        overflow:
-                            "hidden",
-                    }}
-                >
-                    <ProjectMenu
-                        name={name}
-                        modified={
-                            modified
-                        }
-                    />
-                </div>
-
-                {/* Divider */}
-                <div
-                    style={{
-                        width:
-                            1,
-
-                        height:
-                            22,
-
-                        background:
-                            "#30363D",
-
-                        flexShrink:
-                            0,
-                    }}
-                />
-
-                {/* Environment */}
-                <div
-                    style={{
-                        flexShrink:
-                            0,
-                    }}
-                >
-                    <EnvironmentSelector />
-                </div>
-
-                {/* Divider */}
-                <div
-                    style={{
-                        width:
-                            1,
-
-                        height:
-                            22,
-
-                        background:
-                            "#30363D",
-
-                        flexShrink:
-                            0,
-                    }}
-                />
-
-                {/* Dataset */}
-                <div
-                    style={{
-                        flexShrink:
-                            1,
-
-                        minWidth:
-                            0,
-
-                        overflow:
-                            "hidden",
-                    }}
-                >
-                    <DatasetSelector />
-                </div>
-            </div>
-
-            {/* Execution controls */}
-            <div
-                style={{
-                    display:
-                        "flex",
-
-                    alignItems:
-                        "center",
-
-                    gap:
-                        6,
-
-                    flexShrink:
-                        0,
-
-                    position:
-                        "relative",
-
-                    overflow:
-                        "visible",
-                }}
-            >
-                {/* Divider */}
-                <div
-                    style={{
-                        width:
-                            1,
-
-                        height:
-                            22,
-
-                        background:
-                            "#30363D",
-
-                        flexShrink:
-                            0,
-                    }}
-                />
-
-                {/* Retry */}
-                <ToolbarGroup>
-                    <RetrySettings />
-                </ToolbarGroup>
-
-                {/* Divider */}
-                <div
-                    style={{
-                        width:
-                            1,
-
-                        height:
-                            22,
-
-                        background:
-                            "#30363D",
-
-                        flexShrink:
-                            0,
-                    }}
-                />
-
-                {/* Run */}
-                <ToolbarGroup>
-                    <RunButton />
-                </ToolbarGroup>
-            </div>
-        </div>
-    );
+      {/* Execution controls */}
+      <div className="flex items-center gap-2 flex-shrink-0">
+        <ToolbarGroup>
+          <RetrySettings />
+        </ToolbarGroup>
+        <VerticalDivider />
+        <ToolbarGroup>
+          <RunButton />
+        </ToolbarGroup>
+      </div>
+    </div>
+  );
 }

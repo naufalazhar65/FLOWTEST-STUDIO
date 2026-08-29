@@ -4,6 +4,7 @@ import type { FlowNodeData } from "../../types/flowNode";
 import type { NodePlugin } from "../../types/NodePlugin";
 
 import { createElementGetterPreview } from "../shared/createElementGetterPreview";
+import { LOCATOR_STRATEGIES } from "../shared/locatorStrategies";
 
 export const getSizePlugin: NodePlugin = {
     type: "getSize",
@@ -35,11 +36,7 @@ export const getSizePlugin: NodePlugin = {
             key: "locatorStrategy",
             label: "Locator Strategy",
             type: "select",
-            options: [
-                "id",
-                "xpath",
-                "accessibilityId",
-            ],
+            options: LOCATOR_STRATEGIES,
         },
         {
             key: "locator",
