@@ -225,13 +225,25 @@ These capabilities form the current baseline and should be preserved as future w
 
 ### Remaining scope
 
-- [ ] Display a node/edge diff before applying an AI change
+- [x] Display a node/edge diff before applying an AI change
 - [ ] Require explicit approval for auto-healing configuration changes
 - [ ] Store AI request, rationale, confidence, plan, outcome, and rollback reference
 - [ ] Add per-project AI settings and allowed-operation policies
 - [ ] Improve ambiguity handling with interactive clarification
 - [ ] Keep secret-redaction rules active in every AI context
 - [ ] Measure healing success, rerun success, and rejected recommendations
+
+> **Status (diff before apply):** sebelum menerapkan rencana AI, pengguna melihat
+> ringkasan diff graf (node/edge) lewat modul murni `computePlanDiff`
+> (`src/features/ai/services/flowPlanDiff.ts`). Modul ini memproyeksikan
+> `AIFlowPlan` maupun `ModificationPlan` ke salinan `(nodes, edges)` memakai
+> action-action murni yang sama dengan aplikator sungguhan, lalu menghitung delta:
+> node added/modified/removed (beserta perubahan field per node) dan edge
+> added/removed (dibanding berdasar signature edge, bukan id, agar tidak noise
+> saat reconnect). Ringkasan "Changes this will make" dirender reaktif terhadap
+> `useFlowStore` di panel `AIFlowPreview` (flow plan) dan `ModificationPreview`
+> (modification plan) sebelum tombol Apply. Unit test: 6 kasus (add node/edge,
+> append, update locator, delete node, rewiring `addNodeAfter`, step tak didukung).
 
 ### Exit criteria
 
