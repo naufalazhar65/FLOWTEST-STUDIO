@@ -7,6 +7,7 @@ import type {
 } from "../../modification/types/ModificationPlan";
 
 import type {
+    AIClarification,
     AIQARecommendation,
 } from "./AIRequest";
 
@@ -32,4 +33,7 @@ export interface AIMessage {
 
     qaRecommendations?:
     AIQARecommendation[];
+
+    clarification?:
+    AIClarification;
 }

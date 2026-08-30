@@ -924,6 +924,184 @@ export function AIMessage({
                             message.content,
                         )}
 
+                        {message.clarification &&
+                            message.clarification.candidates &&
+                            message.clarification.candidates.length >
+                            0 && (
+                            <div
+                                style={{
+                                    marginTop:
+                                        12,
+
+                                    paddingTop:
+                                        10,
+
+                                    borderTop:
+                                        "1px solid #30363D",
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        color:
+                                            "#A371F7",
+
+                                        fontSize:
+                                            11,
+
+                                        fontWeight:
+                                            700,
+
+                                        marginBottom:
+                                            8,
+
+                                        textTransform:
+                                            "uppercase",
+
+                                        letterSpacing:
+                                            "0.04em",
+                                    }}
+                                >
+                                    Pilih Kandidat Node:
+                                </div>
+
+                                <div
+                                    style={{
+                                        display:
+                                            "flex",
+
+                                        flexDirection:
+                                            "column",
+
+                                        gap: 6,
+                                    }}
+                                >
+                                    {message.clarification.candidates.map(
+                                        (
+                                            candidate,
+                                            index,
+                                        ) => {
+                                            const ordinalLabel =
+                                                index ===
+                                                    0
+                                                    ? "Yang pertama"
+                                                    : index ===
+                                                        1
+                                                        ? "Yang kedua"
+                                                        : index ===
+                                                            2
+                                                            ? "Yang ketiga"
+                                                            : `Yang ke-${index + 1}`;
+
+                                            return (
+                                                <button
+                                                    key={
+                                                        candidate.nodeId ??
+                                                        index
+                                                    }
+                                                    type="button"
+                                                    onClick={() => {
+                                                        useAIStore
+                                                            .getState()
+                                                            .sendMessage(
+                                                                ordinalLabel,
+                                                            );
+                                                    }}
+                                                    style={{
+                                                        display:
+                                                            "flex",
+
+                                                        alignItems:
+                                                            "center",
+
+                                                        justifyContent:
+                                                            "space-between",
+
+                                                        padding:
+                                                            "7px 10px",
+
+                                                        border:
+                                                            "1px solid #30363D",
+
+                                                        borderRadius:
+                                                            6,
+
+                                                        background:
+                                                            "#0D1117",
+
+                                                        color:
+                                                            "#E6EDF3",
+
+                                                        fontSize:
+                                                            11,
+
+                                                        textAlign:
+                                                            "left",
+
+                                                        cursor:
+                                                            "pointer",
+                                                    }}
+                                                >
+                                                    <div>
+                                                        <strong
+                                                            style={{
+                                                                color:
+                                                                    "#A371F7",
+                                                                marginRight:
+                                                                    6,
+                                                            }}
+                                                        >
+                                                            {
+                                                                index +
+                                                                1
+                                                            }
+                                                            .
+                                                        </strong>
+
+                                                        {candidate.title ??
+                                                            candidate.action ??
+                                                            "Node"}{" "}
+                                                        <span
+                                                            style={{
+                                                                color:
+                                                                    "#8B949E",
+
+                                                                fontSize:
+                                                                    10,
+
+                                                                fontFamily:
+                                                                    "monospace",
+                                                            }}
+                                                        >
+                                                            (
+                                                            {
+                                                                candidate.nodeId
+                                                            }
+                                                            )
+                                                        </span>
+                                                    </div>
+
+                                                    <span
+                                                        style={{
+                                                            fontSize:
+                                                                10,
+
+                                                            color:
+                                                                "#8957E5",
+
+                                                            fontWeight:
+                                                                600,
+                                                        }}
+                                                    >
+                                                        Pilih &rarr;
+                                                    </span>
+                                                </button>
+                                            );
+                                        },
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
                         {recommendations.length >
                             0 && (
                             <div

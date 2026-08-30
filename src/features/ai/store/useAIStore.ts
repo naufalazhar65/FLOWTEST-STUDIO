@@ -633,6 +633,10 @@ export const useAIStore =
                             qaRecommendations:
                                 finalQARecommendations,
 
+                            clarification:
+                                response.clarification ??
+                                undefined,
+
                             createdAt:
                                 Date.now(),
                         };
