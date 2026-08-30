@@ -20,6 +20,11 @@ import {
     applyAIFlowPlan,
 } from "../services/applyAIFlowPlan";
 
+import type {
+    AIAllowedOperation,
+    AIAssistantSettings,
+} from "../types/AIAssistantSettings";
+
 import {
     applyAIModificationPlan,
 } from "../services/applyAIModificationPlan";
@@ -60,6 +65,43 @@ import type {
 interface AIAssistantProps {
     onClose?: () => void;
 }
+
+const AI_OPERATION_OPTIONS:
+    {
+        operation: AIAllowedOperation;
+        label: string;
+    }[] = [
+        {
+            operation:
+                "interaction",
+            label:
+                "Plan & run interactions (tap, input, launch)",
+        },
+        {
+            operation:
+                "assertion",
+            label:
+                "Add assertions / verifications",
+        },
+        {
+            operation:
+                "locatorRepair",
+            label:
+                "Auto-repair broken locators during healing",
+        },
+        {
+            operation:
+                "addWait",
+            label:
+                "Insert waits when flows are flaky",
+        },
+        {
+            operation:
+                "flowGeneration",
+            label:
+                "Generate flows from a requirement",
+        },
+    ];
 
 type StatusTone =
     | "success"
@@ -114,10 +156,34 @@ export function AIAssistant({
         setIsRunningGeneratedFlow,
     ] = useState(false);
 
-    const [
-        requireHealingApproval,
-        setRequireHealingApproval,
-    ] = useState(true);
+    const aiSettings =
+        useFlowStore(
+            (state) =>
+                state.aiSettings,
+        );
+
+    const setAISettings =
+        useFlowStore(
+            (state) =>
+                state.setAISettings,
+        );
+
+    const requireHealingApproval =
+        aiSettings.requireHealingApproval;
+
+    const allowedOperations =
+        aiSettings.allowedOperations;
+
+    function updateAISettings(
+        patch:
+            Partial<AIAssistantSettings>,
+    ) {
+        setAISettings({
+            ...aiSettings,
+
+            ...patch,
+        });
+    }
 
     const [
         generatedFlowReady,
@@ -393,6 +459,8 @@ export function AIAssistant({
         const result =
             applyAIFlowPlan(
                 draftPlan,
+
+                allowedOperations,
             );
 
         if (
@@ -917,6 +985,8 @@ export function AIAssistant({
                         true,
 
                     requireHealingApproval,
+
+                    allowedOperations,
 
                     onManualHealingPlan:
                         (
@@ -1542,10 +1612,13 @@ export function AIAssistant({
                                     (
                                         event,
                                     ) =>
-                                        setRequireHealingApproval(
-                                            event
-                                                .target
-                                                .checked,
+                                        updateAISettings(
+                                            {
+                                                requireHealingApproval:
+                                                    event
+                                                        .target
+                                                        .checked,
+                                            },
                                         )
                                 }
                                 disabled={
@@ -1558,6 +1631,115 @@ export function AIAssistant({
                             />
                             Require approval before auto-healing config changes
                         </label>
+
+                    <div
+                        style={{
+                            marginTop:
+                                10,
+
+                            display:
+                                "flex",
+
+                            flexDirection:
+                                "column",
+
+                            gap:
+                                6,
+                        }}
+                    >
+                        <div
+                            style={{
+                                fontSize:
+                                    11,
+
+                                color:
+                                    "#8B949E",
+                            }}
+                        >
+                            Allowed AI operations
+                        </div>
+
+                        {AI_OPERATION_OPTIONS.map((
+                            option,
+                        ) => {
+                            const selected =
+                                allowedOperations.includes(
+                                    option.operation,
+                                );
+
+                            return (
+                                <label
+                                    key={
+                                        option.operation
+                                    }
+                                    style={{
+                                        display:
+                                            "flex",
+
+                                        alignItems:
+                                            "center",
+
+                                        gap:
+                                            6,
+
+                                        fontSize:
+                                            11,
+
+                                        color:
+                                            "#C9D1D9",
+
+                                        cursor:
+                                            busy
+                                                ? "not-allowed"
+                                                : "pointer",
+                                    }}
+                                >
+                                    <input
+                                        type="checkbox"
+                                        checked={
+                                            selected
+                                        }
+                                        onChange={(
+                                            event,
+                                        ) => {
+                                            const updated =
+                                                event
+                                                    .target
+                                                    .checked
+                                                    ? [
+                                                        ...allowedOperations,
+                                                        option.operation,
+                                                    ]
+                                                    : allowedOperations.filter(
+                                                        (
+                                                            ops,
+                                                        ) =>
+                                                            ops !==
+                                                            option.operation,
+                                                    );
+
+                                            updateAISettings(
+                                                {
+                                                    allowedOperations:
+                                                        updated,
+                                                },
+                                            );
+                                        }}
+                                        disabled={
+                                            busy
+                                        }
+                                        style={{
+                                            accentColor:
+                                                "#8957E5",
+                                        }}
+                                    />
+                                    {
+                                        option.label
+                                    }
+                                </label>
+                            );
+                        })}
+                    </div>
                     </div>
                 )}
 

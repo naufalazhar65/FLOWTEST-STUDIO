@@ -7,6 +7,10 @@ import {
 
 import { useFlowStore } from "./useFlowStore";
 
+import {
+    DEFAULT_AI_ASSISTANT_SETTINGS,
+} from "../../ai/services/aiSettingsPolicy";
+
 describe("useFlowStore history", () => {
     beforeEach(() => {
         useFlowStore.getState().resetFlow();
@@ -462,4 +466,79 @@ describe("useFlowStore history", () => {
             );
         },
     );
+});
+
+describe("useFlowStore aiSettings", () => {
+    beforeEach(() => {
+        useFlowStore.getState().resetFlow();
+    });
+
+    it("defaults to the AI assistant settings defaults", () => {
+        const { aiSettings } =
+            useFlowStore.getState();
+
+        expect(
+            aiSettings.requireHealingApproval,
+        ).toBe(true);
+
+        expect(
+            aiSettings.allowedOperations,
+        ).toEqual(
+            DEFAULT_AI_ASSISTANT_SETTINGS.allowedOperations,
+        );
+    });
+
+    it("sets requireHealingApproval via setAISettings", () => {
+        useFlowStore.getState().setAISettings({
+            requireHealingApproval: false,
+
+            allowedOperations:
+                useFlowStore.getState().aiSettings.allowedOperations,
+        });
+
+        expect(
+            useFlowStore.getState().aiSettings.requireHealingApproval,
+        ).toBe(false);
+    });
+
+    it("sets allowedOperations via setAISettings", () => {
+        useFlowStore.getState().setAISettings({
+            requireHealingApproval:
+                useFlowStore.getState().aiSettings.requireHealingApproval,
+
+            allowedOperations: [
+                "interaction",
+            ],
+        });
+
+        expect(
+            useFlowStore.getState().aiSettings.allowedOperations,
+        ).toEqual([
+            "interaction",
+        ]);
+    });
+
+    it("keeps aiSettings across unrelated state updates", () => {
+        useFlowStore.getState().setAISettings({
+            requireHealingApproval: false,
+
+            allowedOperations: [
+                "interaction",
+                "locatorRepair",
+            ],
+        });
+
+        useFlowStore.getState().addNode("tap");
+
+        expect(
+            useFlowStore.getState().aiSettings.requireHealingApproval,
+        ).toBe(false);
+
+        expect(
+            useFlowStore.getState().aiSettings.allowedOperations,
+        ).toEqual([
+            "interaction",
+            "locatorRepair",
+        ]);
+    });
 });

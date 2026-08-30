@@ -228,7 +228,7 @@ These capabilities form the current baseline and should be preserved as future w
 - [x] Display a node/edge diff before applying an AI change
 - [x] Require explicit approval for auto-healing configuration changes
 - [x] Store AI request, rationale, confidence, plan, outcome, and rollback reference
-- [ ] Add per-project AI settings and allowed-operation policies
+- [x] Add per-project AI settings and allowed-operation policies
 - [ ] Improve ambiguity handling with interactive clarification
 - [ ] Keep secret-redaction rules active in every AI context
 - [x] Measure healing success, rerun success, and rejected recommendations

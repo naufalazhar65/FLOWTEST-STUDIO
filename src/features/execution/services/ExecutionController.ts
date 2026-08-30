@@ -59,6 +59,14 @@ import {
     getActiveProjectId,
 } from "../../project/storage/activeProject";
 
+import type {
+    AIAllowedOperation,
+} from "../../ai/types/AIAssistantSettings";
+
+import {
+    isOperationAllowed,
+} from "../../ai/services/aiSettingsPolicy";
+
 import {
     useFlowStore,
 } from "../../flow/store/useFlowStore";
@@ -129,6 +137,9 @@ export interface ExecutionControllerOptions {
 
     requireHealingApproval?:
     boolean;
+
+    allowedOperations?:
+    AIAllowedOperation[];
 }
 
 function buildExecuteFlowOptions(
@@ -145,6 +156,47 @@ function buildExecuteFlowOptions(
         skipNodeIds:
             options.skipNodeIds,
     };
+}
+
+function healingFixIsAllowed(
+    failureAnalysis:
+        ReturnType<
+            typeof analyzeExecutionFailure
+        >,
+    allowedOperations:
+        AIAllowedOperation[]
+        | undefined,
+): boolean {
+    if (
+        !allowedOperations
+    ) {
+        return true;
+    }
+
+    const fixType =
+        failureAnalysis?.suggestedFix?.type;
+
+    if (
+        fixType ===
+        "repairLocator"
+    ) {
+        return isOperationAllowed(
+            "locatorRepair",
+            allowedOperations,
+        );
+    }
+
+    if (
+        fixType ===
+        "addWait"
+    ) {
+        return isOperationAllowed(
+            "addWait",
+            allowedOperations,
+        );
+    }
+
+    return true;
 }
 
 function buildVariableExecutionOptions(
@@ -396,15 +448,24 @@ export class ExecutionController {
                 selfHealingPlan.strategy ===
                     "modification";
 
+            const healingOperationAllowed =
+                healingFixIsAllowed(
+                    failureAnalysis,
+                    options?.allowedOperations,
+                );
+
             /*
              * No automatic repair is currently
-             * available, or the repair needs explicit
-             * user approval. Preserve existing behavior
+             * available, the repair needs explicit
+             * user approval, or the repair exceeds
+             * the project's allowed-operation
+             * policies. Preserve existing behavior
              * and propagate the original error.
              */
             if (
                 !selfHealingPlan.canAutoApply ||
-                requiresApproval
+                requiresApproval ||
+                !healingOperationAllowed
             ) {
                 if (
                     requiresApproval &&
@@ -819,7 +880,11 @@ export class ExecutionController {
                         secondHealingPlan.canAutoApply &&
                         secondHealingPlan.modificationPlan &&
                         options?.requireHealingApproval !==
-                            true
+                            true &&
+                        isOperationAllowed(
+                            "locatorRepair",
+                            options?.allowedOperations,
+                        )
                     ) {
                         const secondHealingResult =
                             await executeSelfHealing(

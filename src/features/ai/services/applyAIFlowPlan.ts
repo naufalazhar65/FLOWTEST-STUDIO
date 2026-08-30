@@ -14,6 +14,14 @@ import {
     validateAIFlowPlan,
 } from "./validateAIFlowPlan";
 
+import type {
+    AIAllowedOperation,
+} from "../types/AIAssistantSettings";
+
+import {
+    isOperationAllowed,
+} from "./aiSettingsPolicy";
+
 export interface AIFlowApplyResult {
     success: boolean;
 
@@ -131,9 +139,42 @@ function getSemanticTarget(
     );
 }
 
+function applyActionOperation(
+    action: AIFlowPlan["steps"][number]["action"],
+): AIAllowedOperation {
+    if (
+        action ===
+        "assert"
+    ) {
+        return "assertion";
+    }
+
+    return "interaction";
+}
+
 function applyStep(
     planStep: AIFlowPlan["steps"][number],
+    allowedOperations:
+        AIAllowedOperation[]
+        | undefined,
 ): string {
+    const operation =
+        applyActionOperation(
+            planStep.action,
+        );
+
+    if (
+        allowedOperations &&
+        !isOperationAllowed(
+            operation,
+            allowedOperations,
+        )
+    ) {
+        throw new Error(
+            `AI flow step "${planStep.action}" is blocked by the project's allowed-operation policy.`,
+        );
+    }
+
     const store =
         useFlowStore.getState();
 
@@ -559,6 +600,8 @@ function applyStep(
 
 export function applyAIFlowPlan(
     plan: AIFlowPlan,
+    allowedOperations?:
+        AIAllowedOperation[],
 ): AIFlowApplyResult {
     const validation =
         validateAIFlowPlan(
@@ -595,6 +638,7 @@ export function applyAIFlowPlan(
             const nodeId =
                 applyStep(
                     step,
+                    allowedOperations,
                 );
 
             nodeIds.push(

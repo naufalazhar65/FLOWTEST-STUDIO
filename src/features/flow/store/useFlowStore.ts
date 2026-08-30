@@ -7,6 +7,15 @@ import type {
 
 import type { FlowProject } from "../types/FlowProject";
 
+import type {
+  AIAssistantSettings,
+} from "../../ai/types/AIAssistantSettings";
+
+import {
+  DEFAULT_AI_ASSISTANT_SETTINGS,
+  resolveAISettings,
+} from "../../ai/services/aiSettingsPolicy";
+
 import {
   connectNodesAction,
 } from "../actions/connectNodes";
@@ -84,6 +93,8 @@ interface FlowStore {
 
   clipboard: FlowNode | null;
 
+  aiSettings: AIAssistantSettings;
+
   resetFlow(): void;
 
   undo(): void;
@@ -160,6 +171,10 @@ interface FlowStore {
     id: string | null,
   ): void;
 
+  setAISettings(
+    settings: AIAssistantSettings,
+  ): void;
+
   saveProject(
     name?: string,
     options?: {
@@ -186,6 +201,10 @@ export const useFlowStore =
     selectedNodeId: null,
 
     clipboard: null,
+
+    aiSettings: {
+      ...DEFAULT_AI_ASSISTANT_SETTINGS,
+    },
 
     copyNode: () => {
       const {
@@ -663,14 +682,29 @@ export const useFlowStore =
       const {
         nodes,
         edges,
+        aiSettings,
       } = get();
 
       return createProject(
         name,
         nodes,
         edges,
-        options,
+        {
+          ...options,
+
+          aiSettings,
+        },
       );
+    },
+
+    setAISettings: (
+      settings,
+    ) => {
+      set({
+        aiSettings: {
+          ...settings,
+        },
+      });
     },
 
     loadProject: (
@@ -690,6 +724,11 @@ export const useFlowStore =
         selectedNodeId: null,
 
         clipboard: null,
+
+        aiSettings:
+          resolveAISettings(
+            project.aiSettings,
+          ),
 
         history: [],
 

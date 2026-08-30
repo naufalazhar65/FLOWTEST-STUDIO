@@ -2,9 +2,14 @@ import type { Edge } from "reactflow";
 import type { FlowNode } from "../types/flowNode";
 import type { FlowProject } from "../types/FlowProject";
 
+import type {
+    AIAssistantSettings,
+} from "../../ai/types/AIAssistantSettings";
+
 interface CreateProjectOptions {
   id?: string;
   createdAt?: string;
+  aiSettings?: AIAssistantSettings;
 }
 
 export function createProject(
@@ -36,6 +41,13 @@ export function createProject(
     edges: structuredClone(
       edges,
     ),
+
+    ...(options?.aiSettings
+      ? {
+        aiSettings:
+          options.aiSettings,
+      }
+      : {}),
   };
 }
 
