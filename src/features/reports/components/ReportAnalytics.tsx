@@ -2,9 +2,16 @@ import {
     BarChart3,
     CheckCircle2,
     Clock3,
+    EyeOff,
     TrendingUp,
+    Wrench,
     XCircle,
 } from "lucide-react";
+
+import {
+    summarizeHealingMetrics,
+    useHealingMetricsStore,
+} from "../../execution/store/useHealingMetricsStore";
 
 import type { TestReport } from "../types/TestReport";
 
@@ -79,6 +86,26 @@ export function ReportAnalytics({
         failureReasons.length > 0
             ? failureReasons[0].count
             : 1;
+
+    const healingProjectId =
+        reports.length > 0
+            ? reports[0].projectId
+            : undefined;
+
+    const healingMetrics =
+        summarizeHealingMetrics(
+            healingProjectId
+                ? useHealingMetricsStore
+                      .getState()
+                      .events.filter(
+                          (
+                              event,
+                          ) =>
+                              event.projectId ===
+                              healingProjectId,
+                      )
+                : [],
+        );
 
     if (totalRuns === 0) {
         return null;
@@ -494,6 +521,94 @@ export function ReportAnalytics({
                     )}
                 </AnalyticsPanel>
             </div>
+
+            <AnalyticsPanel title="Self-Healing">
+                <div
+                    style={{
+                        display: "grid",
+                        gridTemplateColumns:
+                            "repeat(3, minmax(0, 1fr))",
+                        gap: 12,
+                    }}
+                >
+                    <HealingMetricCard
+                        icon={
+                            <Wrench
+                                size={16}
+                            />
+                        }
+                        label="Healed"
+                        value={
+                            healingMetrics.healed
+                        }
+                        accent="#8957E5"
+                        subtitle="Repair applied and rerun passed"
+                    />
+
+                    <HealingMetricCard
+                        icon={
+                            <XCircle
+                                size={16}
+                            />
+                        }
+                        label="Healing Failed"
+                        value={
+                            healingMetrics.healingFailed
+                        }
+                        accent="#F85149"
+                        subtitle="Repair or rerun still failed"
+                    />
+
+                    <HealingMetricCard
+                        icon={
+                            <EyeOff
+                                size={16}
+                            />
+                        }
+                        label="Rejected"
+                        value={
+                            healingMetrics.rejected
+                        }
+                        accent="#D29922"
+                        subtitle="Fix surfaced for review, not auto-applied"
+                    />
+                </div>
+
+                {healingMetrics.total > 0 && (
+                    <div
+                        style={{
+                            marginTop: 12,
+                            paddingTop: 10,
+                            borderTop:
+                                "1px solid #21262D",
+                            color: "#8B949E",
+                            fontSize: 10,
+                            lineHeight: 1.5,
+                        }}
+                    >
+                        Reruns:{" "}
+                        {
+                            healingMetrics.rerunAttempted
+                        }{" "}
+                        attempted ·{" "}
+                        {
+                            healingMetrics.rerunSucceeded
+                        }{" "}
+                        succeeded ·{" "}
+                        {(
+                            (healingMetrics.rerunSucceeded /
+                                Math.max(
+                                    healingMetrics.rerunAttempted,
+                                    1,
+                                )) *
+                            100
+                        ).toFixed(
+                            0,
+                        )}
+                        % rerun success rate
+                    </div>
+                )}
+            </AnalyticsPanel>
         </div>
     );
 }
@@ -558,6 +673,76 @@ function AnalyticsCard({
             <div
                 style={{
                     marginTop: 4,
+                    color: "#6E7681",
+                    fontSize: 9,
+                }}
+            >
+                {subtitle}
+            </div>
+        </div>
+    );
+}
+
+function HealingMetricCard({
+    icon,
+    label,
+    value,
+    accent,
+    subtitle,
+}: {
+    icon: React.ReactNode;
+    label: string;
+    value: number;
+    accent: string;
+    subtitle: string;
+}) {
+    return (
+        <div
+            style={{
+                minWidth: 0,
+                padding: 12,
+                border:
+                    "1px solid #30363D",
+                borderRadius: 10,
+                background: "#0D1117",
+            }}
+        >
+            <div
+                style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 7,
+                    color: "#8B949E",
+                    fontSize: 10,
+                }}
+            >
+                <span
+                    style={{
+                        color: accent,
+                    }}
+                >
+                    {icon}
+                </span>
+
+                <span>
+                    {label}
+                </span>
+            </div>
+
+            <div
+                style={{
+                    marginTop: 8,
+                    color: "#E6EDF3",
+                    fontSize: 18,
+                    fontWeight: 700,
+                }}
+            >
+                {value}
+            </div>
+
+            <div
+                style={{
+                    marginTop: 2,
                     color: "#6E7681",
                     fontSize: 9,
                 }}

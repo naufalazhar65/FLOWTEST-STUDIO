@@ -52,6 +52,14 @@ import {
 } from "./executeSelfHealing";
 
 import {
+    useHealingMetricsStore,
+} from "../store/useHealingMetricsStore";
+
+import {
+    getActiveProjectId,
+} from "../../project/storage/activeProject";
+
+import {
     useFlowStore,
 } from "../../flow/store/useFlowStore";
 
@@ -402,6 +410,21 @@ export class ExecutionController {
                     requiresApproval &&
                     selfHealingPlan.modificationPlan
                 ) {
+                    const metricsProjectId =
+                        getActiveProjectId();
+
+                    if (
+                        metricsProjectId
+                    ) {
+                        useHealingMetricsStore
+                            .getState()
+                            .recordRejectedHealing(
+                                metricsProjectId,
+
+                                selfHealingPlan.strategy,
+                            );
+                    }
+
                     options?.onManualHealingPlan?.(
                         selfHealingPlan.modificationPlan,
                     );
@@ -704,6 +727,26 @@ export class ExecutionController {
                     },
                 );
 
+            const healingMetricsProjectId =
+                getActiveProjectId();
+
+            if (
+                healingMetricsProjectId
+            ) {
+                useHealingMetricsStore
+                    .getState()
+                    .recordHealingResult({
+                        projectId:
+                            healingMetricsProjectId,
+
+                        result:
+                            healingResult,
+
+                        strategy:
+                            selfHealingPlan.strategy,
+                    });
+            }
+
             /*
   * The repair and rerun succeeded.
   */
@@ -838,6 +881,26 @@ export class ExecutionController {
                                 },
                             );
 
+                        const secondMetricsProjectId =
+                            getActiveProjectId();
+
+                        if (
+                            secondMetricsProjectId
+                        ) {
+                            useHealingMetricsStore
+                                .getState()
+                                .recordHealingResult({
+                                    projectId:
+                                        secondMetricsProjectId,
+
+                                    result:
+                                        secondHealingResult,
+
+                                    strategy:
+                                        secondHealingPlan.strategy,
+                                });
+                        }
+
                         if (
                             secondHealingResult.status ===
                             "applied"
@@ -859,6 +922,21 @@ export class ExecutionController {
                 "manualReview" &&
                 selfHealingPlan.modificationPlan
             ) {
+                const reviewMetricsProjectId =
+                    getActiveProjectId();
+
+                if (
+                    reviewMetricsProjectId
+                ) {
+                    useHealingMetricsStore
+                        .getState()
+                        .recordRejectedHealing(
+                            reviewMetricsProjectId,
+
+                            selfHealingPlan.strategy,
+                        );
+                }
+
                 options?.onManualHealingPlan?.(
                     selfHealingPlan.modificationPlan,
                 );

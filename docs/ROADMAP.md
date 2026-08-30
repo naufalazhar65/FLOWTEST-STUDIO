@@ -231,7 +231,7 @@ These capabilities form the current baseline and should be preserved as future w
 - [ ] Add per-project AI settings and allowed-operation policies
 - [ ] Improve ambiguity handling with interactive clarification
 - [ ] Keep secret-redaction rules active in every AI context
-- [ ] Measure healing success, rerun success, and rejected recommendations
+- [x] Measure healing success, rerun success, and rejected recommendations
 
 > **Status (diff before apply):** sebelum menerapkan rencana AI, pengguna melihat
 > ringkasan diff graf (node/edge) lewat modul murni `computePlanDiff`
@@ -274,6 +274,22 @@ These capabilities form the current baseline and should be preserved as future w
 > bisa mematikan auto-repair per project. Unit test: 1 kasus (plan `modification`
 > + `canAutoApply` benar, tapi dengan approval plan tetap diserahkan ke
 > `onManualHealingPlan`, tidak auto-apply).
+
+> **Status (healing/rerun/rejected metrics):** hasil self-healing kini diukur dan
+> ditampilkan di UI. Store baru `useHealingMetricsStore`
+> (`src/features/execution/store/useHealingMetricsStore.ts`) mencatat event yang
+> di-scope per project: `healed` (repair diterapkan + rerun lulus), `healingFailed`
+> (repair atau rerun masih gagal), dan `rejected` (perbaikan diserahkan untuk
+> review dan tidak diterapkan otomatis — dicatat di branch `manualReview`/approval
+> `ExecutionController`). Catatan `healed`/`healingFailed` dibawa `strategy`,
+> `rerunAttempted`, dan `rerunSucceeded`. `summarizeHealingMetrics(events)`
+> mengagregasi total, healed, healingFailed, rejected, rerun attempted/succeeded,
+> dan rerun success rate. Panel "Self-Healing" di `ReportAnalytics.tsx` membaca
+> event store untuk project aktif dan menampilkan tiga kartu (Healed, Healing
+> Failed, Rejected) plus ringkasan rerun + success rate. Saat `clear(projectId?)`
+> tidak diberi project, semua project dibersihkan. Unit test: 7 kasus (record
+> healed, record healingFailed, skip `skipped`, record rejected, summarize,
+> clear per project, clear semua).
 
 ### Exit criteria
 
