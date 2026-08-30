@@ -10,6 +10,10 @@ import {
     buildFlowContext,
 } from "./buildFlowContext";
 
+import {
+    redactSensitiveValue,
+} from "../../security/redaction";
+
 import type {
     AIExecutionContext,
 } from "../types/AIExecutionContext";
@@ -33,40 +37,44 @@ export function buildAIExecutionContext(): AIExecutionContext {
             : appium.config.ios;
 
     const nodeResults =
-        execution.nodeResults;
+        redactSensitiveValue(
+            execution.nodeResults,
+        ) as typeof execution.nodeResults;
 
     const nodeExecutionHistory =
-        Object.fromEntries(
-            Object.entries(
-                execution.nodeExecutionHistory ??
-                {},
-            ).map(
-                (
-                    [
-                        nodeId,
-                        history,
-                    ],
-                ) => [
-                        nodeId,
-                        history.map(
-                            (
-                                result,
-                            ) => {
-                                const {
-                                    screenshot,
-                                    pageSource,
-                                    ...aiResult
-                                } = result;
+        redactSensitiveValue(
+            Object.fromEntries(
+                Object.entries(
+                    execution.nodeExecutionHistory ??
+                    {},
+                ).map(
+                    (
+                        [
+                            nodeId,
+                            history,
+                        ],
+                    ) => [
+                            nodeId,
+                            history.map(
+                                (
+                                    result,
+                                ) => {
+                                    const {
+                                        screenshot,
+                                        pageSource,
+                                        ...aiResult
+                                    } = result;
 
-                                void screenshot;
-                                void pageSource;
+                                    void screenshot;
+                                    void pageSource;
 
-                                return aiResult;
-                            },
-                        ),
-                    ],
+                                    return aiResult;
+                                },
+                            ),
+                        ],
+                ),
             ),
-        );
+        ) as typeof execution.nodeExecutionHistory;
 
     const results =
         Object.values(

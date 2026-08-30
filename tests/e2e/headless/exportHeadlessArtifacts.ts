@@ -61,79 +61,9 @@ function decodeBase64(
     );
 }
 
-function isSensitiveKey(
-    key: string,
-): boolean {
-    const normalized =
-        key
-            .replace(
-                /[-_]/g,
-                "",
-            )
-            .toLowerCase();
-
-    return (
-        normalized === "password" ||
-        normalized === "passwd" ||
-        normalized === "secret" ||
-        normalized === "token" ||
-        normalized === "authorization" ||
-        normalized === "apikey" ||
-        normalized === "accesstoken" ||
-        normalized === "refreshtoken"
-    );
-}
-
-function redactSensitiveValue(
-    value: unknown,
-    key?: string,
-): unknown {
-    if (
-        key &&
-        isSensitiveKey(key)
-    ) {
-        return "[REDACTED]";
-    }
-
-    if (
-        Array.isArray(value)
-    ) {
-        return value.map(
-            (item) =>
-                redactSensitiveValue(
-                    item,
-                ),
-        );
-    }
-
-    if (
-        value &&
-        typeof value ===
-        "object"
-    ) {
-        return Object.fromEntries(
-            Object.entries(
-                value as Record<
-                    string,
-                    unknown
-                >,
-            ).map(
-                ([
-                    entryKey,
-                    entryValue,
-                ]) => [
-                        entryKey,
-                        redactSensitiveValue(
-                            entryValue,
-                            entryKey,
-                        ),
-                    ],
-            ),
-        );
-    }
-
-    return value;
-}
+import {
+    redactSensitiveValue,
+} from "../../../src/features/security/redaction";
 
 function sanitizeLog(
     log: ExecutionLog,

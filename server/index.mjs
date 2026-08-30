@@ -8,6 +8,10 @@ import {
 } from "./services/ollamaService.mjs";
 
 import {
+    redactSensitiveValue,
+} from "./services/redaction.mjs";
+
+import {
     buildQAFixPlan,
 } from "./services/qaIntelligence/buildQAFixPlan.mjs";
 
@@ -93,12 +97,18 @@ app.post(
                     });
             }
 
+            const sanitizedContext =
+                redactSensitiveValue(
+                    context,
+                );
+
             const result =
                 await generateAIResponse({
                     message:
                         message.trim(),
 
-                    context,
+                    context:
+                        sanitizedContext,
 
                     clarification:
                         clarification ??
@@ -163,10 +173,15 @@ app.post(
                     });
             }
 
+            const sanitizedContext =
+                redactSensitiveValue(
+                    context,
+                );
+
             const modificationPlan =
                 buildQAFixPlan(
                     recommendation,
-                    context,
+                    sanitizedContext,
                 );
 
             if (
@@ -287,10 +302,15 @@ app.post(
                     });
             }
 
+            const sanitizedContext =
+                redactSensitiveValue(
+                    context,
+                );
+
             const result =
                 await convertTestCaseToFlow(
                     testCase,
-                    context,
+                    sanitizedContext,
                 );
 
             return res.json(

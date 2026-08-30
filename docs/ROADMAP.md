@@ -230,7 +230,7 @@ These capabilities form the current baseline and should be preserved as future w
 - [x] Store AI request, rationale, confidence, plan, outcome, and rollback reference
 - [x] Add per-project AI settings and allowed-operation policies
 - [x] Improve ambiguity handling with interactive clarification
-- [ ] Keep secret-redaction rules active in every AI context
+- [x] Keep secret-redaction rules active in every AI context
 - [x] Measure healing success, rerun success, and rejected recommendations
 
 > **Status (diff before apply):** sebelum menerapkan rencana AI, pengguna melihat

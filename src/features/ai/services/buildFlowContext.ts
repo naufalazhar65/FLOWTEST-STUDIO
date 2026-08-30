@@ -1,4 +1,5 @@
 import { useFlowStore } from "../../flow/store/useFlowStore";
+import { redactSensitiveValue } from "../../security/redaction";
 
 import type {
     AIFlowContext,
@@ -28,30 +29,39 @@ function buildNodeContext(
         unknown
     > = {};
 
-    Object.entries(data).forEach(
-        ([key, value]) => {
-            if (
-                key === "action" ||
-                key === "title" ||
-                key === "subtitle" ||
-                key === "debug" ||
-                key === "locatorStrategy" ||
-                key === "locator"
-            ) {
-                return;
-            }
-
-            details[key] = value;
-        },
-    );
+    Object.entries(data).forEach(([key, value]) => {
+        if (
+            key === "action" ||
+            key === "title" ||
+            key === "subtitle" ||
+            key === "debug" ||
+            key === "locatorStrategy" ||
+            key === "locator"
+        ) {
+            return;
+        }
+        details[key] = redactSensitiveValue(value, key) as unknown;
+    });
 
     return {
         id: node.id,
         action: data.action,
         title: data.title,
         subtitle: data.subtitle,
-        locatorStrategy,
-        locator,
+        locatorStrategy:
+            locatorStrategy !== undefined
+                ? (redactSensitiveValue(
+                      locatorStrategy,
+                      "locatorStrategy",
+                  ) as typeof locatorStrategy)
+                : undefined,
+        locator:
+            locator !== undefined
+                ? (redactSensitiveValue(
+                      locator,
+                      "locator",
+                  ) as typeof locator)
+                : undefined,
         details:
             Object.keys(details).length > 0
                 ? details
