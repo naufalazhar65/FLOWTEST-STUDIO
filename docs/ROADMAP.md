@@ -227,7 +227,7 @@ These capabilities form the current baseline and should be preserved as future w
 
 - [x] Display a node/edge diff before applying an AI change
 - [ ] Require explicit approval for auto-healing configuration changes
-- [ ] Store AI request, rationale, confidence, plan, outcome, and rollback reference
+- [x] Store AI request, rationale, confidence, plan, outcome, and rollback reference
 - [ ] Add per-project AI settings and allowed-operation policies
 - [ ] Improve ambiguity handling with interactive clarification
 - [ ] Keep secret-redaction rules active in every AI context
@@ -244,6 +244,20 @@ These capabilities form the current baseline and should be preserved as future w
 > `useFlowStore` di panel `AIFlowPreview` (flow plan) dan `ModificationPreview`
 > (modification plan) sebelum tombol Apply. Unit test: 6 kasus (add node/edge,
 > append, update locator, delete node, rewiring `addNodeAfter`, step tak didukung).
+
+> **Status (audit history + rollback):** setiap rencana AI yang berhasil diterapkan
+> kini direkam sebagai catatan audit lewat `useAIAuditStore`
+> (`src/features/ai/store/useAIAuditStore.ts`): snapshot `(nodes, edges)` sebelum
+> apply, jenis rencana (flow/modification), ringkasan, timestamp, status, dan diff
+> hasil proyeksi `computePlanDiff`. Snapshot sebelum apply disimpan sebelum mutasi
+> dan direkam hanya saat apply sukses, sehingga `rollback(id)` mengembalikan flow ke
+> keadaan persis sebelum penerapan (dibungkus `runInHistoryBatch` agar dapat
+> di-undo/redo via history flow normal) dan menandai catatan menjadi `rolledBack`
+> (tidak bisa di-rollback dua kali). UI `AIAuditPanel` dirender di bagian bawah
+> `AIAssistant`: daftar tindakan terbaru (kind, ringkasan, waktu, delta node) dengan
+> tombol Undo per record dan tombol Clear. Unit test: 6 kasus (record flow,
+> record modification, rollback mengembalikan data, record rolledBack tak bisa
+> di-undo, clear history, urutan terbaru duluan).
 
 ### Exit criteria
 

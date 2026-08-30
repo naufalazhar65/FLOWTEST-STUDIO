@@ -13,6 +13,10 @@ import {
 } from "../store/useAIStore";
 
 import {
+    useAIAuditStore,
+} from "../store/useAIAuditStore";
+
+import {
     applyAIFlowPlan,
 } from "../services/applyAIFlowPlan";
 
@@ -27,6 +31,10 @@ import {
 import {
     AIChat,
 } from "./AIChat";
+
+import {
+    AIAuditPanel,
+} from "./AIAuditPanel";
 
 import {
     AITestCasePreview,
@@ -283,6 +291,16 @@ export function AIAssistant({
         if (
             draftModificationPlan
         ) {
+            const beforeNodes =
+                useFlowStore
+                    .getState()
+                    .nodes;
+
+            const beforeEdges =
+                useFlowStore
+                    .getState()
+                    .edges;
+
             const result =
                 applyAIModificationPlan(
                     draftModificationPlan,
@@ -299,6 +317,25 @@ export function AIAssistant({
 
                 return;
             }
+
+            useAIAuditStore
+                .getState()
+                .recordAppliedPlan(
+                    {
+                        kind:
+                            "modification",
+
+                        plan:
+                            draftModificationPlan,
+                    },
+                    {
+                        nodes:
+                            beforeNodes,
+
+                        edges:
+                            beforeEdges,
+                    },
+                );
 
             setStatus(
                 `Applied ${result.appliedSteps} modification${result.appliedSteps ===
@@ -337,6 +374,16 @@ export function AIAssistant({
         if (!draftPlan) {
             return;
         }
+
+        const beforeNodes =
+            useFlowStore
+                .getState()
+                .nodes;
+
+        const beforeEdges =
+            useFlowStore
+                .getState()
+                .edges;
 
         const result =
             applyAIFlowPlan(
@@ -402,6 +449,23 @@ export function AIAssistant({
             createdAt:
                 Date.now(),
         });
+
+        useAIAuditStore
+            .getState()
+            .recordAppliedPlan(
+                {
+                    kind: "flow",
+
+                    plan: draftPlan,
+                },
+                {
+                    nodes:
+                        beforeNodes,
+
+                    edges:
+                        beforeEdges,
+                },
+            );
 
         setGeneratedFlowReady(
             true,
@@ -1491,6 +1555,8 @@ export function AIAssistant({
                         </span>
                     </div>
                 )}
+
+                <AIAuditPanel />
             </div>
         </section>
     );
