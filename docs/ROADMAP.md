@@ -184,7 +184,7 @@ These capabilities form the current baseline and should be preserved as future w
 > `concurrency` dan mengembalikan `concurrency`/`batchCount`/`durationTrends`;
 > UI suite menampilkan durasi per-proyek dengan penanda "slowest".
 >
-> Eksekusi paralel sebenarnya lewat **headless CLI**:
+> **Eksekusi paralel lintas-proses (Headless CLI) — OPERASIONAL:**
 > `scripts/run-headless-suite.mjs` mendukung dua mode. Mode `--flow` menjalankan
 > beberapa flow `.flow` lintas-proses (satu proses vitest per flow → isolasi
 > global-singleton tiap worker), memakai pool paralel ber-concurrency
@@ -199,9 +199,12 @@ These capabilities form the current baseline and should be preserved as future w
 > `suite-result.json` lalu membangun ulang `SuiteRunResult` (via modul murni
 > `buildSuiteRunResultFromParallel`) untuk mengisi `lastRun`/`runHistory` dari
 > eksekusi paralel berbasis CLI tanpa harus berjalan in-process.
-> Eksekusi paralel **in-process** (banyak sesi/device dalam satu proses) tetap
-> belum diaktifkan: `ExecutionController`, `VariableStore`, dan sesi Appium
-> tunggal bersifat global dan bertabrakan bila dijalankan paralel in-process.
+>
+> **Eksekusi paralel in-process** (banyak sesi/device dalam satu proses) **DITUNDA**:
+> `ExecutionController`, `VariableStore`, dan sesi Appium tunggal bersifat global
+> dan bertabrakan bila dijalankan paralel in-process. Fondasi aman sudah disiapkan
+> (`VariableStore` refactor ke class + `ExecutionContext.variableStore` untuk
+> isolasi instance).
 
 ### Exit criteria
 

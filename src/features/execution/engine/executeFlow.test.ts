@@ -178,6 +178,9 @@ vi.mock(
     "../variables/VariableStore",
     () => ({
         clearVariables: vi.fn(),
+        getStoreFromContext: vi.fn(() => ({
+            clearVariables: vi.fn(),
+        })),
     }),
 );
 

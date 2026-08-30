@@ -19,7 +19,7 @@ import {
 } from "../graph/GraphNavigator";
 
 import {
-    clearVariables,
+    getStoreFromContext,
 } from "../variables/VariableStore";
 
 import {
@@ -92,7 +92,9 @@ export async function executeFlow(
     if (
         !options?.preserveVariables
     ) {
-        clearVariables();
+        getStoreFromContext(
+            context,
+        ).clearVariables();
     }
 
     execution.startExecution(
