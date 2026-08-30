@@ -1298,6 +1298,143 @@ describe(
                 );
 
                 it(
+                    "surfaces a modification plan for approval and does not auto-apply when requireHealingApproval is set",
+                    async () => {
+                        const failureAnalysis =
+                        {
+                            context:
+                                {},
+
+                            classification:
+                                {},
+
+                            rootCause:
+                                {},
+
+                            suggestedFix:
+                            {
+                                type:
+                                    "addWait",
+                            },
+                        };
+
+                        const modificationPlan =
+                        {
+                            type:
+                                "modification_plan",
+
+                            summary:
+                                "Add synchronization.",
+
+                            operation:
+                            {
+                                type:
+                                    "addNodeBefore",
+
+                                targetNodeId:
+                                    "node-1",
+
+                                step:
+                                {
+                                    action:
+                                        "wait",
+
+                                    title:
+                                        "Wait Until Element",
+
+                                    description:
+                                        "Wait for target.",
+
+                                    locatorStrategy:
+                                        "id",
+
+                                    locator:
+                                        "login",
+
+                                    timeout:
+                                        10000,
+
+                                    pollingInterval:
+                                        500,
+                                },
+                            },
+                        };
+
+                        const onManualHealingPlan =
+                            vi.fn();
+
+                        mocks.analyzeExecutionFailure
+                            .mockReturnValue(
+                                failureAnalysis,
+                            );
+
+                        mocks.buildSelfHealingPlan
+                            .mockReturnValue(
+                                {
+                                    canAutoApply:
+                                        true,
+
+                                    strategy:
+                                        "modification",
+
+                                    confidence:
+                                        "high",
+
+                                    reason:
+                                        "Deterministic repair plan is available.",
+
+                                    modificationPlan,
+
+                                    targetNodeId:
+                                        "node-1",
+                                },
+                            );
+
+                        executeFlowMock
+                            .mockRejectedValue(
+                                new Error(
+                                    "Original failure",
+                                ),
+                            );
+
+                        await expect(
+                            ExecutionController.run(
+                                nodes,
+                                context,
+                                {
+                                    requireHealingApproval:
+                                        true,
+
+                                    onManualHealingPlan,
+                                },
+                            ),
+                        ).rejects.toThrow(
+                            "Original failure",
+                        );
+
+                        expect(
+                            onManualHealingPlan,
+                        ).toHaveBeenCalledTimes(
+                            1,
+                        );
+
+                        expect(
+                            onManualHealingPlan,
+                        ).toHaveBeenCalledWith(
+                            modificationPlan,
+                        );
+
+                        expect(
+                            mocks.executeSelfHealing,
+                        ).not.toHaveBeenCalled();
+
+                        expect(
+                            mocks.applyModificationPlan,
+                        ).not.toHaveBeenCalled();
+                    },
+                );
+
+                it(
                     "propagates a combined error when self-healing and rerun fail",
                     async () => {
                         const failureAnalysis =

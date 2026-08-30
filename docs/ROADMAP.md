@@ -226,7 +226,7 @@ These capabilities form the current baseline and should be preserved as future w
 ### Remaining scope
 
 - [x] Display a node/edge diff before applying an AI change
-- [ ] Require explicit approval for auto-healing configuration changes
+- [x] Require explicit approval for auto-healing configuration changes
 - [x] Store AI request, rationale, confidence, plan, outcome, and rollback reference
 - [ ] Add per-project AI settings and allowed-operation policies
 - [ ] Improve ambiguity handling with interactive clarification
@@ -258,6 +258,22 @@ These capabilities form the current baseline and should be preserved as future w
 > tombol Undo per record dan tombol Clear. Unit test: 6 kasus (record flow,
 > record modification, rollback mengembalikan data, record rolledBack tak bisa
 > di-undo, clear history, urutan terbaru duluan).
+
+> **Status (approval auto-healing config):** perubahan konfigurasi self-healing
+> (strategi `modification` — mis. repair locator yang menulis ulang data node
+> secara otomatis) kini dapat dicegah agar tidak diterapkan tanpa persetujuan.
+> `ExecutionController` menerima opsi `requireHealingApproval` (`src/features/
+> execution/services/ExecutionController.ts`): ketika `true` dan strategi healing
+> adalah `modification`, otomatis dialihkan ke `manualReview` — plan dibawa ke
+> `onManualHealingPlan` (review/Apply di `AIAssistant`) dan error asli dilempar;
+> `executeSelfHealing`/`applyModificationPlan` tidak dipanggil. `runtimeRecovery`
+> (pemulihan state aplikasi, bukan perubahan konfigurasi) tetap berjalan otomatis.
+> Gate yang sama diterapkan juga pada fase healing kedua (locator repair). Di UI,
+> alur eksekusi AI (`AIAssistant`) menyalakan approval ini secara default dengan
+> checkbox "Require approval before auto-healing config changes" sehingga pengguna
+> bisa mematikan auto-repair per project. Unit test: 1 kasus (plan `modification`
+> + `canAutoApply` benar, tapi dengan approval plan tetap diserahkan ke
+> `onManualHealingPlan`, tidak auto-apply).
 
 ### Exit criteria
 

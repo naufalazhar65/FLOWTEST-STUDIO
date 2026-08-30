@@ -118,6 +118,9 @@ export interface ExecutionControllerOptions {
             SelfHealingPlan["modificationPlan"]
         >,
     ) => void;
+
+    requireHealingApproval?:
+    boolean;
 }
 
 function buildExecuteFlowOptions(
@@ -367,13 +370,42 @@ export class ExecutionController {
                 );
 
             /*
+             * Every self-healing configuration change is
+             * the result of a "modification" strategy
+             * (e.g. a locator repair that rewrites node
+             * data). When explicit approval is required,
+             * these must not be applied automatically;
+             * surface the plan for the user to review and
+             * approve via onManualHealingPlan instead.
+             *
+             * Runtime recovery is not a configuration
+             * change (it restores application state), so
+             * it continues to auto-run.
+             */
+            const requiresApproval =
+                options?.requireHealingApproval ===
+                    true &&
+                selfHealingPlan.strategy ===
+                    "modification";
+
+            /*
              * No automatic repair is currently
-             * available. Preserve existing behavior
+             * available, or the repair needs explicit
+             * user approval. Preserve existing behavior
              * and propagate the original error.
              */
             if (
-                !selfHealingPlan.canAutoApply
+                !selfHealingPlan.canAutoApply ||
+                requiresApproval
             ) {
+                if (
+                    requiresApproval &&
+                    selfHealingPlan.modificationPlan
+                ) {
+                    options?.onManualHealingPlan?.(
+                        selfHealingPlan.modificationPlan,
+                    );
+                }
 
                 throw originalError;
             }
@@ -742,7 +774,9 @@ export class ExecutionController {
                         secondHealingPlan.strategy ===
                         "modification" &&
                         secondHealingPlan.canAutoApply &&
-                        secondHealingPlan.modificationPlan
+                        secondHealingPlan.modificationPlan &&
+                        options?.requireHealingApproval !==
+                            true
                     ) {
                         const secondHealingResult =
                             await executeSelfHealing(

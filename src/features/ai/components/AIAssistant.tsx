@@ -115,6 +115,11 @@ export function AIAssistant({
     ] = useState(false);
 
     const [
+        requireHealingApproval,
+        setRequireHealingApproval,
+    ] = useState(true);
+
+    const [
         generatedFlowReady,
         setGeneratedFlowReady,
     ] = useState(false);
@@ -911,6 +916,8 @@ export function AIAssistant({
                     reuseExistingAppiumSession:
                         true,
 
+                    requireHealingApproval,
+
                     onManualHealingPlan:
                         (
                             modificationPlan,
@@ -1502,6 +1509,55 @@ export function AIAssistant({
                                         ? "Running..."
                                         : "Run Generated Flow"}
                         </button>
+
+                        <label
+                            style={{
+                                display:
+                                    "flex",
+
+                                alignItems:
+                                    "center",
+
+                                gap: 6,
+
+                                marginTop:
+                                    8,
+
+                                color:
+                                    "#8B949E",
+
+                                fontSize:
+                                    11,
+
+                                cursor:
+                                    "pointer",
+                            }}
+                        >
+                            <input
+                                type="checkbox"
+                                checked={
+                                    requireHealingApproval
+                                }
+                                onChange={
+                                    (
+                                        event,
+                                    ) =>
+                                        setRequireHealingApproval(
+                                            event
+                                                .target
+                                                .checked,
+                                        )
+                                }
+                                disabled={
+                                    busy
+                                }
+                                style={{
+                                    accentColor:
+                                        "#8957E5",
+                                }}
+                            />
+                            Require approval before auto-healing config changes
+                        </label>
                     </div>
                 )}
 
