@@ -1,5 +1,7 @@
 import type { FlowProject } from "../../../features/flow/types/FlowProject";
 
+import { deserializeProject } from "./flowFileFormat";
+
 export interface OpenProjectResult {
     project: FlowProject;
     file: File;
@@ -45,9 +47,9 @@ export async function openProject(): Promise<
             await file.text();
 
         const project =
-            JSON.parse(
+            deserializeProject(
                 text,
-            ) as FlowProject;
+            );
 
         return {
             project,

@@ -308,7 +308,7 @@ These capabilities form the current baseline and should be preserved as future w
 
 ### Scope
 
-- [ ] Introduce a stable, human-reviewable project/flow file format
+- [x] Introduce a stable, human-reviewable project/flow file format
 - [ ] Add flow revision history, comparison, and restore
 - [ ] Add test impact analysis — skip unaffected suite cases when flows change
 - [ ] Provide Git-friendly import/export workflows
@@ -332,6 +332,16 @@ These capabilities form the current baseline and should be preserved as future w
 > membandingkan `testCase.project` (snapshot) vs flow proyek terbaru di editor,
 > lalu menandai case yang node/edge-nya berubah sebagai "terdampak" untuk
 > direkomendasikan dijalankan ulang (dan sisanya bisa dilewati).
+>
+> **Status (stable flow file format):** format `.flow` kini ber-versioned dan
+> stabil untuk di-diff. Modul murni `flowFileFormat` (`src/features/project/
+> services/flowFileFormat.ts`) menyediakan `serializeProject`/`deserializeProject`:
+> saat disimpan, menulis marker `formatVersion` (saat ini `1`) dan membuang
+> field transien reactflow (`selected`, `dragging`, `positionAbsolute`, dimensi,
+> dsb.) dari node/edge sehingga file JSON bersih dan deterministic antar-save.
+> Semua jalur save (`saveProject`, `saveProjectAs`, `writeProject`,
+> `downloadProject`) dan load (`openProject`, `importProject`) memakai serializer
+> yang sama; file lama tanpa `formatVersion` tetap terbaca (migrasi v1).
 
 ---
 

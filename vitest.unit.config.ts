@@ -20,6 +20,7 @@ export default defineConfig({
 
         exclude: [
             "node_modules/**",
+            ".opencode/**",
             "dist/**",
             "tests/e2e/**",
         ],

@@ -1,5 +1,7 @@
 import type { FlowProject } from "../../../flow/types/FlowProject";
 
+import { serializeProject } from "../flowFileFormat";
+
 import { download } from "./download";
 
 export function downloadProject(
@@ -7,10 +9,6 @@ export function downloadProject(
 ) {
     download(
         `${project.name}.flow.json`,
-        JSON.stringify(
-            project,
-            null,
-            2,
-        ),
+        serializeProject(project),
     );
 }

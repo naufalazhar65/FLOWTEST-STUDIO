@@ -1,5 +1,7 @@
 import type { FlowProject } from "../../../flow/types/FlowProject";
 
+import { serializeProject } from "../flowFileFormat";
+
 export async function saveProjectAs(
     project: FlowProject,
 ): Promise<FileSystemFileHandle | null> {
@@ -26,10 +28,8 @@ export async function saveProjectAs(
             await handle.createWritable();
 
         await writable.write(
-            JSON.stringify(
+            serializeProject(
                 project,
-                null,
-                2,
             ),
         );
 
