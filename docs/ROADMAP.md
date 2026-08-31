@@ -310,6 +310,7 @@ These capabilities form the current baseline and should be preserved as future w
 
 - [ ] Introduce a stable, human-reviewable project/flow file format
 - [ ] Add flow revision history, comparison, and restore
+- [ ] Add test impact analysis — skip unaffected suite cases when flows change
 - [ ] Provide Git-friendly import/export workflows
 - [ ] Add shared project storage abstraction
 - [ ] Add comments or review requests on flow changes
@@ -321,6 +322,16 @@ These capabilities form the current baseline and should be preserved as future w
 - A team can review and restore flow changes without losing execution history.
 - Project files can be versioned meaningfully in source control.
 - Generated automation output can be downloaded as a complete project artifact.
+
+> **Status (Test Impact Analysis — fondasi siap):** setiap suite test case sudah
+> menyimpan `project: FlowProject` (snapshot penuh `nodes`+`edges` dari flow
+> saat case dijalankan/disimpan; lihat `src/features/suites/types/TestSuite.ts`).
+> Pola perbandingan node/edge reusable sudah ada lewat `computePlanDiff`
+> (`src/features/ai/services/flowPlanDiff.ts`). Karena itu Test Impact Analysis
+> dapat dibangun sejak dini — tanpа menunggu versioning penuh — dengan
+> membandingkan `testCase.project` (snapshot) vs flow proyek terbaru di editor,
+> lalu menandai case yang node/edge-nya berubah sebagai "terdampak" untuk
+> direkomendasikan dijalankan ulang (dan sisanya bisa dilewati).
 
 ---
 
